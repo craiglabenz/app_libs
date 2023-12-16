@@ -1,4 +1,4 @@
-name: auth
+name: server_data
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
 publish_to: none
@@ -8,13 +8,8 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  common:
-    path: ../../../common
-  dartz: ^0.10.1
-  db:
-    path: ../db
   shared_data:
-    path: ../../../../packages/shared_data
+    path: ../shared_data
 
 dev_dependencies:
   test: ^1.24.0

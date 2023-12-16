@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   dartz: ^0.10.1
+  shared_data:
+    path: ../../../../packages/shared_data
 
 dev_dependencies:
   mocktail: ^1.0.0

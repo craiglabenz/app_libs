@@ -1,5 +1,4 @@
-import 'package:client_auth/client_auth.dart';
-import 'package:client_data/client_data.dart';
+import 'package:shared_data/shared_data.dart';
 
 class LoginUrl extends ApiUrl {
   const LoginUrl() : super(path: 'login');
