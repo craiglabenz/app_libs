@@ -1,52 +1,30 @@
+// import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:shared_data/shared_data.dart';
 
-class LoadProfile extends ReadApiRequest {
-  LoadProfile({required super.url, required AuthUser user})
-      : _user = user,
-        super(apiKey: user.apiKey);
-
-  final AuthUser _user;
-
-  AuthUser get user => _user;
-}
-
-class UpdateProfile extends WriteApiRequest {
-  UpdateProfile({
-    required super.url,
-    required AuthUser user,
-    required super.body,
-  })  : _user = user,
-        super(apiKey: user.apiKey);
-
-  final AuthUser _user;
-
-  AuthUser get user => _user;
-}
-
 class LoginRequest extends ReadApiRequest {
-  const LoginRequest({
+  LoginRequest({
     required super.url,
-    required this.email,
-    required this.password,
-  });
+    required String email,
+    required String password,
+  }) : super(params: {'email': email, 'password': password});
+}
 
-  final String email;
-  final String password;
-
-  @override
-  Params get params => {'email': email, 'password': password};
+class LoadProfileRequest extends AuthenticatedReadApiRequest {
+  const LoadProfileRequest({required super.url, required super.user});
 }
 
 class RegisterRequest extends WriteApiRequest {
-  const RegisterRequest({
+  RegisterRequest({
     required super.url,
-    required this.email,
-    required this.password,
-  });
+    required String email,
+    required String password,
+  }) : super(body: {'email': email, 'password': password});
+}
 
-  final String email;
-  final String password;
-
-  @override
-  Body get body => {'email': email, 'password': password};
+class UpdateProfileRequest extends AuthenticatedWriteApiRequest {
+  UpdateProfileRequest({
+    required super.url,
+    required super.user,
+    required BaseUser profile,
+  }) : super(body: profile.toJson());
 }

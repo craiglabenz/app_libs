@@ -37,6 +37,9 @@ class FakeRestAuth<T extends BaseUser> implements BaseRestAuth<T> {
       Future.value(profileResults.removeFirst());
 
   @override
-  Future<Either<ApiError, T>> updateUserProfile(AuthUser user, Json newData) =>
+  Future<Either<ApiError, T>> updateUserProfile(
+    AuthUser user,
+    BaseUser profile,
+  ) =>
       Future.value(profileResults.removeFirst());
 }

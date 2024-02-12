@@ -200,14 +200,16 @@ class AuthenticationRepository<T extends BaseUser> {
   Future<Either<AuthenticationError, void>> logOut() async =>
       _streamAuthService.logOut();
 
-  Future<Either<DisplayableError, T>> updateUserProfile(Json data) async {
+  Future<Either<DisplayableError, T>> updateUserProfile(
+    BaseUser profile,
+  ) async {
     assert(
       lastUser != null,
       "Cannot update a user's profile while unauthenticated",
     );
     final profileOrError = await _restAuthService.updateUserProfile(
       lastUser!,
-      data,
+      profile,
     ) as Either<ApiError, T>;
     if (profileOrError.isRight()) {
       final updateProfile = profileOrError.getOrRaise();

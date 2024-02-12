@@ -1,19 +1,19 @@
 import 'dart:io';
 import 'package:shared_data/shared_data.dart';
 
-/// Map of strings to strings.
-typedef Headers = Map<String, String>;
-
 /// {@template ApiRequest}
 /// Container for information needed to submit a network request.
 /// {@endtemplate}
 abstract class ApiRequest {
   /// {@macro ApiRequest}
-  const ApiRequest({required this.url, this.apiKey, Headers headers = const {}})
-      : _headers = headers;
+  const ApiRequest({
+    required this.url,
+    this.user,
+    Headers headers = const {},
+  }) : _headers = headers;
 
   /// Optional authentication token behind this request.
-  final String? apiKey;
+  final AuthUser? user;
 
   /// Destination of this request.
   final ApiUrl url;
@@ -21,17 +21,20 @@ abstract class ApiRequest {
   /// Default content type header.
   String get contentType => 'application/json';
 
-  /// Starter headers for this request. If [apiKey] is not null, it will
+  /// Starter headers for this request. If [user] is not null, its ApiKey will
   /// be added as the authorization header.
   final Headers _headers;
 
+  /// Finalized headers, combining starter headers with the builder method.
+  Headers get headers => buildHeaders();
+
   /// Returns complete map of HTTP headers for this request.
-  Map<String, String> buildHeaders() {
+  Headers buildHeaders() {
     // ignore: omit_local_variable_types
     final Headers headers = Map<String, String>.from(_headers);
     headers['Content-Type'] = contentType;
-    if (apiKey != null) {
-      headers[HttpHeaders.authorizationHeader] = 'Token $apiKey';
+    if (user != null) {
+      headers[HttpHeaders.authorizationHeader] = 'Token ${user!.apiKey}';
     }
     return headers;
   }
@@ -45,13 +48,26 @@ class ReadApiRequest extends ApiRequest {
   /// {@macro ReadApiRequest}
   const ReadApiRequest({
     required super.url,
-    super.apiKey,
     super.headers,
+    super.user,
     this.params,
   });
 
   /// GET/querystring-style payload of this request.
   final Params? params;
+}
+
+/// {@template AuthenticatedReadApiRequest}
+/// Read requests that require user authentication to complete successfully.
+/// {@endtemplate}
+class AuthenticatedReadApiRequest extends ReadApiRequest {
+  /// {@macro AuthenticatedReadApiRequest}
+  const AuthenticatedReadApiRequest({
+    required AuthUser user,
+    required super.url,
+    super.headers,
+    super.params,
+  }) : super(user: user);
 }
 
 /// {@template WriteApiRequest}
@@ -63,11 +79,54 @@ class WriteApiRequest extends ApiRequest {
   /// {@macro WriteApiRequest}
   const WriteApiRequest({
     required super.url,
-    super.apiKey,
+    required this.body,
+    super.user,
     super.headers,
-    this.body,
   });
 
-  /// POST-style payload of this request.
-  final Body? body;
+  /// Request payload in serialized JSON format.
+  final Json? body;
 }
+
+/// {@template AuthenticatedReadApiRequest}
+/// Read requests that require user authentication to complete successfully.
+/// {@endtemplate}
+class AuthenticatedWriteApiRequest extends WriteApiRequest {
+  /// {@macro AuthenticatedWriteApiRequest}
+  const AuthenticatedWriteApiRequest({
+    required AuthUser user,
+    required super.url,
+    super.headers,
+    super.body,
+  }) : super(user: user);
+}
+
+// /// {@template RequestBody}
+// /// Payload for an [ApiRequest]. Extended with Freezed by app libraries.
+// /// {@endtemplate}
+// abstract class RequestBody {
+//   /// {@macro RequestBody}
+//   const RequestBody();
+// }
+
+// /// {@template EmptyRequestBody}
+// /// Empty payload for an [ApiRequest] with no data.
+// /// {@endtemplate}
+// class EmptyRequestBody extends RequestBody {
+//   /// {@macro EmptyBody}
+//   const EmptyRequestBody();
+// }
+
+// /// {@template FlexibleRequestBody}
+// /// Request payload that accepts arbitrary Json. Prefer typed [RequestBody]
+// /// subclasses instead of this.
+// /// {@endtemplate}
+// class FlexibleRequestBody extends RequestBody {
+//   /// {@macro FlexibleBody}
+//   const FlexibleRequestBody(this.json);
+
+//   /// Request payload.
+//   Json json;
+
+//   Json toJson() => json;
+// }

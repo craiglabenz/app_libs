@@ -26,7 +26,10 @@ abstract class BaseRestAuth<T extends BaseUser> {
     required String password,
   });
   Future<Either<ApiError, T>> loadUserProfile(AuthUser user);
-  Future<Either<ApiError, T>> updateUserProfile(AuthUser user, Json newData);
+  Future<Either<ApiError, T>> updateUserProfile(
+    AuthUser user,
+    BaseUser profile,
+  );
 }
 
 class RestAuth<T extends BaseUser> implements BaseRestAuth<T> {
@@ -58,10 +61,10 @@ class RestAuth<T extends BaseUser> implements BaseRestAuth<T> {
   @override
   Future<Either<ApiError, T>> updateUserProfile(
     AuthUser user,
-    Json newData,
+    BaseUser profile,
   ) async {
     final res = await api.update(
-      requestBuilder.buildUpdateProfileRequest(user, newData),
+      requestBuilder.buildUpdateProfileRequest(user, profile),
       partial: true,
     );
     return res.map(
@@ -127,11 +130,18 @@ abstract class RestAuthRequestBuilder {
   ApiUrl get loginUrl;
   ApiUrl get registerUrl;
 
-  LoadProfile buildLoadProfileRequest(AuthUser user) =>
-      LoadProfile(url: loadProfileUrl(user), user: user);
+  LoadProfileRequest buildLoadProfileRequest(AuthUser user) =>
+      LoadProfileRequest(url: loadProfileUrl(user), user: user);
 
-  UpdateProfile buildUpdateProfileRequest(AuthUser user, Json data) =>
-      UpdateProfile(url: updateProfileUrl(user), user: user, body: data);
+  UpdateProfileRequest buildUpdateProfileRequest(
+    AuthUser user,
+    BaseUser profile,
+  ) =>
+      UpdateProfileRequest(
+        url: updateProfileUrl(user),
+        user: user,
+        profile: profile,
+      );
 
   LoginRequest buildLoginRequest({
     required String email,
