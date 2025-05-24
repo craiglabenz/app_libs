@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:dartz/dartz.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:matcher/matcher.dart';
 import 'package:shared_data/shared_data.dart';
 
 part 'results.freezed.dart';
@@ -10,106 +10,194 @@ part 'results.freezed.dart';
 /// WRITE RESULTS
 //////////////////
 
-/// {@template WriteSuccess}
-/// Container for a single object write request which did not encounter any
-/// errors.
-/// {@endtemplate}
-@Freezed()
-class WriteSuccess<T extends Model> with _$WriteSuccess<T> {
-  /// {@macro WriteSuccess}
-  const factory WriteSuccess(T item, {required RequestDetails<T> details}) =
-      _WriteSuccess;
+/// Explanations for why a write request may have failed.
+enum FailureReason {
+  /// Write request failed because of a problem on the server.
+  serverError,
+
+  /// Write request failed because of a problem with the client's request.
+  badRequest;
 }
 
-/// {@template BulkWriteSuccess}
-/// Container for a list write request which did not encounter any errors.
+/// {@template WriteResult}
 /// {@endtemplate}
 @Freezed()
-class BulkWriteSuccess<T extends Model> with _$BulkWriteSuccess<T> {
-  /// {@macro BulkWriteSuccess}
-  const factory BulkWriteSuccess(
-    List<T> items, {
-    required RequestDetails<T> details,
-  }) = _BulkWriteSuccess;
-}
+sealed class WriteResult<T extends Model> with _$WriteResult<T> {
+  const WriteResult._();
 
-/// Note that the result set may be empty, which is not an error.
+  /// {@template WriteSuccess}
+  /// Container for a single object write request which did not encounter any
+  /// errors.
+  /// {@endtemplate}
+  const factory WriteResult.success(T item,
+      {required RequestDetails<T> details}) = WriteSuccess;
 
-/// {@template WriteFailure}
-/// Represents a failure with the write, resulting from either an unexpected
-/// problem on the server or the server rejecting the client's request.
-/// The `message` property should be suitable for showing the user.
-///
-/// This class is used for errors that occurred on either a detail write or a
-/// bulk write.
-/// {@endtemplate}
-@Freezed()
-class WriteFailure<T extends Model> with _$WriteFailure<T> {
-  const WriteFailure._();
+  /// {@template RequestFailure}
+  /// Represents a failure with the write, resulting from either an unexpected
+  /// problem on the server or the server rejecting the client's request.
+  /// The `message` property should be suitable for showing the user.
+  /// {@endtemplate}
+  const factory WriteResult.failure(
+    FailureReason reason,
+    String message,
+  ) = WriteFailure;
 
-  /// Container for a write request that failed to a problem on the server.
-  const factory WriteFailure.serverError(String message) = _WriteServerError;
-
-  /// Container for a write request that failed to a problem with the request.
-  const factory WriteFailure.badRequest(String message) = _WriteClientError;
-
-  /// Constructor which turns an [ApiError] instance into the appropriate flavor
-  /// of [WriteFailure].
-  factory WriteFailure.fromApiError(ApiError e) {
+  /// {@template fromApiError}
+  /// Builder for a failed write attemped, derived from its [ApiError].
+  /// {@endtemplate}
+  factory WriteResult.fromApiError(ApiError e) {
     if (e.statusCode >= HttpStatus.badRequest &&
         e.statusCode < HttpStatus.internalServerError) {
-      return WriteFailure.badRequest(e.error.plain);
+      return WriteFailure(FailureReason.badRequest, e.error.plain);
     } else if (e.statusCode >= HttpStatus.internalServerError) {
-      return WriteFailure.serverError(e.error.plain);
+      return WriteFailure(FailureReason.serverError, e.error.plain);
     }
     // TODO(craiglabenz): Log `e.errorString`
-    return WriteFailure.serverError(
+    return WriteFailure(
+      FailureReason.serverError,
       'Unexpected error: ${e.statusCode} ${e.error.plain}',
     );
   }
+
+  /// Helper to extract expected [WriteSuccess] objects or throw in the case of
+  /// an unexpected [WriteFailure].
+  WriteSuccess<T> getOrRaise() {
+    switch (this) {
+      case WriteSuccess():
+        {
+          return this as WriteSuccess<T>;
+        }
+      case WriteFailure():
+        {
+          throw Exception('Unexpected $runtimeType');
+        }
+    }
+  }
 }
 
-/// Either a [WriteFailure] or a [WriteSuccess].
-typedef WriteResult<T extends Model> = Either<WriteFailure<T>, WriteSuccess<T>>;
+/// {@template WriteListResult}
+/// {@endtemplate}
+@Freezed()
+sealed class WriteListResult<T extends Model> with _$WriteListResult<T> {
+  const WriteListResult._();
 
-/// Either a [WriteFailure] or a [BulkWriteSuccess].
-typedef WriteListResult<T extends Model> = //
-    Either<WriteFailure<T>, BulkWriteSuccess<T>>;
+  /// {@template BulkWriteSuccess}
+  /// Container for a bulk write request which did not encounter any errors.
+  /// {@endtemplate}
+  const factory WriteListResult.success(
+    List<T> items, {
+    required RequestDetails<T> details,
+  }) = WriteListSuccess;
+
+  /// {@macro RequestFailure}
+  const factory WriteListResult.failure(
+    FailureReason reason,
+    String message,
+  ) = WriteListFailure;
+
+  /// {@macro fromApiError}
+  factory WriteListResult.fromApiError(ApiError e) {
+    if (e.statusCode >= HttpStatus.badRequest &&
+        e.statusCode < HttpStatus.internalServerError) {
+      return WriteListFailure(FailureReason.badRequest, e.error.plain);
+    } else if (e.statusCode >= HttpStatus.internalServerError) {
+      return WriteListFailure(FailureReason.serverError, e.error.plain);
+    }
+    // TODO(craiglabenz): Log `e.errorString`
+    return WriteListFailure(
+      FailureReason.serverError,
+      'Unexpected error: ${e.statusCode} ${e.error.plain}',
+    );
+  }
+
+  /// Helper to extract expected [WriteListSuccess] objects or throw in the case
+  /// of an unexpected [WriteListFailure].
+  WriteListSuccess<T> getOrRaise() {
+    switch (this) {
+      case WriteListSuccess():
+        {
+          return this as WriteListSuccess<T>;
+        }
+      case WriteListFailure():
+        {
+          throw Exception('Unexpected $runtimeType');
+        }
+    }
+  }
+}
 
 /////////////////
 /// READ RESULTS
 /////////////////
 
-/// {@template ReadSuccess}
-/// Container for the results of a single object read that did not encounter any
-/// errors. Note that the requested object may be null, which is not an error.
+/// {@template ReadResult}
 /// {@endtemplate}
 @Freezed()
-class ReadSuccess<T extends Model> with _$ReadSuccess<T> {
-  /// {@macro ReadSuccess}
-  const factory ReadSuccess(
+sealed class ReadResult<T extends Model> with _$ReadResult<T> {
+  /// Container for the results of a single object read that did not encounter
+  /// any errors. Note that the requested object may be null, which is not an
+  /// error.
+  const factory ReadResult.success(
     T? item, {
     required RequestDetails<T> details,
-  }) = _ReadSuccess;
+  }) = ReadSuccess;
+
+  /// {@macro RequestFailure}
+  const factory ReadResult.failure(
+    FailureReason reason,
+    String message,
+  ) = ReadFailure;
+
+  const ReadResult._();
+
+  /// {@macro fromApiError}
+  factory ReadResult.fromApiError(ApiError e) {
+    if (e.statusCode >= HttpStatus.badRequest &&
+        e.statusCode < HttpStatus.internalServerError) {
+      return ReadFailure(FailureReason.badRequest, e.error.plain);
+    } else if (e.statusCode >= HttpStatus.internalServerError) {
+      return ReadFailure(FailureReason.serverError, e.error.plain);
+    }
+    // TODO(craiglabenz): Log `e.errorString`
+    return ReadFailure(
+      FailureReason.serverError,
+      'Unexpected error: ${e.statusCode} ${e.error.plain}',
+    );
+  }
+
+  /// Helper to extract expected [ReadSuccess] objects or throw in the case of
+  /// an unexpected [ReadFailure].
+  ReadSuccess<T> getOrRaise() {
+    switch (this) {
+      case ReadSuccess():
+        {
+          return this as ReadSuccess<T>;
+        }
+      case ReadFailure():
+        {
+          throw Exception('Unexpected $runtimeType');
+        }
+    }
+  }
 }
 
-/// {@template ReadSuccess}
-/// Container for the results of a list read that did not encounter any errors.
-/// Note that the list of results may be empty, which is not an error.
+/// {@template ReadListResult}
 /// {@endtemplate}
 @Freezed()
-class ReadListSuccess<T extends Model> with _$ReadListSuccess<T> {
-  /// {@macro ReadSuccess}
-  const factory ReadListSuccess({
+sealed class ReadListResult<T extends Model> with _$ReadListResult<T> {
+  /// Container for the results of a list read that did not encounter any
+  /// errors. Note that the list of results may be empty, which is not an error.
+  const factory ReadListResult({
     required List<T> items,
     required Map<String, T> itemsMap,
     required Set<String> missingItemIds,
     required RequestDetails<T> details,
-  }) = _ReadListSuccess;
-  const ReadListSuccess._();
+  }) = ReadListSuccess;
+
+  const ReadListResult._();
 
   /// Map-friendly constructor.
-  factory ReadListSuccess.fromMap(
+  factory ReadListResult.fromMap(
     Map<String, T> map,
     RequestDetails<T> details,
     Set<String> missingItemIds,
@@ -122,7 +210,7 @@ class ReadListSuccess<T extends Model> with _$ReadListSuccess<T> {
       );
 
   /// List-friendly constructor.
-  factory ReadListSuccess.fromList(
+  factory ReadListResult.fromList(
     List<T> items,
     RequestDetails<T> details,
     Set<String> missingItemIds,
@@ -138,41 +226,72 @@ class ReadListSuccess<T extends Model> with _$ReadListSuccess<T> {
       missingItemIds: missingItemIds,
     );
   }
-}
 
-/// Represents a failure with the read, resulting from either an unexpected
-/// problem on the server or the server rejecting the client's request.
-/// The `message` property should be suitable for showing the user.
-///
-/// This class is used for errors that occurred on either a detail read or a
-/// list read.
-@Freezed()
-class ReadFailure<T> with _$ReadFailure<T> {
-  /// Container for a write request that failed to a problem on the server.
-  const factory ReadFailure.serverError(String message) = _ReadServerError;
+  /// {@macro RequestFailure}
+  const factory ReadListResult.failure(
+    FailureReason reason,
+    String message,
+  ) = ReadListFailure;
 
-  /// Container for a write request that failed to a problem with the request.
-  const factory ReadFailure.badRequest(String message) = _ReadClientError;
-
-  /// Constructor which turns an [ApiError] instance into the appropriate flavor
-  /// of [ReadFailure].
-  factory ReadFailure.fromApiError(ApiError e) {
+  /// {@macro fromApiError}
+  factory ReadListResult.fromApiError(ApiError e) {
     if (e.statusCode >= HttpStatus.badRequest &&
         e.statusCode < HttpStatus.internalServerError) {
-      return ReadFailure.badRequest(e.error.plain);
+      return ReadListFailure(FailureReason.badRequest, e.error.plain);
     } else if (e.statusCode >= HttpStatus.internalServerError) {
-      return ReadFailure.serverError(e.error.plain);
+      return ReadListFailure(FailureReason.serverError, e.error.plain);
     }
     // TODO(craiglabenz): Log `e.errorString`
-    return ReadFailure.serverError(
+    return ReadListFailure(
+      FailureReason.serverError,
       'Unexpected error: ${e.statusCode} ${e.error.plain}',
     );
   }
+
+  /// Helper to extract expected [ReadListSuccess] objects or throw in the case
+  /// of an unexpected [ReadListFailure].
+  ReadListSuccess<T> getOrRaise() {
+    switch (this) {
+      case ReadListSuccess():
+        {
+          return this as ReadListSuccess<T>;
+        }
+      case ReadListFailure():
+        {
+          throw Exception('Unexpected $runtimeType');
+        }
+    }
+  }
 }
 
-/// Either a [ReadFailure] or a [ReadSuccess].
-typedef ReadResult<T extends Model> = Either<ReadFailure<T>, ReadSuccess<T>>;
+/// Testing matcher for whether this request was a failure.
+const Matcher isFailure = _IsFailure();
 
-/// Either a [ReadFailure] or a [ReadListSuccess].
-typedef ReadListResult<T extends Model> = //
-    Either<ReadFailure<T>, ReadListSuccess<T>>;
+class _IsFailure extends Matcher {
+  const _IsFailure();
+  @override
+  bool matches(Object? item, Map<dynamic, dynamic> matchState) =>
+      item is ReadFailure ||
+      item is ReadListFailure ||
+      item is WriteFailure ||
+      item is WriteListFailure;
+
+  @override
+  Description describe(Description description) => description.add('is-left');
+}
+
+/// Testing matcher for whether this was a success.
+const Matcher isRight = _IsSuccess();
+
+class _IsSuccess extends Matcher {
+  const _IsSuccess();
+  @override
+  bool matches(Object? item, Map<dynamic, dynamic> matchState) =>
+      item is ReadSuccess ||
+      item is ReadListSuccess ||
+      item is WriteSuccess ||
+      item is WriteListSuccess;
+
+  @override
+  Description describe(Description description) => description.add('is-right');
+}

@@ -266,7 +266,7 @@ void main() {
 
       final remoteReadResult =
           await sl.getByIds({obj.id!, obj2.id!}, refreshDetails);
-      expect(remoteReadResult, isLeft);
+      expect(remoteReadResult, isFailure);
     });
   });
 
@@ -305,7 +305,7 @@ void main() {
           .setItems([obj, obj2], localDetails);
 
       final remoteReadResult = await sl.getItems(refreshDetails);
-      expect(remoteReadResult, isLeft);
+      expect(remoteReadResult, isFailure);
 
       final localReadResult = await sl.getItems(localDetails);
       expect(localReadResult.getOrRaise().items.length, 2);

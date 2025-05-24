@@ -24,10 +24,10 @@ class RelatedModel<T extends Model> extends Equatable {
   Future<T?> get obj async {
     if (id == null) return null;
     final result = await repository.getById(id!, RequestDetails.read());
-    if (result.isRight()) {
-      return result.getOrRaise().item;
+    if (result is ReadSuccess) {
+      return (result as ReadSuccess).item as T?;
     }
-    // TODO(craiglabenz): Log this
+    // TODO(craiglabenz): Log this? How did we point to a missing item?
     return null;
   }
 
@@ -58,12 +58,11 @@ class RelatedModelList<T extends Model> extends Equatable {
   Future<List<T>> get objs async {
     if (ids.isEmpty) return <T>[];
     final result = await repository.getByIds(ids, RequestDetails.read());
-    if (result.isRight()) {
-      final success = result.getOrRaise();
-      if (success.missingItemIds.isNotEmpty) {
+    if (result is ReadListSuccess) {
+      if ((result as ReadListSuccess).missingItemIds.isNotEmpty) {
         // TODO(craiglabenz): Log this
       }
-      return success.items;
+      return (result as ReadListSuccess).items.cast<T>();
     }
     // TODO(craiglabenz): Log this
     return <T>[];

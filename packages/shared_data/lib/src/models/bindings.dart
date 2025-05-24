@@ -39,6 +39,6 @@ class CreationBindings<T extends Model> extends Bindings<T> {
     required this.save,
   });
 
-  /// Method which takes an unsaved child and locally determines its [id] value.
+  /// Method which takes an unsaved child and locally determines its "id" value.
   T Function(T) save;
 }

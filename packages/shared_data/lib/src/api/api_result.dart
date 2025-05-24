@@ -5,7 +5,7 @@ part 'api_result.freezed.dart';
 
 /// Typed-container for the response payload for an [ApiResult].
 @Freezed()
-class ApiResultBody with _$ApiResultBody {
+sealed class ApiResultBody with _$ApiResultBody {
   /// Container for a response body that came with the "text/html" content type.
   const factory ApiResultBody.html(String html) = HtmlApiResultBody;
 
@@ -19,9 +19,7 @@ class ApiResultBody with _$ApiResultBody {
 
 /// Success/failure-aware container for the response from an [ApiRequest].
 @Freezed()
-class ApiResult with _$ApiResult {
-  const ApiResult._();
-
+sealed class ApiResult with _$ApiResult {
   /// Container for the response from an [ApiRequest] that did not encounter any
   /// errors.
   const factory ApiResult.success({
@@ -30,6 +28,8 @@ class ApiResult with _$ApiResult {
     required Duration responseTime,
     required String url,
   }) = ApiSuccess;
+
+  const ApiResult._();
 
   /// Container for the response from an [ApiRequest] that encountered errors.
   const factory ApiResult.error({
@@ -59,33 +59,32 @@ class ApiResult with _$ApiResult {
   /// Returns the [Json] from an [ApiResult], or raises if it was unavailable.
   /// Usage of this computed property should only verifiying [isSuccess] is
   /// true.
-  Json get jsonOrRaise => map(
-        success: (ApiSuccess resp) => resp.body.map(
-          html: (HtmlApiResultBody body) =>
-              throw Exception('Received HTML, expected JSON for ${resp.url}'),
-          json: (JsonApiResultBody body) => body.data,
-          plainText: (PlainTextApiResultBody body) =>
-              throw Exception('Received text, expected JSON for ${resp.url}'),
-        ),
-        error: (ApiError resp) =>
-            throw Exception('Error response for ${resp.url}'),
-      );
+  Json get jsonOrRaise => switch (this) {
+        ApiSuccess(:final body) => switch (body) {
+            HtmlApiResultBody() => throw Exception(
+                'Received HTML, expected JSON for $url',
+              ),
+            JsonApiResultBody() => body.data,
+            PlainTextApiResultBody() =>
+              throw Exception('Received text, expected JSON for $url'),
+          },
+        ApiError() => throw Exception('Error response for $url'),
+      };
 
   /// Returns the error from an [ApiResult], or raises if the result was
   /// successful. Usage of this computed property should only verifiying
   /// [isSuccess] is false.
-  String get errorString => map(
-        success: (ApiSuccess res) =>
-            throw Exception('No error string for successful response'),
-        error: (ApiError res) =>
-            '${res.statusCode} ${res.url} :: ${res.error.plain}',
-      );
+  String get errorString => switch (this) {
+        ApiSuccess() =>
+          throw Exception('No error string for successful response'),
+        ApiError(:final error) => '$statusCode $url :: ${error.plain}',
+      };
 }
 
 /// Utility to unpack error strings from either a plain string (which is
 /// straightforward), or from a map where we assume that the value is the error.
 @Freezed()
-class ErrorMessage with _$ErrorMessage {
+sealed class ErrorMessage with _$ErrorMessage {
   const ErrorMessage._();
 
   /// Pass-thru container for a string.
@@ -95,8 +94,9 @@ class ErrorMessage with _$ErrorMessage {
   const factory ErrorMessage.fromMap(Json message) = ErrorMap;
 
   /// Extracts the raw string from this [ErrorMessage].
-  String get plain => when<String>(
-        fromString: (String message) => message,
-        fromMap: (Json msg) => '${msg.keys.first}: ${msg[msg.keys.first]}',
-      );
+  String get plain => switch (this) {
+        ErrorString(:final message) => message,
+        ErrorMap(:final message) =>
+          '${message.keys.first}: ${message[message.keys.first]}'
+      };
 }

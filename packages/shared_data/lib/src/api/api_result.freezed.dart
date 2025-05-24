@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,102 +10,89 @@ part of 'api_result.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 /// @nodoc
 mixin _$ApiResultBody {
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String html) html,
-    required TResult Function(Map<String, Object?> data) json,
-    required TResult Function(String text) plainText,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String html)? html,
-    TResult? Function(Map<String, Object?> data)? json,
-    TResult? Function(String text)? plainText,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String html)? html,
-    TResult Function(Map<String, Object?> data)? json,
-    TResult Function(String text)? plainText,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(HtmlApiResultBody value) html,
-    required TResult Function(JsonApiResultBody value) json,
-    required TResult Function(PlainTextApiResultBody value) plainText,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(HtmlApiResultBody value)? html,
-    TResult? Function(JsonApiResultBody value)? json,
-    TResult? Function(PlainTextApiResultBody value)? plainText,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(HtmlApiResultBody value)? html,
-    TResult Function(JsonApiResultBody value)? json,
-    TResult Function(PlainTextApiResultBody value)? plainText,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is ApiResultBody);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'ApiResultBody()';
+  }
 }
 
 /// @nodoc
-abstract class $ApiResultBodyCopyWith<$Res> {
-  factory $ApiResultBodyCopyWith(
-          ApiResultBody value, $Res Function(ApiResultBody) then) =
-      _$ApiResultBodyCopyWithImpl<$Res, ApiResultBody>;
+class $ApiResultBodyCopyWith<$Res> {
+  $ApiResultBodyCopyWith(ApiResultBody _, $Res Function(ApiResultBody) __);
 }
 
 /// @nodoc
-class _$ApiResultBodyCopyWithImpl<$Res, $Val extends ApiResultBody>
+
+class HtmlApiResultBody implements ApiResultBody {
+  const HtmlApiResultBody(this.html);
+
+  final String html;
+
+  /// Create a copy of ApiResultBody
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $HtmlApiResultBodyCopyWith<HtmlApiResultBody> get copyWith =>
+      _$HtmlApiResultBodyCopyWithImpl<HtmlApiResultBody>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is HtmlApiResultBody &&
+            (identical(other.html, html) || other.html == html));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, html);
+
+  @override
+  String toString() {
+    return 'ApiResultBody.html(html: $html)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $HtmlApiResultBodyCopyWith<$Res>
     implements $ApiResultBodyCopyWith<$Res> {
-  _$ApiResultBodyCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-}
-
-/// @nodoc
-abstract class _$$HtmlApiResultBodyImplCopyWith<$Res> {
-  factory _$$HtmlApiResultBodyImplCopyWith(_$HtmlApiResultBodyImpl value,
-          $Res Function(_$HtmlApiResultBodyImpl) then) =
-      __$$HtmlApiResultBodyImplCopyWithImpl<$Res>;
+  factory $HtmlApiResultBodyCopyWith(
+          HtmlApiResultBody value, $Res Function(HtmlApiResultBody) _then) =
+      _$HtmlApiResultBodyCopyWithImpl;
   @useResult
   $Res call({String html});
 }
 
 /// @nodoc
-class __$$HtmlApiResultBodyImplCopyWithImpl<$Res>
-    extends _$ApiResultBodyCopyWithImpl<$Res, _$HtmlApiResultBodyImpl>
-    implements _$$HtmlApiResultBodyImplCopyWith<$Res> {
-  __$$HtmlApiResultBodyImplCopyWithImpl(_$HtmlApiResultBodyImpl _value,
-      $Res Function(_$HtmlApiResultBodyImpl) _then)
-      : super(_value, _then);
+class _$HtmlApiResultBodyCopyWithImpl<$Res>
+    implements $HtmlApiResultBodyCopyWith<$Res> {
+  _$HtmlApiResultBodyCopyWithImpl(this._self, this._then);
 
+  final HtmlApiResultBody _self;
+  final $Res Function(HtmlApiResultBody) _then;
+
+  /// Create a copy of ApiResultBody
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
-  @override
   $Res call({
     Object? html = null,
   }) {
-    return _then(_$HtmlApiResultBodyImpl(
+    return _then(HtmlApiResultBody(
       null == html
-          ? _value.html
+          ? _self.html
           : html // ignore: cast_nullable_to_non_nullable
               as String,
     ));
@@ -113,167 +101,28 @@ class __$$HtmlApiResultBodyImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$HtmlApiResultBodyImpl implements HtmlApiResultBody {
-  const _$HtmlApiResultBodyImpl(this.html);
+class JsonApiResultBody implements ApiResultBody {
+  const JsonApiResultBody(final Json data) : _data = data;
 
-  @override
-  final String html;
-
-  @override
-  String toString() {
-    return 'ApiResultBody.html(html: $html)';
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$HtmlApiResultBodyImpl &&
-            (identical(other.html, html) || other.html == html));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, html);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$HtmlApiResultBodyImplCopyWith<_$HtmlApiResultBodyImpl> get copyWith =>
-      __$$HtmlApiResultBodyImplCopyWithImpl<_$HtmlApiResultBodyImpl>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String html) html,
-    required TResult Function(Map<String, Object?> data) json,
-    required TResult Function(String text) plainText,
-  }) {
-    return html(this.html);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String html)? html,
-    TResult? Function(Map<String, Object?> data)? json,
-    TResult? Function(String text)? plainText,
-  }) {
-    return html?.call(this.html);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String html)? html,
-    TResult Function(Map<String, Object?> data)? json,
-    TResult Function(String text)? plainText,
-    required TResult orElse(),
-  }) {
-    if (html != null) {
-      return html(this.html);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(HtmlApiResultBody value) html,
-    required TResult Function(JsonApiResultBody value) json,
-    required TResult Function(PlainTextApiResultBody value) plainText,
-  }) {
-    return html(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(HtmlApiResultBody value)? html,
-    TResult? Function(JsonApiResultBody value)? json,
-    TResult? Function(PlainTextApiResultBody value)? plainText,
-  }) {
-    return html?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(HtmlApiResultBody value)? html,
-    TResult Function(JsonApiResultBody value)? json,
-    TResult Function(PlainTextApiResultBody value)? plainText,
-    required TResult orElse(),
-  }) {
-    if (html != null) {
-      return html(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class HtmlApiResultBody implements ApiResultBody {
-  const factory HtmlApiResultBody(final String html) = _$HtmlApiResultBodyImpl;
-
-  String get html;
-  @JsonKey(ignore: true)
-  _$$HtmlApiResultBodyImplCopyWith<_$HtmlApiResultBodyImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class _$$JsonApiResultBodyImplCopyWith<$Res> {
-  factory _$$JsonApiResultBodyImplCopyWith(_$JsonApiResultBodyImpl value,
-          $Res Function(_$JsonApiResultBodyImpl) then) =
-      __$$JsonApiResultBodyImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({Map<String, Object?> data});
-}
-
-/// @nodoc
-class __$$JsonApiResultBodyImplCopyWithImpl<$Res>
-    extends _$ApiResultBodyCopyWithImpl<$Res, _$JsonApiResultBodyImpl>
-    implements _$$JsonApiResultBodyImplCopyWith<$Res> {
-  __$$JsonApiResultBodyImplCopyWithImpl(_$JsonApiResultBodyImpl _value,
-      $Res Function(_$JsonApiResultBodyImpl) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? data = null,
-  }) {
-    return _then(_$JsonApiResultBodyImpl(
-      null == data
-          ? _value._data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Map<String, Object?>,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$JsonApiResultBodyImpl implements JsonApiResultBody {
-  const _$JsonApiResultBodyImpl(final Map<String, Object?> data) : _data = data;
-
-  final Map<String, Object?> _data;
-  @override
-  Map<String, Object?> get data {
+  final Json _data;
+  Json get data {
     if (_data is EqualUnmodifiableMapView) return _data;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_data);
   }
 
-  @override
-  String toString() {
-    return 'ApiResultBody.json(data: $data)';
-  }
+  /// Create a copy of ApiResultBody
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $JsonApiResultBodyCopyWith<JsonApiResultBody> get copyWith =>
+      _$JsonApiResultBodyCopyWithImpl<JsonApiResultBody>(this, _$identity);
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$JsonApiResultBodyImpl &&
+            other is JsonApiResultBody &&
             const DeepCollectionEquality().equals(other._data, _data));
   }
 
@@ -281,119 +130,104 @@ class _$JsonApiResultBodyImpl implements JsonApiResultBody {
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(_data));
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$JsonApiResultBodyImplCopyWith<_$JsonApiResultBodyImpl> get copyWith =>
-      __$$JsonApiResultBodyImplCopyWithImpl<_$JsonApiResultBodyImpl>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String html) html,
-    required TResult Function(Map<String, Object?> data) json,
-    required TResult Function(String text) plainText,
-  }) {
-    return json(data);
+  String toString() {
+    return 'ApiResultBody.json(data: $data)';
   }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String html)? html,
-    TResult? Function(Map<String, Object?> data)? json,
-    TResult? Function(String text)? plainText,
-  }) {
-    return json?.call(data);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String html)? html,
-    TResult Function(Map<String, Object?> data)? json,
-    TResult Function(String text)? plainText,
-    required TResult orElse(),
-  }) {
-    if (json != null) {
-      return json(data);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(HtmlApiResultBody value) html,
-    required TResult Function(JsonApiResultBody value) json,
-    required TResult Function(PlainTextApiResultBody value) plainText,
-  }) {
-    return json(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(HtmlApiResultBody value)? html,
-    TResult? Function(JsonApiResultBody value)? json,
-    TResult? Function(PlainTextApiResultBody value)? plainText,
-  }) {
-    return json?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(HtmlApiResultBody value)? html,
-    TResult Function(JsonApiResultBody value)? json,
-    TResult Function(PlainTextApiResultBody value)? plainText,
-    required TResult orElse(),
-  }) {
-    if (json != null) {
-      return json(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class JsonApiResultBody implements ApiResultBody {
-  const factory JsonApiResultBody(final Map<String, Object?> data) =
-      _$JsonApiResultBodyImpl;
-
-  Map<String, Object?> get data;
-  @JsonKey(ignore: true)
-  _$$JsonApiResultBodyImplCopyWith<_$JsonApiResultBodyImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$PlainTextApiResultBodyImplCopyWith<$Res> {
-  factory _$$PlainTextApiResultBodyImplCopyWith(
-          _$PlainTextApiResultBodyImpl value,
-          $Res Function(_$PlainTextApiResultBodyImpl) then) =
-      __$$PlainTextApiResultBodyImplCopyWithImpl<$Res>;
+abstract mixin class $JsonApiResultBodyCopyWith<$Res>
+    implements $ApiResultBodyCopyWith<$Res> {
+  factory $JsonApiResultBodyCopyWith(
+          JsonApiResultBody value, $Res Function(JsonApiResultBody) _then) =
+      _$JsonApiResultBodyCopyWithImpl;
+  @useResult
+  $Res call({Json data});
+}
+
+/// @nodoc
+class _$JsonApiResultBodyCopyWithImpl<$Res>
+    implements $JsonApiResultBodyCopyWith<$Res> {
+  _$JsonApiResultBodyCopyWithImpl(this._self, this._then);
+
+  final JsonApiResultBody _self;
+  final $Res Function(JsonApiResultBody) _then;
+
+  /// Create a copy of ApiResultBody
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? data = null,
+  }) {
+    return _then(JsonApiResultBody(
+      null == data
+          ? _self._data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Json,
+    ));
+  }
+}
+
+/// @nodoc
+
+class PlainTextApiResultBody implements ApiResultBody {
+  const PlainTextApiResultBody(this.text);
+
+  final String text;
+
+  /// Create a copy of ApiResultBody
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $PlainTextApiResultBodyCopyWith<PlainTextApiResultBody> get copyWith =>
+      _$PlainTextApiResultBodyCopyWithImpl<PlainTextApiResultBody>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PlainTextApiResultBody &&
+            (identical(other.text, text) || other.text == text));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, text);
+
+  @override
+  String toString() {
+    return 'ApiResultBody.plainText(text: $text)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $PlainTextApiResultBodyCopyWith<$Res>
+    implements $ApiResultBodyCopyWith<$Res> {
+  factory $PlainTextApiResultBodyCopyWith(PlainTextApiResultBody value,
+          $Res Function(PlainTextApiResultBody) _then) =
+      _$PlainTextApiResultBodyCopyWithImpl;
   @useResult
   $Res call({String text});
 }
 
 /// @nodoc
-class __$$PlainTextApiResultBodyImplCopyWithImpl<$Res>
-    extends _$ApiResultBodyCopyWithImpl<$Res, _$PlainTextApiResultBodyImpl>
-    implements _$$PlainTextApiResultBodyImplCopyWith<$Res> {
-  __$$PlainTextApiResultBodyImplCopyWithImpl(
-      _$PlainTextApiResultBodyImpl _value,
-      $Res Function(_$PlainTextApiResultBodyImpl) _then)
-      : super(_value, _then);
+class _$PlainTextApiResultBodyCopyWithImpl<$Res>
+    implements $PlainTextApiResultBodyCopyWith<$Res> {
+  _$PlainTextApiResultBodyCopyWithImpl(this._self, this._then);
 
+  final PlainTextApiResultBody _self;
+  final $Res Function(PlainTextApiResultBody) _then;
+
+  /// Create a copy of ApiResultBody
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
-  @override
   $Res call({
     Object? text = null,
   }) {
-    return _then(_$PlainTextApiResultBodyImpl(
+    return _then(PlainTextApiResultBody(
       null == text
-          ? _value.text
+          ? _self.text
           : text // ignore: cast_nullable_to_non_nullable
               as String,
     ));
@@ -401,194 +235,56 @@ class __$$PlainTextApiResultBodyImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
+mixin _$ApiResult {
+  int get statusCode;
+  Duration get responseTime;
+  String get url;
 
-class _$PlainTextApiResultBodyImpl implements PlainTextApiResultBody {
-  const _$PlainTextApiResultBodyImpl(this.text);
+  /// Create a copy of ApiResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ApiResultCopyWith<ApiResult> get copyWith =>
+      _$ApiResultCopyWithImpl<ApiResult>(this as ApiResult, _$identity);
 
   @override
-  final String text;
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ApiResult &&
+            (identical(other.statusCode, statusCode) ||
+                other.statusCode == statusCode) &&
+            (identical(other.responseTime, responseTime) ||
+                other.responseTime == responseTime) &&
+            (identical(other.url, url) || other.url == url));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, statusCode, responseTime, url);
 
   @override
   String toString() {
-    return 'ApiResultBody.plainText(text: $text)';
+    return 'ApiResult(statusCode: $statusCode, responseTime: $responseTime, url: $url)';
   }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$PlainTextApiResultBodyImpl &&
-            (identical(other.text, text) || other.text == text));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, text);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$PlainTextApiResultBodyImplCopyWith<_$PlainTextApiResultBodyImpl>
-      get copyWith => __$$PlainTextApiResultBodyImplCopyWithImpl<
-          _$PlainTextApiResultBodyImpl>(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String html) html,
-    required TResult Function(Map<String, Object?> data) json,
-    required TResult Function(String text) plainText,
-  }) {
-    return plainText(text);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String html)? html,
-    TResult? Function(Map<String, Object?> data)? json,
-    TResult? Function(String text)? plainText,
-  }) {
-    return plainText?.call(text);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String html)? html,
-    TResult Function(Map<String, Object?> data)? json,
-    TResult Function(String text)? plainText,
-    required TResult orElse(),
-  }) {
-    if (plainText != null) {
-      return plainText(text);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(HtmlApiResultBody value) html,
-    required TResult Function(JsonApiResultBody value) json,
-    required TResult Function(PlainTextApiResultBody value) plainText,
-  }) {
-    return plainText(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(HtmlApiResultBody value)? html,
-    TResult? Function(JsonApiResultBody value)? json,
-    TResult? Function(PlainTextApiResultBody value)? plainText,
-  }) {
-    return plainText?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(HtmlApiResultBody value)? html,
-    TResult Function(JsonApiResultBody value)? json,
-    TResult Function(PlainTextApiResultBody value)? plainText,
-    required TResult orElse(),
-  }) {
-    if (plainText != null) {
-      return plainText(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class PlainTextApiResultBody implements ApiResultBody {
-  const factory PlainTextApiResultBody(final String text) =
-      _$PlainTextApiResultBodyImpl;
-
-  String get text;
-  @JsonKey(ignore: true)
-  _$$PlainTextApiResultBodyImplCopyWith<_$PlainTextApiResultBodyImpl>
-      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-mixin _$ApiResult {
-  int get statusCode => throw _privateConstructorUsedError;
-  Duration get responseTime => throw _privateConstructorUsedError;
-  String get url => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(ApiResultBody body, int statusCode,
-            Duration responseTime, String url)
-        success,
-    required TResult Function(ErrorMessage error, int statusCode,
-            Duration responseTime, String url)
-        error,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(ApiResultBody body, int statusCode, Duration responseTime,
-            String url)?
-        success,
-    TResult? Function(ErrorMessage error, int statusCode, Duration responseTime,
-            String url)?
-        error,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(ApiResultBody body, int statusCode, Duration responseTime,
-            String url)?
-        success,
-    TResult Function(ErrorMessage error, int statusCode, Duration responseTime,
-            String url)?
-        error,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ApiSuccess value) success,
-    required TResult Function(ApiError value) error,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ApiSuccess value)? success,
-    TResult? Function(ApiError value)? error,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ApiSuccess value)? success,
-    TResult Function(ApiError value)? error,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-
-  @JsonKey(ignore: true)
-  $ApiResultCopyWith<ApiResult> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $ApiResultCopyWith<$Res> {
-  factory $ApiResultCopyWith(ApiResult value, $Res Function(ApiResult) then) =
-      _$ApiResultCopyWithImpl<$Res, ApiResult>;
+abstract mixin class $ApiResultCopyWith<$Res> {
+  factory $ApiResultCopyWith(ApiResult value, $Res Function(ApiResult) _then) =
+      _$ApiResultCopyWithImpl;
   @useResult
   $Res call({int statusCode, Duration responseTime, String url});
 }
 
 /// @nodoc
-class _$ApiResultCopyWithImpl<$Res, $Val extends ApiResult>
-    implements $ApiResultCopyWith<$Res> {
-  _$ApiResultCopyWithImpl(this._value, this._then);
+class _$ApiResultCopyWithImpl<$Res> implements $ApiResultCopyWith<$Res> {
+  _$ApiResultCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final ApiResult _self;
+  final $Res Function(ApiResult) _then;
 
+  /// Create a copy of ApiResult
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -596,93 +292,33 @@ class _$ApiResultCopyWithImpl<$Res, $Val extends ApiResult>
     Object? responseTime = null,
     Object? url = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       statusCode: null == statusCode
-          ? _value.statusCode
+          ? _self.statusCode
           : statusCode // ignore: cast_nullable_to_non_nullable
               as int,
       responseTime: null == responseTime
-          ? _value.responseTime
+          ? _self.responseTime
           : responseTime // ignore: cast_nullable_to_non_nullable
               as Duration,
       url: null == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$ApiSuccessImplCopyWith<$Res>
-    implements $ApiResultCopyWith<$Res> {
-  factory _$$ApiSuccessImplCopyWith(
-          _$ApiSuccessImpl value, $Res Function(_$ApiSuccessImpl) then) =
-      __$$ApiSuccessImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {ApiResultBody body, int statusCode, Duration responseTime, String url});
-
-  $ApiResultBodyCopyWith<$Res> get body;
-}
-
-/// @nodoc
-class __$$ApiSuccessImplCopyWithImpl<$Res>
-    extends _$ApiResultCopyWithImpl<$Res, _$ApiSuccessImpl>
-    implements _$$ApiSuccessImplCopyWith<$Res> {
-  __$$ApiSuccessImplCopyWithImpl(
-      _$ApiSuccessImpl _value, $Res Function(_$ApiSuccessImpl) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? body = null,
-    Object? statusCode = null,
-    Object? responseTime = null,
-    Object? url = null,
-  }) {
-    return _then(_$ApiSuccessImpl(
-      body: null == body
-          ? _value.body
-          : body // ignore: cast_nullable_to_non_nullable
-              as ApiResultBody,
-      statusCode: null == statusCode
-          ? _value.statusCode
-          : statusCode // ignore: cast_nullable_to_non_nullable
-              as int,
-      responseTime: null == responseTime
-          ? _value.responseTime
-          : responseTime // ignore: cast_nullable_to_non_nullable
-              as Duration,
-      url: null == url
-          ? _value.url
+          ? _self.url
           : url // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
-
-  @override
-  @pragma('vm:prefer-inline')
-  $ApiResultBodyCopyWith<$Res> get body {
-    return $ApiResultBodyCopyWith<$Res>(_value.body, (value) {
-      return _then(_value.copyWith(body: value));
-    });
-  }
 }
 
 /// @nodoc
 
-class _$ApiSuccessImpl extends ApiSuccess {
-  const _$ApiSuccessImpl(
+class ApiSuccess extends ApiResult {
+  const ApiSuccess(
       {required this.body,
       required this.statusCode,
       required this.responseTime,
       required this.url})
       : super._();
 
-  @override
   final ApiResultBody body;
   @override
   final int statusCode;
@@ -691,16 +327,19 @@ class _$ApiSuccessImpl extends ApiSuccess {
   @override
   final String url;
 
+  /// Create a copy of ApiResult
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'ApiResult.success(body: $body, statusCode: $statusCode, responseTime: $responseTime, url: $url)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ApiSuccessCopyWith<ApiSuccess> get copyWith =>
+      _$ApiSuccessCopyWithImpl<ApiSuccess>(this, _$identity);
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ApiSuccessImpl &&
+            other is ApiSuccess &&
             (identical(other.body, body) || other.body == body) &&
             (identical(other.statusCode, statusCode) ||
                 other.statusCode == statusCode) &&
@@ -713,178 +352,84 @@ class _$ApiSuccessImpl extends ApiSuccess {
   int get hashCode =>
       Object.hash(runtimeType, body, statusCode, responseTime, url);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$ApiSuccessImplCopyWith<_$ApiSuccessImpl> get copyWith =>
-      __$$ApiSuccessImplCopyWithImpl<_$ApiSuccessImpl>(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(ApiResultBody body, int statusCode,
-            Duration responseTime, String url)
-        success,
-    required TResult Function(ErrorMessage error, int statusCode,
-            Duration responseTime, String url)
-        error,
-  }) {
-    return success(body, statusCode, responseTime, url);
+  String toString() {
+    return 'ApiResult.success(body: $body, statusCode: $statusCode, responseTime: $responseTime, url: $url)';
   }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(ApiResultBody body, int statusCode, Duration responseTime,
-            String url)?
-        success,
-    TResult? Function(ErrorMessage error, int statusCode, Duration responseTime,
-            String url)?
-        error,
-  }) {
-    return success?.call(body, statusCode, responseTime, url);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(ApiResultBody body, int statusCode, Duration responseTime,
-            String url)?
-        success,
-    TResult Function(ErrorMessage error, int statusCode, Duration responseTime,
-            String url)?
-        error,
-    required TResult orElse(),
-  }) {
-    if (success != null) {
-      return success(body, statusCode, responseTime, url);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ApiSuccess value) success,
-    required TResult Function(ApiError value) error,
-  }) {
-    return success(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ApiSuccess value)? success,
-    TResult? Function(ApiError value)? error,
-  }) {
-    return success?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ApiSuccess value)? success,
-    TResult Function(ApiError value)? error,
-    required TResult orElse(),
-  }) {
-    if (success != null) {
-      return success(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class ApiSuccess extends ApiResult {
-  const factory ApiSuccess(
-      {required final ApiResultBody body,
-      required final int statusCode,
-      required final Duration responseTime,
-      required final String url}) = _$ApiSuccessImpl;
-  const ApiSuccess._() : super._();
-
-  ApiResultBody get body;
-  @override
-  int get statusCode;
-  @override
-  Duration get responseTime;
-  @override
-  String get url;
-  @override
-  @JsonKey(ignore: true)
-  _$$ApiSuccessImplCopyWith<_$ApiSuccessImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ApiErrorImplCopyWith<$Res>
+abstract mixin class $ApiSuccessCopyWith<$Res>
     implements $ApiResultCopyWith<$Res> {
-  factory _$$ApiErrorImplCopyWith(
-          _$ApiErrorImpl value, $Res Function(_$ApiErrorImpl) then) =
-      __$$ApiErrorImplCopyWithImpl<$Res>;
+  factory $ApiSuccessCopyWith(
+          ApiSuccess value, $Res Function(ApiSuccess) _then) =
+      _$ApiSuccessCopyWithImpl;
   @override
   @useResult
   $Res call(
-      {ErrorMessage error, int statusCode, Duration responseTime, String url});
+      {ApiResultBody body, int statusCode, Duration responseTime, String url});
 
-  $ErrorMessageCopyWith<$Res> get error;
+  $ApiResultBodyCopyWith<$Res> get body;
 }
 
 /// @nodoc
-class __$$ApiErrorImplCopyWithImpl<$Res>
-    extends _$ApiResultCopyWithImpl<$Res, _$ApiErrorImpl>
-    implements _$$ApiErrorImplCopyWith<$Res> {
-  __$$ApiErrorImplCopyWithImpl(
-      _$ApiErrorImpl _value, $Res Function(_$ApiErrorImpl) _then)
-      : super(_value, _then);
+class _$ApiSuccessCopyWithImpl<$Res> implements $ApiSuccessCopyWith<$Res> {
+  _$ApiSuccessCopyWithImpl(this._self, this._then);
 
-  @pragma('vm:prefer-inline')
+  final ApiSuccess _self;
+  final $Res Function(ApiSuccess) _then;
+
+  /// Create a copy of ApiResult
+  /// with the given fields replaced by the non-null parameter values.
   @override
+  @pragma('vm:prefer-inline')
   $Res call({
-    Object? error = null,
+    Object? body = null,
     Object? statusCode = null,
     Object? responseTime = null,
     Object? url = null,
   }) {
-    return _then(_$ApiErrorImpl(
-      error: null == error
-          ? _value.error
-          : error // ignore: cast_nullable_to_non_nullable
-              as ErrorMessage,
+    return _then(ApiSuccess(
+      body: null == body
+          ? _self.body
+          : body // ignore: cast_nullable_to_non_nullable
+              as ApiResultBody,
       statusCode: null == statusCode
-          ? _value.statusCode
+          ? _self.statusCode
           : statusCode // ignore: cast_nullable_to_non_nullable
               as int,
       responseTime: null == responseTime
-          ? _value.responseTime
+          ? _self.responseTime
           : responseTime // ignore: cast_nullable_to_non_nullable
               as Duration,
       url: null == url
-          ? _value.url
+          ? _self.url
           : url // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
 
+  /// Create a copy of ApiResult
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $ErrorMessageCopyWith<$Res> get error {
-    return $ErrorMessageCopyWith<$Res>(_value.error, (value) {
-      return _then(_value.copyWith(error: value));
+  $ApiResultBodyCopyWith<$Res> get body {
+    return $ApiResultBodyCopyWith<$Res>(_self.body, (value) {
+      return _then(_self.copyWith(body: value));
     });
   }
 }
 
 /// @nodoc
 
-class _$ApiErrorImpl extends ApiError {
-  const _$ApiErrorImpl(
+class ApiError extends ApiResult {
+  const ApiError(
       {required this.error,
       required this.statusCode,
       required this.responseTime,
       required this.url})
       : super._();
 
-  @override
   final ErrorMessage error;
   @override
   final int statusCode;
@@ -893,16 +438,19 @@ class _$ApiErrorImpl extends ApiError {
   @override
   final String url;
 
+  /// Create a copy of ApiResult
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'ApiResult.error(error: $error, statusCode: $statusCode, responseTime: $responseTime, url: $url)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ApiErrorCopyWith<ApiError> get copyWith =>
+      _$ApiErrorCopyWithImpl<ApiError>(this, _$identity);
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ApiErrorImpl &&
+            other is ApiError &&
             (identical(other.error, error) || other.error == error) &&
             (identical(other.statusCode, statusCode) ||
                 other.statusCode == statusCode) &&
@@ -915,194 +463,158 @@ class _$ApiErrorImpl extends ApiError {
   int get hashCode =>
       Object.hash(runtimeType, error, statusCode, responseTime, url);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$ApiErrorImplCopyWith<_$ApiErrorImpl> get copyWith =>
-      __$$ApiErrorImplCopyWithImpl<_$ApiErrorImpl>(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(ApiResultBody body, int statusCode,
-            Duration responseTime, String url)
-        success,
-    required TResult Function(ErrorMessage error, int statusCode,
-            Duration responseTime, String url)
-        error,
-  }) {
-    return error(this.error, statusCode, responseTime, url);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(ApiResultBody body, int statusCode, Duration responseTime,
-            String url)?
-        success,
-    TResult? Function(ErrorMessage error, int statusCode, Duration responseTime,
-            String url)?
-        error,
-  }) {
-    return error?.call(this.error, statusCode, responseTime, url);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(ApiResultBody body, int statusCode, Duration responseTime,
-            String url)?
-        success,
-    TResult Function(ErrorMessage error, int statusCode, Duration responseTime,
-            String url)?
-        error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this.error, statusCode, responseTime, url);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ApiSuccess value) success,
-    required TResult Function(ApiError value) error,
-  }) {
-    return error(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ApiSuccess value)? success,
-    TResult? Function(ApiError value)? error,
-  }) {
-    return error?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ApiSuccess value)? success,
-    TResult Function(ApiError value)? error,
-    required TResult orElse(),
-  }) {
-    if (error != null) {
-      return error(this);
-    }
-    return orElse();
+  String toString() {
+    return 'ApiResult.error(error: $error, statusCode: $statusCode, responseTime: $responseTime, url: $url)';
   }
 }
 
-abstract class ApiError extends ApiResult {
-  const factory ApiError(
-      {required final ErrorMessage error,
-      required final int statusCode,
-      required final Duration responseTime,
-      required final String url}) = _$ApiErrorImpl;
-  const ApiError._() : super._();
+/// @nodoc
+abstract mixin class $ApiErrorCopyWith<$Res>
+    implements $ApiResultCopyWith<$Res> {
+  factory $ApiErrorCopyWith(ApiError value, $Res Function(ApiError) _then) =
+      _$ApiErrorCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {ErrorMessage error, int statusCode, Duration responseTime, String url});
 
-  ErrorMessage get error;
+  $ErrorMessageCopyWith<$Res> get error;
+}
+
+/// @nodoc
+class _$ApiErrorCopyWithImpl<$Res> implements $ApiErrorCopyWith<$Res> {
+  _$ApiErrorCopyWithImpl(this._self, this._then);
+
+  final ApiError _self;
+  final $Res Function(ApiError) _then;
+
+  /// Create a copy of ApiResult
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  int get statusCode;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? error = null,
+    Object? statusCode = null,
+    Object? responseTime = null,
+    Object? url = null,
+  }) {
+    return _then(ApiError(
+      error: null == error
+          ? _self.error
+          : error // ignore: cast_nullable_to_non_nullable
+              as ErrorMessage,
+      statusCode: null == statusCode
+          ? _self.statusCode
+          : statusCode // ignore: cast_nullable_to_non_nullable
+              as int,
+      responseTime: null == responseTime
+          ? _self.responseTime
+          : responseTime // ignore: cast_nullable_to_non_nullable
+              as Duration,
+      url: null == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+
+  /// Create a copy of ApiResult
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  Duration get responseTime;
-  @override
-  String get url;
-  @override
-  @JsonKey(ignore: true)
-  _$$ApiErrorImplCopyWith<_$ApiErrorImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $ErrorMessageCopyWith<$Res> get error {
+    return $ErrorMessageCopyWith<$Res>(_self.error, (value) {
+      return _then(_self.copyWith(error: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$ErrorMessage {
-  Object get message => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String message) fromString,
-    required TResult Function(Map<String, dynamic> message) fromMap,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message)? fromString,
-    TResult? Function(Map<String, dynamic> message)? fromMap,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message)? fromString,
-    TResult Function(Map<String, dynamic> message)? fromMap,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ErrorString value) fromString,
-    required TResult Function(ErrorMap value) fromMap,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ErrorString value)? fromString,
-    TResult? Function(ErrorMap value)? fromMap,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ErrorString value)? fromString,
-    TResult Function(ErrorMap value)? fromMap,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  Object get message;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ErrorMessage &&
+            const DeepCollectionEquality().equals(other.message, message));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(message));
+
+  @override
+  String toString() {
+    return 'ErrorMessage(message: $message)';
+  }
 }
 
 /// @nodoc
-abstract class $ErrorMessageCopyWith<$Res> {
-  factory $ErrorMessageCopyWith(
-          ErrorMessage value, $Res Function(ErrorMessage) then) =
-      _$ErrorMessageCopyWithImpl<$Res, ErrorMessage>;
+class $ErrorMessageCopyWith<$Res> {
+  $ErrorMessageCopyWith(ErrorMessage _, $Res Function(ErrorMessage) __);
 }
 
 /// @nodoc
-class _$ErrorMessageCopyWithImpl<$Res, $Val extends ErrorMessage>
+
+class ErrorString extends ErrorMessage {
+  const ErrorString(this.message) : super._();
+
+  @override
+  final String message;
+
+  /// Create a copy of ErrorMessage
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ErrorStringCopyWith<ErrorString> get copyWith =>
+      _$ErrorStringCopyWithImpl<ErrorString>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ErrorString &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, message);
+
+  @override
+  String toString() {
+    return 'ErrorMessage.fromString(message: $message)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ErrorStringCopyWith<$Res>
     implements $ErrorMessageCopyWith<$Res> {
-  _$ErrorMessageCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-}
-
-/// @nodoc
-abstract class _$$ErrorStringImplCopyWith<$Res> {
-  factory _$$ErrorStringImplCopyWith(
-          _$ErrorStringImpl value, $Res Function(_$ErrorStringImpl) then) =
-      __$$ErrorStringImplCopyWithImpl<$Res>;
+  factory $ErrorStringCopyWith(
+          ErrorString value, $Res Function(ErrorString) _then) =
+      _$ErrorStringCopyWithImpl;
   @useResult
   $Res call({String message});
 }
 
 /// @nodoc
-class __$$ErrorStringImplCopyWithImpl<$Res>
-    extends _$ErrorMessageCopyWithImpl<$Res, _$ErrorStringImpl>
-    implements _$$ErrorStringImplCopyWith<$Res> {
-  __$$ErrorStringImplCopyWithImpl(
-      _$ErrorStringImpl _value, $Res Function(_$ErrorStringImpl) _then)
-      : super(_value, _then);
+class _$ErrorStringCopyWithImpl<$Res> implements $ErrorStringCopyWith<$Res> {
+  _$ErrorStringCopyWithImpl(this._self, this._then);
 
+  final ErrorString _self;
+  final $Res Function(ErrorString) _then;
+
+  /// Create a copy of ErrorMessage
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
-  @override
   $Res call({
     Object? message = null,
   }) {
-    return _then(_$ErrorStringImpl(
+    return _then(ErrorString(
       null == message
-          ? _value.message
+          ? _self.message
           : message // ignore: cast_nullable_to_non_nullable
               as String,
     ));
@@ -1111,164 +623,31 @@ class __$$ErrorStringImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$ErrorStringImpl extends ErrorString {
-  const _$ErrorStringImpl(this.message) : super._();
-
-  @override
-  final String message;
-
-  @override
-  String toString() {
-    return 'ErrorMessage.fromString(message: $message)';
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ErrorStringImpl &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ErrorStringImplCopyWith<_$ErrorStringImpl> get copyWith =>
-      __$$ErrorStringImplCopyWithImpl<_$ErrorStringImpl>(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String message) fromString,
-    required TResult Function(Map<String, dynamic> message) fromMap,
-  }) {
-    return fromString(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message)? fromString,
-    TResult? Function(Map<String, dynamic> message)? fromMap,
-  }) {
-    return fromString?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message)? fromString,
-    TResult Function(Map<String, dynamic> message)? fromMap,
-    required TResult orElse(),
-  }) {
-    if (fromString != null) {
-      return fromString(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ErrorString value) fromString,
-    required TResult Function(ErrorMap value) fromMap,
-  }) {
-    return fromString(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ErrorString value)? fromString,
-    TResult? Function(ErrorMap value)? fromMap,
-  }) {
-    return fromString?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ErrorString value)? fromString,
-    TResult Function(ErrorMap value)? fromMap,
-    required TResult orElse(),
-  }) {
-    if (fromString != null) {
-      return fromString(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class ErrorString extends ErrorMessage {
-  const factory ErrorString(final String message) = _$ErrorStringImpl;
-  const ErrorString._() : super._();
-
-  @override
-  String get message;
-  @JsonKey(ignore: true)
-  _$$ErrorStringImplCopyWith<_$ErrorStringImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class _$$ErrorMapImplCopyWith<$Res> {
-  factory _$$ErrorMapImplCopyWith(
-          _$ErrorMapImpl value, $Res Function(_$ErrorMapImpl) then) =
-      __$$ErrorMapImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({Map<String, dynamic> message});
-}
-
-/// @nodoc
-class __$$ErrorMapImplCopyWithImpl<$Res>
-    extends _$ErrorMessageCopyWithImpl<$Res, _$ErrorMapImpl>
-    implements _$$ErrorMapImplCopyWith<$Res> {
-  __$$ErrorMapImplCopyWithImpl(
-      _$ErrorMapImpl _value, $Res Function(_$ErrorMapImpl) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? message = null,
-  }) {
-    return _then(_$ErrorMapImpl(
-      null == message
-          ? _value._message
-          : message // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$ErrorMapImpl extends ErrorMap {
-  const _$ErrorMapImpl(final Map<String, dynamic> message)
+class ErrorMap extends ErrorMessage {
+  const ErrorMap(final Json message)
       : _message = message,
         super._();
 
-  final Map<String, dynamic> _message;
+  final Json _message;
   @override
-  Map<String, dynamic> get message {
+  Json get message {
     if (_message is EqualUnmodifiableMapView) return _message;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_message);
   }
 
-  @override
-  String toString() {
-    return 'ErrorMessage.fromMap(message: $message)';
-  }
+  /// Create a copy of ErrorMessage
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ErrorMapCopyWith<ErrorMap> get copyWith =>
+      _$ErrorMapCopyWithImpl<ErrorMap>(this, _$identity);
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ErrorMapImpl &&
+            other is ErrorMap &&
             const DeepCollectionEquality().equals(other._message, _message));
   }
 
@@ -1276,82 +655,41 @@ class _$ErrorMapImpl extends ErrorMap {
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(_message));
 
-  @JsonKey(ignore: true)
   @override
+  String toString() {
+    return 'ErrorMessage.fromMap(message: $message)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ErrorMapCopyWith<$Res>
+    implements $ErrorMessageCopyWith<$Res> {
+  factory $ErrorMapCopyWith(ErrorMap value, $Res Function(ErrorMap) _then) =
+      _$ErrorMapCopyWithImpl;
+  @useResult
+  $Res call({Json message});
+}
+
+/// @nodoc
+class _$ErrorMapCopyWithImpl<$Res> implements $ErrorMapCopyWith<$Res> {
+  _$ErrorMapCopyWithImpl(this._self, this._then);
+
+  final ErrorMap _self;
+  final $Res Function(ErrorMap) _then;
+
+  /// Create a copy of ErrorMessage
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
-  _$$ErrorMapImplCopyWith<_$ErrorMapImpl> get copyWith =>
-      __$$ErrorMapImplCopyWithImpl<_$ErrorMapImpl>(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String message) fromString,
-    required TResult Function(Map<String, dynamic> message) fromMap,
+  $Res call({
+    Object? message = null,
   }) {
-    return fromMap(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message)? fromString,
-    TResult? Function(Map<String, dynamic> message)? fromMap,
-  }) {
-    return fromMap?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message)? fromString,
-    TResult Function(Map<String, dynamic> message)? fromMap,
-    required TResult orElse(),
-  }) {
-    if (fromMap != null) {
-      return fromMap(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(ErrorString value) fromString,
-    required TResult Function(ErrorMap value) fromMap,
-  }) {
-    return fromMap(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(ErrorString value)? fromString,
-    TResult? Function(ErrorMap value)? fromMap,
-  }) {
-    return fromMap?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(ErrorString value)? fromString,
-    TResult Function(ErrorMap value)? fromMap,
-    required TResult orElse(),
-  }) {
-    if (fromMap != null) {
-      return fromMap(this);
-    }
-    return orElse();
+    return _then(ErrorMap(
+      null == message
+          ? _self._message
+          : message // ignore: cast_nullable_to_non_nullable
+              as Json,
+    ));
   }
 }
 
-abstract class ErrorMap extends ErrorMessage {
-  const factory ErrorMap(final Map<String, dynamic> message) = _$ErrorMapImpl;
-  const ErrorMap._() : super._();
-
-  @override
-  Map<String, dynamic> get message;
-  @JsonKey(ignore: true)
-  _$$ErrorMapImplCopyWith<_$ErrorMapImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+// dart format on

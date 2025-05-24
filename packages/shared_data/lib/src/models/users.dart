@@ -22,7 +22,7 @@ part 'users.g.dart';
 ///                not they are the active user.
 /// {@endtemplate}
 @Freezed()
-class AuthUser extends Model with _$AuthUser {
+abstract class AuthUser extends Model with _$AuthUser {
   /// {@macro AuthUser}
   const factory AuthUser({
     required String id,

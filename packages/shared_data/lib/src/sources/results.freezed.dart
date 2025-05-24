@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,117 +10,51 @@ part of 'results.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
 
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
-
 /// @nodoc
-mixin _$WriteSuccess<T extends Model> {
-  T get item => throw _privateConstructorUsedError;
-  RequestDetails<T> get details => throw _privateConstructorUsedError;
-
-  @JsonKey(ignore: true)
-  $WriteSuccessCopyWith<T, WriteSuccess<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $WriteSuccessCopyWith<T extends Model, $Res> {
-  factory $WriteSuccessCopyWith(
-          WriteSuccess<T> value, $Res Function(WriteSuccess<T>) then) =
-      _$WriteSuccessCopyWithImpl<T, $Res, WriteSuccess<T>>;
-  @useResult
-  $Res call({T item, RequestDetails<T> details});
-}
-
-/// @nodoc
-class _$WriteSuccessCopyWithImpl<T extends Model, $Res,
-    $Val extends WriteSuccess<T>> implements $WriteSuccessCopyWith<T, $Res> {
-  _$WriteSuccessCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
+mixin _$WriteResult<T extends Model> {
   @override
-  $Res call({
-    Object? item = null,
-    Object? details = null,
-  }) {
-    return _then(_value.copyWith(
-      item: null == item
-          ? _value.item
-          : item // ignore: cast_nullable_to_non_nullable
-              as T,
-      details: null == details
-          ? _value.details
-          : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is WriteResult<T>);
   }
-}
-
-/// @nodoc
-abstract class _$$WriteSuccessImplCopyWith<T extends Model, $Res>
-    implements $WriteSuccessCopyWith<T, $Res> {
-  factory _$$WriteSuccessImplCopyWith(_$WriteSuccessImpl<T> value,
-          $Res Function(_$WriteSuccessImpl<T>) then) =
-      __$$WriteSuccessImplCopyWithImpl<T, $Res>;
-  @override
-  @useResult
-  $Res call({T item, RequestDetails<T> details});
-}
-
-/// @nodoc
-class __$$WriteSuccessImplCopyWithImpl<T extends Model, $Res>
-    extends _$WriteSuccessCopyWithImpl<T, $Res, _$WriteSuccessImpl<T>>
-    implements _$$WriteSuccessImplCopyWith<T, $Res> {
-  __$$WriteSuccessImplCopyWithImpl(
-      _$WriteSuccessImpl<T> _value, $Res Function(_$WriteSuccessImpl<T>) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? item = null,
-    Object? details = null,
-  }) {
-    return _then(_$WriteSuccessImpl<T>(
-      null == item
-          ? _value.item
-          : item // ignore: cast_nullable_to_non_nullable
-              as T,
-      details: null == details
-          ? _value.details
-          : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$WriteSuccessImpl<T extends Model> implements _WriteSuccess<T> {
-  const _$WriteSuccessImpl(this.item, {required this.details});
 
   @override
-  final T item;
-  @override
-  final RequestDetails<T> details;
+  int get hashCode => runtimeType.hashCode;
 
   @override
   String toString() {
-    return 'WriteSuccess<$T>(item: $item, details: $details)';
+    return 'WriteResult<$T>()';
   }
+}
+
+/// @nodoc
+class $WriteResultCopyWith<T extends Model, $Res> {
+  $WriteResultCopyWith(WriteResult<T> _, $Res Function(WriteResult<T>) __);
+}
+
+/// @nodoc
+
+class WriteSuccess<T extends Model> extends WriteResult<T> {
+  const WriteSuccess(this.item, {required this.details}) : super._();
+
+  final T item;
+  final RequestDetails<T> details;
+
+  /// Create a copy of WriteResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $WriteSuccessCopyWith<T, WriteSuccess<T>> get copyWith =>
+      _$WriteSuccessCopyWithImpl<T, WriteSuccess<T>>(this, _$identity);
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$WriteSuccessImpl<T> &&
+            other is WriteSuccess<T> &&
             const DeepCollectionEquality().equals(other.item, item) &&
             (identical(other.details, details) || other.details == details));
   }
@@ -128,109 +63,44 @@ class _$WriteSuccessImpl<T extends Model> implements _WriteSuccess<T> {
   int get hashCode => Object.hash(
       runtimeType, const DeepCollectionEquality().hash(item), details);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$WriteSuccessImplCopyWith<T, _$WriteSuccessImpl<T>> get copyWith =>
-      __$$WriteSuccessImplCopyWithImpl<T, _$WriteSuccessImpl<T>>(
-          this, _$identity);
-}
-
-abstract class _WriteSuccess<T extends Model> implements WriteSuccess<T> {
-  const factory _WriteSuccess(final T item,
-      {required final RequestDetails<T> details}) = _$WriteSuccessImpl<T>;
-
-  @override
-  T get item;
-  @override
-  RequestDetails<T> get details;
-  @override
-  @JsonKey(ignore: true)
-  _$$WriteSuccessImplCopyWith<T, _$WriteSuccessImpl<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$BulkWriteSuccess<T extends Model> {
-  List<T> get items => throw _privateConstructorUsedError;
-  RequestDetails<T> get details => throw _privateConstructorUsedError;
-
-  @JsonKey(ignore: true)
-  $BulkWriteSuccessCopyWith<T, BulkWriteSuccess<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $BulkWriteSuccessCopyWith<T extends Model, $Res> {
-  factory $BulkWriteSuccessCopyWith(
-          BulkWriteSuccess<T> value, $Res Function(BulkWriteSuccess<T>) then) =
-      _$BulkWriteSuccessCopyWithImpl<T, $Res, BulkWriteSuccess<T>>;
-  @useResult
-  $Res call({List<T> items, RequestDetails<T> details});
-}
-
-/// @nodoc
-class _$BulkWriteSuccessCopyWithImpl<T extends Model, $Res,
-        $Val extends BulkWriteSuccess<T>>
-    implements $BulkWriteSuccessCopyWith<T, $Res> {
-  _$BulkWriteSuccessCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? items = null,
-    Object? details = null,
-  }) {
-    return _then(_value.copyWith(
-      items: null == items
-          ? _value.items
-          : items // ignore: cast_nullable_to_non_nullable
-              as List<T>,
-      details: null == details
-          ? _value.details
-          : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
-    ) as $Val);
+  String toString() {
+    return 'WriteResult<$T>.success(item: $item, details: $details)';
   }
 }
 
 /// @nodoc
-abstract class _$$BulkWriteSuccessImplCopyWith<T extends Model, $Res>
-    implements $BulkWriteSuccessCopyWith<T, $Res> {
-  factory _$$BulkWriteSuccessImplCopyWith(_$BulkWriteSuccessImpl<T> value,
-          $Res Function(_$BulkWriteSuccessImpl<T>) then) =
-      __$$BulkWriteSuccessImplCopyWithImpl<T, $Res>;
-  @override
+abstract mixin class $WriteSuccessCopyWith<T extends Model, $Res>
+    implements $WriteResultCopyWith<T, $Res> {
+  factory $WriteSuccessCopyWith(
+          WriteSuccess<T> value, $Res Function(WriteSuccess<T>) _then) =
+      _$WriteSuccessCopyWithImpl;
   @useResult
-  $Res call({List<T> items, RequestDetails<T> details});
+  $Res call({T item, RequestDetails<T> details});
 }
 
 /// @nodoc
-class __$$BulkWriteSuccessImplCopyWithImpl<T extends Model, $Res>
-    extends _$BulkWriteSuccessCopyWithImpl<T, $Res, _$BulkWriteSuccessImpl<T>>
-    implements _$$BulkWriteSuccessImplCopyWith<T, $Res> {
-  __$$BulkWriteSuccessImplCopyWithImpl(_$BulkWriteSuccessImpl<T> _value,
-      $Res Function(_$BulkWriteSuccessImpl<T>) _then)
-      : super(_value, _then);
+class _$WriteSuccessCopyWithImpl<T extends Model, $Res>
+    implements $WriteSuccessCopyWith<T, $Res> {
+  _$WriteSuccessCopyWithImpl(this._self, this._then);
 
+  final WriteSuccess<T> _self;
+  final $Res Function(WriteSuccess<T>) _then;
+
+  /// Create a copy of WriteResult
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
-  @override
   $Res call({
-    Object? items = null,
+    Object? item = null,
     Object? details = null,
   }) {
-    return _then(_$BulkWriteSuccessImpl<T>(
-      null == items
-          ? _value._items
-          : items // ignore: cast_nullable_to_non_nullable
-              as List<T>,
+    return _then(WriteSuccess<T>(
+      null == item
+          ? _self.item
+          : item // ignore: cast_nullable_to_non_nullable
+              as T,
       details: null == details
-          ? _value.details
+          ? _self.details
           : details // ignore: cast_nullable_to_non_nullable
               as RequestDetails<T>,
     ));
@@ -239,31 +109,126 @@ class __$$BulkWriteSuccessImplCopyWithImpl<T extends Model, $Res>
 
 /// @nodoc
 
-class _$BulkWriteSuccessImpl<T extends Model> implements _BulkWriteSuccess<T> {
-  const _$BulkWriteSuccessImpl(final List<T> items, {required this.details})
-      : _items = items;
+class WriteFailure<T extends Model> extends WriteResult<T> {
+  const WriteFailure(this.reason, this.message) : super._();
+
+  final FailureReason reason;
+  final String message;
+
+  /// Create a copy of WriteResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $WriteFailureCopyWith<T, WriteFailure<T>> get copyWith =>
+      _$WriteFailureCopyWithImpl<T, WriteFailure<T>>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is WriteFailure<T> &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, reason, message);
+
+  @override
+  String toString() {
+    return 'WriteResult<$T>.failure(reason: $reason, message: $message)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $WriteFailureCopyWith<T extends Model, $Res>
+    implements $WriteResultCopyWith<T, $Res> {
+  factory $WriteFailureCopyWith(
+          WriteFailure<T> value, $Res Function(WriteFailure<T>) _then) =
+      _$WriteFailureCopyWithImpl;
+  @useResult
+  $Res call({FailureReason reason, String message});
+}
+
+/// @nodoc
+class _$WriteFailureCopyWithImpl<T extends Model, $Res>
+    implements $WriteFailureCopyWith<T, $Res> {
+  _$WriteFailureCopyWithImpl(this._self, this._then);
+
+  final WriteFailure<T> _self;
+  final $Res Function(WriteFailure<T>) _then;
+
+  /// Create a copy of WriteResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? reason = null,
+    Object? message = null,
+  }) {
+    return _then(WriteFailure<T>(
+      null == reason
+          ? _self.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as FailureReason,
+      null == message
+          ? _self.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+mixin _$WriteListResult<T extends Model> {
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is WriteListResult<T>);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'WriteListResult<$T>()';
+  }
+}
+
+/// @nodoc
+class $WriteListResultCopyWith<T extends Model, $Res> {
+  $WriteListResultCopyWith(
+      WriteListResult<T> _, $Res Function(WriteListResult<T>) __);
+}
+
+/// @nodoc
+
+class WriteListSuccess<T extends Model> extends WriteListResult<T> {
+  const WriteListSuccess(final List<T> items, {required this.details})
+      : _items = items,
+        super._();
 
   final List<T> _items;
-  @override
   List<T> get items {
     if (_items is EqualUnmodifiableListView) return _items;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_items);
   }
 
-  @override
   final RequestDetails<T> details;
 
-  @override
-  String toString() {
-    return 'BulkWriteSuccess<$T>(items: $items, details: $details)';
-  }
+  /// Create a copy of WriteListResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $WriteListSuccessCopyWith<T, WriteListSuccess<T>> get copyWith =>
+      _$WriteListSuccessCopyWithImpl<T, WriteListSuccess<T>>(this, _$identity);
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$BulkWriteSuccessImpl<T> &&
+            other is WriteListSuccess<T> &&
             const DeepCollectionEquality().equals(other._items, _items) &&
             (identical(other.details, details) || other.details == details));
   }
@@ -272,469 +237,44 @@ class _$BulkWriteSuccessImpl<T extends Model> implements _BulkWriteSuccess<T> {
   int get hashCode => Object.hash(
       runtimeType, const DeepCollectionEquality().hash(_items), details);
 
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$BulkWriteSuccessImplCopyWith<T, _$BulkWriteSuccessImpl<T>> get copyWith =>
-      __$$BulkWriteSuccessImplCopyWithImpl<T, _$BulkWriteSuccessImpl<T>>(
-          this, _$identity);
-}
-
-abstract class _BulkWriteSuccess<T extends Model>
-    implements BulkWriteSuccess<T> {
-  const factory _BulkWriteSuccess(final List<T> items,
-      {required final RequestDetails<T> details}) = _$BulkWriteSuccessImpl<T>;
-
-  @override
-  List<T> get items;
-  @override
-  RequestDetails<T> get details;
-  @override
-  @JsonKey(ignore: true)
-  _$$BulkWriteSuccessImplCopyWith<T, _$BulkWriteSuccessImpl<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$WriteFailure<T extends Model> {
-  String get message => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String message) serverError,
-    required TResult Function(String message) badRequest,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message)? serverError,
-    TResult? Function(String message)? badRequest,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message)? serverError,
-    TResult Function(String message)? badRequest,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_WriteServerError<T> value) serverError,
-    required TResult Function(_WriteClientError<T> value) badRequest,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_WriteServerError<T> value)? serverError,
-    TResult? Function(_WriteClientError<T> value)? badRequest,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_WriteServerError<T> value)? serverError,
-    TResult Function(_WriteClientError<T> value)? badRequest,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-
-  @JsonKey(ignore: true)
-  $WriteFailureCopyWith<T, WriteFailure<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $WriteFailureCopyWith<T extends Model, $Res> {
-  factory $WriteFailureCopyWith(
-          WriteFailure<T> value, $Res Function(WriteFailure<T>) then) =
-      _$WriteFailureCopyWithImpl<T, $Res, WriteFailure<T>>;
-  @useResult
-  $Res call({String message});
-}
-
-/// @nodoc
-class _$WriteFailureCopyWithImpl<T extends Model, $Res,
-    $Val extends WriteFailure<T>> implements $WriteFailureCopyWith<T, $Res> {
-  _$WriteFailureCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? message = null,
-  }) {
-    return _then(_value.copyWith(
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$WriteServerErrorImplCopyWith<T extends Model, $Res>
-    implements $WriteFailureCopyWith<T, $Res> {
-  factory _$$WriteServerErrorImplCopyWith(_$WriteServerErrorImpl<T> value,
-          $Res Function(_$WriteServerErrorImpl<T>) then) =
-      __$$WriteServerErrorImplCopyWithImpl<T, $Res>;
-  @override
-  @useResult
-  $Res call({String message});
-}
-
-/// @nodoc
-class __$$WriteServerErrorImplCopyWithImpl<T extends Model, $Res>
-    extends _$WriteFailureCopyWithImpl<T, $Res, _$WriteServerErrorImpl<T>>
-    implements _$$WriteServerErrorImplCopyWith<T, $Res> {
-  __$$WriteServerErrorImplCopyWithImpl(_$WriteServerErrorImpl<T> _value,
-      $Res Function(_$WriteServerErrorImpl<T>) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? message = null,
-  }) {
-    return _then(_$WriteServerErrorImpl<T>(
-      null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$WriteServerErrorImpl<T extends Model> extends _WriteServerError<T> {
-  const _$WriteServerErrorImpl(this.message) : super._();
-
-  @override
-  final String message;
-
   @override
   String toString() {
-    return 'WriteFailure<$T>.serverError(message: $message)';
+    return 'WriteListResult<$T>.success(items: $items, details: $details)';
   }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$WriteServerErrorImpl<T> &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$WriteServerErrorImplCopyWith<T, _$WriteServerErrorImpl<T>> get copyWith =>
-      __$$WriteServerErrorImplCopyWithImpl<T, _$WriteServerErrorImpl<T>>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String message) serverError,
-    required TResult Function(String message) badRequest,
-  }) {
-    return serverError(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message)? serverError,
-    TResult? Function(String message)? badRequest,
-  }) {
-    return serverError?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message)? serverError,
-    TResult Function(String message)? badRequest,
-    required TResult orElse(),
-  }) {
-    if (serverError != null) {
-      return serverError(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_WriteServerError<T> value) serverError,
-    required TResult Function(_WriteClientError<T> value) badRequest,
-  }) {
-    return serverError(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_WriteServerError<T> value)? serverError,
-    TResult? Function(_WriteClientError<T> value)? badRequest,
-  }) {
-    return serverError?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_WriteServerError<T> value)? serverError,
-    TResult Function(_WriteClientError<T> value)? badRequest,
-    required TResult orElse(),
-  }) {
-    if (serverError != null) {
-      return serverError(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class _WriteServerError<T extends Model> extends WriteFailure<T> {
-  const factory _WriteServerError(final String message) =
-      _$WriteServerErrorImpl<T>;
-  const _WriteServerError._() : super._();
-
-  @override
-  String get message;
-  @override
-  @JsonKey(ignore: true)
-  _$$WriteServerErrorImplCopyWith<T, _$WriteServerErrorImpl<T>> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$WriteClientErrorImplCopyWith<T extends Model, $Res>
-    implements $WriteFailureCopyWith<T, $Res> {
-  factory _$$WriteClientErrorImplCopyWith(_$WriteClientErrorImpl<T> value,
-          $Res Function(_$WriteClientErrorImpl<T>) then) =
-      __$$WriteClientErrorImplCopyWithImpl<T, $Res>;
-  @override
+abstract mixin class $WriteListSuccessCopyWith<T extends Model, $Res>
+    implements $WriteListResultCopyWith<T, $Res> {
+  factory $WriteListSuccessCopyWith(
+          WriteListSuccess<T> value, $Res Function(WriteListSuccess<T>) _then) =
+      _$WriteListSuccessCopyWithImpl;
   @useResult
-  $Res call({String message});
+  $Res call({List<T> items, RequestDetails<T> details});
 }
 
 /// @nodoc
-class __$$WriteClientErrorImplCopyWithImpl<T extends Model, $Res>
-    extends _$WriteFailureCopyWithImpl<T, $Res, _$WriteClientErrorImpl<T>>
-    implements _$$WriteClientErrorImplCopyWith<T, $Res> {
-  __$$WriteClientErrorImplCopyWithImpl(_$WriteClientErrorImpl<T> _value,
-      $Res Function(_$WriteClientErrorImpl<T>) _then)
-      : super(_value, _then);
+class _$WriteListSuccessCopyWithImpl<T extends Model, $Res>
+    implements $WriteListSuccessCopyWith<T, $Res> {
+  _$WriteListSuccessCopyWithImpl(this._self, this._then);
 
+  final WriteListSuccess<T> _self;
+  final $Res Function(WriteListSuccess<T>) _then;
+
+  /// Create a copy of WriteListResult
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
-  @override
   $Res call({
-    Object? message = null,
-  }) {
-    return _then(_$WriteClientErrorImpl<T>(
-      null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$WriteClientErrorImpl<T extends Model> extends _WriteClientError<T> {
-  const _$WriteClientErrorImpl(this.message) : super._();
-
-  @override
-  final String message;
-
-  @override
-  String toString() {
-    return 'WriteFailure<$T>.badRequest(message: $message)';
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$WriteClientErrorImpl<T> &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$WriteClientErrorImplCopyWith<T, _$WriteClientErrorImpl<T>> get copyWith =>
-      __$$WriteClientErrorImplCopyWithImpl<T, _$WriteClientErrorImpl<T>>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String message) serverError,
-    required TResult Function(String message) badRequest,
-  }) {
-    return badRequest(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message)? serverError,
-    TResult? Function(String message)? badRequest,
-  }) {
-    return badRequest?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message)? serverError,
-    TResult Function(String message)? badRequest,
-    required TResult orElse(),
-  }) {
-    if (badRequest != null) {
-      return badRequest(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_WriteServerError<T> value) serverError,
-    required TResult Function(_WriteClientError<T> value) badRequest,
-  }) {
-    return badRequest(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_WriteServerError<T> value)? serverError,
-    TResult? Function(_WriteClientError<T> value)? badRequest,
-  }) {
-    return badRequest?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_WriteServerError<T> value)? serverError,
-    TResult Function(_WriteClientError<T> value)? badRequest,
-    required TResult orElse(),
-  }) {
-    if (badRequest != null) {
-      return badRequest(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class _WriteClientError<T extends Model> extends WriteFailure<T> {
-  const factory _WriteClientError(final String message) =
-      _$WriteClientErrorImpl<T>;
-  const _WriteClientError._() : super._();
-
-  @override
-  String get message;
-  @override
-  @JsonKey(ignore: true)
-  _$$WriteClientErrorImplCopyWith<T, _$WriteClientErrorImpl<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$ReadSuccess<T extends Model> {
-  T? get item => throw _privateConstructorUsedError;
-  RequestDetails<T> get details => throw _privateConstructorUsedError;
-
-  @JsonKey(ignore: true)
-  $ReadSuccessCopyWith<T, ReadSuccess<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $ReadSuccessCopyWith<T extends Model, $Res> {
-  factory $ReadSuccessCopyWith(
-          ReadSuccess<T> value, $Res Function(ReadSuccess<T>) then) =
-      _$ReadSuccessCopyWithImpl<T, $Res, ReadSuccess<T>>;
-  @useResult
-  $Res call({T? item, RequestDetails<T> details});
-}
-
-/// @nodoc
-class _$ReadSuccessCopyWithImpl<T extends Model, $Res,
-    $Val extends ReadSuccess<T>> implements $ReadSuccessCopyWith<T, $Res> {
-  _$ReadSuccessCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? item = null,
+    Object? items = null,
     Object? details = null,
   }) {
-    return _then(_value.copyWith(
-      item: null == item
-          ? _value.item
-          : item // ignore: cast_nullable_to_non_nullable
-              as T?,
+    return _then(WriteListSuccess<T>(
+      null == items
+          ? _self._items
+          : items // ignore: cast_nullable_to_non_nullable
+              as List<T>,
       details: null == details
-          ? _value.details
-          : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$ReadSuccessImplCopyWith<T extends Model, $Res>
-    implements $ReadSuccessCopyWith<T, $Res> {
-  factory _$$ReadSuccessImplCopyWith(_$ReadSuccessImpl<T> value,
-          $Res Function(_$ReadSuccessImpl<T>) then) =
-      __$$ReadSuccessImplCopyWithImpl<T, $Res>;
-  @override
-  @useResult
-  $Res call({T? item, RequestDetails<T> details});
-}
-
-/// @nodoc
-class __$$ReadSuccessImplCopyWithImpl<T extends Model, $Res>
-    extends _$ReadSuccessCopyWithImpl<T, $Res, _$ReadSuccessImpl<T>>
-    implements _$$ReadSuccessImplCopyWith<T, $Res> {
-  __$$ReadSuccessImplCopyWithImpl(
-      _$ReadSuccessImpl<T> _value, $Res Function(_$ReadSuccessImpl<T>) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? item = null,
-    Object? details = null,
-  }) {
-    return _then(_$ReadSuccessImpl<T>(
-      null == item
-          ? _value.item
-          : item // ignore: cast_nullable_to_non_nullable
-              as T?,
-      details: null == details
-          ? _value.details
+          ? _self.details
           : details // ignore: cast_nullable_to_non_nullable
               as RequestDetails<T>,
     ));
@@ -743,24 +283,117 @@ class __$$ReadSuccessImplCopyWithImpl<T extends Model, $Res>
 
 /// @nodoc
 
-class _$ReadSuccessImpl<T extends Model> implements _ReadSuccess<T> {
-  const _$ReadSuccessImpl(this.item, {required this.details});
+class WriteListFailure<T extends Model> extends WriteListResult<T> {
+  const WriteListFailure(this.reason, this.message) : super._();
+
+  final FailureReason reason;
+  final String message;
+
+  /// Create a copy of WriteListResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $WriteListFailureCopyWith<T, WriteListFailure<T>> get copyWith =>
+      _$WriteListFailureCopyWithImpl<T, WriteListFailure<T>>(this, _$identity);
 
   @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is WriteListFailure<T> &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, reason, message);
+
+  @override
+  String toString() {
+    return 'WriteListResult<$T>.failure(reason: $reason, message: $message)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $WriteListFailureCopyWith<T extends Model, $Res>
+    implements $WriteListResultCopyWith<T, $Res> {
+  factory $WriteListFailureCopyWith(
+          WriteListFailure<T> value, $Res Function(WriteListFailure<T>) _then) =
+      _$WriteListFailureCopyWithImpl;
+  @useResult
+  $Res call({FailureReason reason, String message});
+}
+
+/// @nodoc
+class _$WriteListFailureCopyWithImpl<T extends Model, $Res>
+    implements $WriteListFailureCopyWith<T, $Res> {
+  _$WriteListFailureCopyWithImpl(this._self, this._then);
+
+  final WriteListFailure<T> _self;
+  final $Res Function(WriteListFailure<T>) _then;
+
+  /// Create a copy of WriteListResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? reason = null,
+    Object? message = null,
+  }) {
+    return _then(WriteListFailure<T>(
+      null == reason
+          ? _self.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as FailureReason,
+      null == message
+          ? _self.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+mixin _$ReadResult<T extends Model> {
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is ReadResult<T>);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'ReadResult<$T>()';
+  }
+}
+
+/// @nodoc
+class $ReadResultCopyWith<T extends Model, $Res> {
+  $ReadResultCopyWith(ReadResult<T> _, $Res Function(ReadResult<T>) __);
+}
+
+/// @nodoc
+
+class ReadSuccess<T extends Model> extends ReadResult<T> {
+  const ReadSuccess(this.item, {required this.details}) : super._();
+
   final T? item;
-  @override
   final RequestDetails<T> details;
 
-  @override
-  String toString() {
-    return 'ReadSuccess<$T>(item: $item, details: $details)';
-  }
+  /// Create a copy of ReadResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ReadSuccessCopyWith<T, ReadSuccess<T>> get copyWith =>
+      _$ReadSuccessCopyWithImpl<T, ReadSuccess<T>>(this, _$identity);
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ReadSuccessImpl<T> &&
+            other is ReadSuccess<T> &&
             const DeepCollectionEquality().equals(other.item, item) &&
             (identical(other.details, details) || other.details == details));
   }
@@ -769,139 +402,44 @@ class _$ReadSuccessImpl<T extends Model> implements _ReadSuccess<T> {
   int get hashCode => Object.hash(
       runtimeType, const DeepCollectionEquality().hash(item), details);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$ReadSuccessImplCopyWith<T, _$ReadSuccessImpl<T>> get copyWith =>
-      __$$ReadSuccessImplCopyWithImpl<T, _$ReadSuccessImpl<T>>(
-          this, _$identity);
-}
-
-abstract class _ReadSuccess<T extends Model> implements ReadSuccess<T> {
-  const factory _ReadSuccess(final T? item,
-      {required final RequestDetails<T> details}) = _$ReadSuccessImpl<T>;
-
-  @override
-  T? get item;
-  @override
-  RequestDetails<T> get details;
-  @override
-  @JsonKey(ignore: true)
-  _$$ReadSuccessImplCopyWith<T, _$ReadSuccessImpl<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$ReadListSuccess<T extends Model> {
-  List<T> get items => throw _privateConstructorUsedError;
-  Map<String, T> get itemsMap => throw _privateConstructorUsedError;
-  Set<String> get missingItemIds => throw _privateConstructorUsedError;
-  RequestDetails<T> get details => throw _privateConstructorUsedError;
-
-  @JsonKey(ignore: true)
-  $ReadListSuccessCopyWith<T, ReadListSuccess<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $ReadListSuccessCopyWith<T extends Model, $Res> {
-  factory $ReadListSuccessCopyWith(
-          ReadListSuccess<T> value, $Res Function(ReadListSuccess<T>) then) =
-      _$ReadListSuccessCopyWithImpl<T, $Res, ReadListSuccess<T>>;
-  @useResult
-  $Res call(
-      {List<T> items,
-      Map<String, T> itemsMap,
-      Set<String> missingItemIds,
-      RequestDetails<T> details});
-}
-
-/// @nodoc
-class _$ReadListSuccessCopyWithImpl<T extends Model, $Res,
-        $Val extends ReadListSuccess<T>>
-    implements $ReadListSuccessCopyWith<T, $Res> {
-  _$ReadListSuccessCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? items = null,
-    Object? itemsMap = null,
-    Object? missingItemIds = null,
-    Object? details = null,
-  }) {
-    return _then(_value.copyWith(
-      items: null == items
-          ? _value.items
-          : items // ignore: cast_nullable_to_non_nullable
-              as List<T>,
-      itemsMap: null == itemsMap
-          ? _value.itemsMap
-          : itemsMap // ignore: cast_nullable_to_non_nullable
-              as Map<String, T>,
-      missingItemIds: null == missingItemIds
-          ? _value.missingItemIds
-          : missingItemIds // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
-      details: null == details
-          ? _value.details
-          : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
-    ) as $Val);
+  String toString() {
+    return 'ReadResult<$T>.success(item: $item, details: $details)';
   }
 }
 
 /// @nodoc
-abstract class _$$ReadListSuccessImplCopyWith<T extends Model, $Res>
-    implements $ReadListSuccessCopyWith<T, $Res> {
-  factory _$$ReadListSuccessImplCopyWith(_$ReadListSuccessImpl<T> value,
-          $Res Function(_$ReadListSuccessImpl<T>) then) =
-      __$$ReadListSuccessImplCopyWithImpl<T, $Res>;
-  @override
+abstract mixin class $ReadSuccessCopyWith<T extends Model, $Res>
+    implements $ReadResultCopyWith<T, $Res> {
+  factory $ReadSuccessCopyWith(
+          ReadSuccess<T> value, $Res Function(ReadSuccess<T>) _then) =
+      _$ReadSuccessCopyWithImpl;
   @useResult
-  $Res call(
-      {List<T> items,
-      Map<String, T> itemsMap,
-      Set<String> missingItemIds,
-      RequestDetails<T> details});
+  $Res call({T? item, RequestDetails<T> details});
 }
 
 /// @nodoc
-class __$$ReadListSuccessImplCopyWithImpl<T extends Model, $Res>
-    extends _$ReadListSuccessCopyWithImpl<T, $Res, _$ReadListSuccessImpl<T>>
-    implements _$$ReadListSuccessImplCopyWith<T, $Res> {
-  __$$ReadListSuccessImplCopyWithImpl(_$ReadListSuccessImpl<T> _value,
-      $Res Function(_$ReadListSuccessImpl<T>) _then)
-      : super(_value, _then);
+class _$ReadSuccessCopyWithImpl<T extends Model, $Res>
+    implements $ReadSuccessCopyWith<T, $Res> {
+  _$ReadSuccessCopyWithImpl(this._self, this._then);
 
+  final ReadSuccess<T> _self;
+  final $Res Function(ReadSuccess<T>) _then;
+
+  /// Create a copy of ReadResult
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
-  @override
   $Res call({
-    Object? items = null,
-    Object? itemsMap = null,
-    Object? missingItemIds = null,
+    Object? item = freezed,
     Object? details = null,
   }) {
-    return _then(_$ReadListSuccessImpl<T>(
-      items: null == items
-          ? _value._items
-          : items // ignore: cast_nullable_to_non_nullable
-              as List<T>,
-      itemsMap: null == itemsMap
-          ? _value._itemsMap
-          : itemsMap // ignore: cast_nullable_to_non_nullable
-              as Map<String, T>,
-      missingItemIds: null == missingItemIds
-          ? _value._missingItemIds
-          : missingItemIds // ignore: cast_nullable_to_non_nullable
-              as Set<String>,
+    return _then(ReadSuccess<T>(
+      freezed == item
+          ? _self.item
+          : item // ignore: cast_nullable_to_non_nullable
+              as T?,
       details: null == details
-          ? _value.details
+          ? _self.details
           : details // ignore: cast_nullable_to_non_nullable
               as RequestDetails<T>,
     ));
@@ -910,8 +448,102 @@ class __$$ReadListSuccessImplCopyWithImpl<T extends Model, $Res>
 
 /// @nodoc
 
-class _$ReadListSuccessImpl<T extends Model> extends _ReadListSuccess<T> {
-  const _$ReadListSuccessImpl(
+class ReadFailure<T extends Model> extends ReadResult<T> {
+  const ReadFailure(this.reason, this.message) : super._();
+
+  final FailureReason reason;
+  final String message;
+
+  /// Create a copy of ReadResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ReadFailureCopyWith<T, ReadFailure<T>> get copyWith =>
+      _$ReadFailureCopyWithImpl<T, ReadFailure<T>>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ReadFailure<T> &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, reason, message);
+
+  @override
+  String toString() {
+    return 'ReadResult<$T>.failure(reason: $reason, message: $message)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ReadFailureCopyWith<T extends Model, $Res>
+    implements $ReadResultCopyWith<T, $Res> {
+  factory $ReadFailureCopyWith(
+          ReadFailure<T> value, $Res Function(ReadFailure<T>) _then) =
+      _$ReadFailureCopyWithImpl;
+  @useResult
+  $Res call({FailureReason reason, String message});
+}
+
+/// @nodoc
+class _$ReadFailureCopyWithImpl<T extends Model, $Res>
+    implements $ReadFailureCopyWith<T, $Res> {
+  _$ReadFailureCopyWithImpl(this._self, this._then);
+
+  final ReadFailure<T> _self;
+  final $Res Function(ReadFailure<T>) _then;
+
+  /// Create a copy of ReadResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? reason = null,
+    Object? message = null,
+  }) {
+    return _then(ReadFailure<T>(
+      null == reason
+          ? _self.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as FailureReason,
+      null == message
+          ? _self.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+mixin _$ReadListResult<T extends Model> {
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is ReadListResult<T>);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'ReadListResult<$T>()';
+  }
+}
+
+/// @nodoc
+class $ReadListResultCopyWith<T extends Model, $Res> {
+  $ReadListResultCopyWith(
+      ReadListResult<T> _, $Res Function(ReadListResult<T>) __);
+}
+
+/// @nodoc
+
+class ReadListSuccess<T extends Model> extends ReadListResult<T> {
+  const ReadListSuccess(
       {required final List<T> items,
       required final Map<String, T> itemsMap,
       required final Set<String> missingItemIds,
@@ -922,7 +554,6 @@ class _$ReadListSuccessImpl<T extends Model> extends _ReadListSuccess<T> {
         super._();
 
   final List<T> _items;
-  @override
   List<T> get items {
     if (_items is EqualUnmodifiableListView) return _items;
     // ignore: implicit_dynamic_type
@@ -930,7 +561,6 @@ class _$ReadListSuccessImpl<T extends Model> extends _ReadListSuccess<T> {
   }
 
   final Map<String, T> _itemsMap;
-  @override
   Map<String, T> get itemsMap {
     if (_itemsMap is EqualUnmodifiableMapView) return _itemsMap;
     // ignore: implicit_dynamic_type
@@ -938,26 +568,26 @@ class _$ReadListSuccessImpl<T extends Model> extends _ReadListSuccess<T> {
   }
 
   final Set<String> _missingItemIds;
-  @override
   Set<String> get missingItemIds {
     if (_missingItemIds is EqualUnmodifiableSetView) return _missingItemIds;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableSetView(_missingItemIds);
   }
 
-  @override
   final RequestDetails<T> details;
 
-  @override
-  String toString() {
-    return 'ReadListSuccess<$T>(items: $items, itemsMap: $itemsMap, missingItemIds: $missingItemIds, details: $details)';
-  }
+  /// Create a copy of ReadListResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ReadListSuccessCopyWith<T, ReadListSuccess<T>> get copyWith =>
+      _$ReadListSuccessCopyWithImpl<T, ReadListSuccess<T>>(this, _$identity);
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ReadListSuccessImpl<T> &&
+            other is ReadListSuccess<T> &&
             const DeepCollectionEquality().equals(other._items, _items) &&
             const DeepCollectionEquality().equals(other._itemsMap, _itemsMap) &&
             const DeepCollectionEquality()
@@ -973,390 +603,133 @@ class _$ReadListSuccessImpl<T extends Model> extends _ReadListSuccess<T> {
       const DeepCollectionEquality().hash(_missingItemIds),
       details);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$ReadListSuccessImplCopyWith<T, _$ReadListSuccessImpl<T>> get copyWith =>
-      __$$ReadListSuccessImplCopyWithImpl<T, _$ReadListSuccessImpl<T>>(
-          this, _$identity);
-}
-
-abstract class _ReadListSuccess<T extends Model> extends ReadListSuccess<T> {
-  const factory _ReadListSuccess(
-      {required final List<T> items,
-      required final Map<String, T> itemsMap,
-      required final Set<String> missingItemIds,
-      required final RequestDetails<T> details}) = _$ReadListSuccessImpl<T>;
-  const _ReadListSuccess._() : super._();
-
-  @override
-  List<T> get items;
-  @override
-  Map<String, T> get itemsMap;
-  @override
-  Set<String> get missingItemIds;
-  @override
-  RequestDetails<T> get details;
-  @override
-  @JsonKey(ignore: true)
-  _$$ReadListSuccessImplCopyWith<T, _$ReadListSuccessImpl<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$ReadFailure<T> {
-  String get message => throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String message) serverError,
-    required TResult Function(String message) badRequest,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message)? serverError,
-    TResult? Function(String message)? badRequest,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message)? serverError,
-    TResult Function(String message)? badRequest,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_ReadServerError<T> value) serverError,
-    required TResult Function(_ReadClientError<T> value) badRequest,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_ReadServerError<T> value)? serverError,
-    TResult? Function(_ReadClientError<T> value)? badRequest,
-  }) =>
-      throw _privateConstructorUsedError;
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_ReadServerError<T> value)? serverError,
-    TResult Function(_ReadClientError<T> value)? badRequest,
-    required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
-
-  @JsonKey(ignore: true)
-  $ReadFailureCopyWith<T, ReadFailure<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $ReadFailureCopyWith<T, $Res> {
-  factory $ReadFailureCopyWith(
-          ReadFailure<T> value, $Res Function(ReadFailure<T>) then) =
-      _$ReadFailureCopyWithImpl<T, $Res, ReadFailure<T>>;
-  @useResult
-  $Res call({String message});
-}
-
-/// @nodoc
-class _$ReadFailureCopyWithImpl<T, $Res, $Val extends ReadFailure<T>>
-    implements $ReadFailureCopyWith<T, $Res> {
-  _$ReadFailureCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? message = null,
-  }) {
-    return _then(_value.copyWith(
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+  String toString() {
+    return 'ReadListResult<$T>(items: $items, itemsMap: $itemsMap, missingItemIds: $missingItemIds, details: $details)';
   }
 }
 
 /// @nodoc
-abstract class _$$ReadServerErrorImplCopyWith<T, $Res>
-    implements $ReadFailureCopyWith<T, $Res> {
-  factory _$$ReadServerErrorImplCopyWith(_$ReadServerErrorImpl<T> value,
-          $Res Function(_$ReadServerErrorImpl<T>) then) =
-      __$$ReadServerErrorImplCopyWithImpl<T, $Res>;
-  @override
+abstract mixin class $ReadListSuccessCopyWith<T extends Model, $Res>
+    implements $ReadListResultCopyWith<T, $Res> {
+  factory $ReadListSuccessCopyWith(
+          ReadListSuccess<T> value, $Res Function(ReadListSuccess<T>) _then) =
+      _$ReadListSuccessCopyWithImpl;
   @useResult
-  $Res call({String message});
+  $Res call(
+      {List<T> items,
+      Map<String, T> itemsMap,
+      Set<String> missingItemIds,
+      RequestDetails<T> details});
 }
 
 /// @nodoc
-class __$$ReadServerErrorImplCopyWithImpl<T, $Res>
-    extends _$ReadFailureCopyWithImpl<T, $Res, _$ReadServerErrorImpl<T>>
-    implements _$$ReadServerErrorImplCopyWith<T, $Res> {
-  __$$ReadServerErrorImplCopyWithImpl(_$ReadServerErrorImpl<T> _value,
-      $Res Function(_$ReadServerErrorImpl<T>) _then)
-      : super(_value, _then);
+class _$ReadListSuccessCopyWithImpl<T extends Model, $Res>
+    implements $ReadListSuccessCopyWith<T, $Res> {
+  _$ReadListSuccessCopyWithImpl(this._self, this._then);
 
+  final ReadListSuccess<T> _self;
+  final $Res Function(ReadListSuccess<T>) _then;
+
+  /// Create a copy of ReadListResult
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
-  @override
   $Res call({
-    Object? message = null,
+    Object? items = null,
+    Object? itemsMap = null,
+    Object? missingItemIds = null,
+    Object? details = null,
   }) {
-    return _then(_$ReadServerErrorImpl<T>(
-      null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
+    return _then(ReadListSuccess<T>(
+      items: null == items
+          ? _self._items
+          : items // ignore: cast_nullable_to_non_nullable
+              as List<T>,
+      itemsMap: null == itemsMap
+          ? _self._itemsMap
+          : itemsMap // ignore: cast_nullable_to_non_nullable
+              as Map<String, T>,
+      missingItemIds: null == missingItemIds
+          ? _self._missingItemIds
+          : missingItemIds // ignore: cast_nullable_to_non_nullable
+              as Set<String>,
+      details: null == details
+          ? _self.details
+          : details // ignore: cast_nullable_to_non_nullable
+              as RequestDetails<T>,
     ));
   }
 }
 
 /// @nodoc
 
-class _$ReadServerErrorImpl<T> implements _ReadServerError<T> {
-  const _$ReadServerErrorImpl(this.message);
+class ReadListFailure<T extends Model> extends ReadListResult<T> {
+  const ReadListFailure(this.reason, this.message) : super._();
 
-  @override
+  final FailureReason reason;
   final String message;
 
-  @override
-  String toString() {
-    return 'ReadFailure<$T>.serverError(message: $message)';
-  }
+  /// Create a copy of ReadListResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ReadListFailureCopyWith<T, ReadListFailure<T>> get copyWith =>
+      _$ReadListFailureCopyWithImpl<T, ReadListFailure<T>>(this, _$identity);
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ReadServerErrorImpl<T> &&
+            other is ReadListFailure<T> &&
+            (identical(other.reason, reason) || other.reason == reason) &&
             (identical(other.message, message) || other.message == message));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ReadServerErrorImplCopyWith<T, _$ReadServerErrorImpl<T>> get copyWith =>
-      __$$ReadServerErrorImplCopyWithImpl<T, _$ReadServerErrorImpl<T>>(
-          this, _$identity);
+  int get hashCode => Object.hash(runtimeType, reason, message);
 
   @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String message) serverError,
-    required TResult Function(String message) badRequest,
-  }) {
-    return serverError(message);
+  String toString() {
+    return 'ReadListResult<$T>.failure(reason: $reason, message: $message)';
   }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message)? serverError,
-    TResult? Function(String message)? badRequest,
-  }) {
-    return serverError?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message)? serverError,
-    TResult Function(String message)? badRequest,
-    required TResult orElse(),
-  }) {
-    if (serverError != null) {
-      return serverError(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_ReadServerError<T> value) serverError,
-    required TResult Function(_ReadClientError<T> value) badRequest,
-  }) {
-    return serverError(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_ReadServerError<T> value)? serverError,
-    TResult? Function(_ReadClientError<T> value)? badRequest,
-  }) {
-    return serverError?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_ReadServerError<T> value)? serverError,
-    TResult Function(_ReadClientError<T> value)? badRequest,
-    required TResult orElse(),
-  }) {
-    if (serverError != null) {
-      return serverError(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class _ReadServerError<T> implements ReadFailure<T> {
-  const factory _ReadServerError(final String message) =
-      _$ReadServerErrorImpl<T>;
-
-  @override
-  String get message;
-  @override
-  @JsonKey(ignore: true)
-  _$$ReadServerErrorImplCopyWith<T, _$ReadServerErrorImpl<T>> get copyWith =>
-      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _$$ReadClientErrorImplCopyWith<T, $Res>
-    implements $ReadFailureCopyWith<T, $Res> {
-  factory _$$ReadClientErrorImplCopyWith(_$ReadClientErrorImpl<T> value,
-          $Res Function(_$ReadClientErrorImpl<T>) then) =
-      __$$ReadClientErrorImplCopyWithImpl<T, $Res>;
-  @override
+abstract mixin class $ReadListFailureCopyWith<T extends Model, $Res>
+    implements $ReadListResultCopyWith<T, $Res> {
+  factory $ReadListFailureCopyWith(
+          ReadListFailure<T> value, $Res Function(ReadListFailure<T>) _then) =
+      _$ReadListFailureCopyWithImpl;
   @useResult
-  $Res call({String message});
+  $Res call({FailureReason reason, String message});
 }
 
 /// @nodoc
-class __$$ReadClientErrorImplCopyWithImpl<T, $Res>
-    extends _$ReadFailureCopyWithImpl<T, $Res, _$ReadClientErrorImpl<T>>
-    implements _$$ReadClientErrorImplCopyWith<T, $Res> {
-  __$$ReadClientErrorImplCopyWithImpl(_$ReadClientErrorImpl<T> _value,
-      $Res Function(_$ReadClientErrorImpl<T>) _then)
-      : super(_value, _then);
+class _$ReadListFailureCopyWithImpl<T extends Model, $Res>
+    implements $ReadListFailureCopyWith<T, $Res> {
+  _$ReadListFailureCopyWithImpl(this._self, this._then);
 
+  final ReadListFailure<T> _self;
+  final $Res Function(ReadListFailure<T>) _then;
+
+  /// Create a copy of ReadListResult
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
-  @override
   $Res call({
+    Object? reason = null,
     Object? message = null,
   }) {
-    return _then(_$ReadClientErrorImpl<T>(
+    return _then(ReadListFailure<T>(
+      null == reason
+          ? _self.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as FailureReason,
       null == message
-          ? _value.message
+          ? _self.message
           : message // ignore: cast_nullable_to_non_nullable
               as String,
     ));
   }
 }
 
-/// @nodoc
-
-class _$ReadClientErrorImpl<T> implements _ReadClientError<T> {
-  const _$ReadClientErrorImpl(this.message);
-
-  @override
-  final String message;
-
-  @override
-  String toString() {
-    return 'ReadFailure<$T>.badRequest(message: $message)';
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ReadClientErrorImpl<T> &&
-            (identical(other.message, message) || other.message == message));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, message);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ReadClientErrorImplCopyWith<T, _$ReadClientErrorImpl<T>> get copyWith =>
-      __$$ReadClientErrorImplCopyWithImpl<T, _$ReadClientErrorImpl<T>>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String message) serverError,
-    required TResult Function(String message) badRequest,
-  }) {
-    return badRequest(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String message)? serverError,
-    TResult? Function(String message)? badRequest,
-  }) {
-    return badRequest?.call(message);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String message)? serverError,
-    TResult Function(String message)? badRequest,
-    required TResult orElse(),
-  }) {
-    if (badRequest != null) {
-      return badRequest(message);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(_ReadServerError<T> value) serverError,
-    required TResult Function(_ReadClientError<T> value) badRequest,
-  }) {
-    return badRequest(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(_ReadServerError<T> value)? serverError,
-    TResult? Function(_ReadClientError<T> value)? badRequest,
-  }) {
-    return badRequest?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(_ReadServerError<T> value)? serverError,
-    TResult Function(_ReadClientError<T> value)? badRequest,
-    required TResult orElse(),
-  }) {
-    if (badRequest != null) {
-      return badRequest(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class _ReadClientError<T> implements ReadFailure<T> {
-  const factory _ReadClientError(final String message) =
-      _$ReadClientErrorImpl<T>;
-
-  @override
-  String get message;
-  @override
-  @JsonKey(ignore: true)
-  _$$ReadClientErrorImplCopyWith<T, _$ReadClientErrorImpl<T>> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+// dart format on

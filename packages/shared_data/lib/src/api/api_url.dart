@@ -73,7 +73,7 @@ class ApiUrl {
 /// {@endtemplate}
 class ApiV1Url extends ApiUrl {
   /// {@macro ApiUrl}
-  ApiV1Url({required super.path, super.context = _empty})
+  const ApiV1Url({required super.path, super.context = _empty})
       : super(baseUrl: 'api/v1');
 }
 

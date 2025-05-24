@@ -81,8 +81,8 @@ void main() {
     test('set Ids', () async {
       const item = TestModel(id: null, msg: 'hello');
       final result = await idSettingMem.setItem(item, details);
-      expect(result, isRight);
-      expect(result.getOrRaise().item.id, isNotNull);
+      expect(result, isA<WriteSuccess>());
+      expect((result as WriteSuccess).item.id, isNotNull);
     });
   });
 
@@ -131,8 +131,8 @@ void main() {
       const item = TestModel(id: 'item 1');
       await mem.setItem(item, details);
       final maybeResult = await mem.getById(item.id!, details);
-      expect(maybeResult, isRight);
-      expect(maybeResult.getOrRaise().item, equals(item));
+      expect(maybeResult, isA<ReadSuccess>());
+      expect((maybeResult as ReadSuccess).item, equals(item));
     });
 
     test('return empty ReadSuccess for unknown items', () async {
@@ -142,21 +142,21 @@ void main() {
       const item2 = TestModel(id: 'item 2');
 
       final retrievedItem = await mem.getById(item2.id!, details);
-      expect(retrievedItem, isRight);
-      expect(retrievedItem.getOrRaise().item, isNull);
+      expect(retrievedItem, isA<ReadSuccess>());
+      expect((retrievedItem as ReadSuccess).item, isNull);
     });
 
     test('honor setName', () async {
       const item = TestModel(id: 'item 1');
       await mem.setItem(item, details);
       final retrievedItem = await mem.getById(item.id!, abcDetails);
-      expect(retrievedItem, isRight);
-      expect(retrievedItem.getOrRaise().item, isNull);
+      expect(retrievedItem, isA<ReadSuccess>());
+      expect((retrievedItem as ReadSuccess).item, isNull);
 
       await mem.setItem(item, abcDetails);
       final retrievedItem2 = await mem.getById(item.id!, abcDetails);
-      expect(retrievedItem2, isRight);
-      expect(retrievedItem2.getOrRaise().item, item);
+      expect(retrievedItem2, isA<ReadSuccess>());
+      expect((retrievedItem2 as ReadSuccess).item, item);
     });
 
     test('honor pagination', () async {
@@ -171,16 +171,16 @@ void main() {
       await mem.setItem(item, page1Deets);
 
       final result = await mem.getById(item.id!, deets);
-      expect(result, isRight);
-      expect(result.getOrRaise().item, isNotNull);
+      expect(result, isA<ReadSuccess>());
+      expect((result as ReadSuccess).item, isNotNull);
 
       final page1Result = await mem.getById(item.id!, page1Deets);
-      expect(page1Result, isRight);
-      expect(page1Result.getOrRaise().item, isNotNull);
+      expect(page1Result, isA<ReadSuccess>());
+      expect((page1Result as ReadSuccess).item, isNotNull);
 
       final page2Result = await mem.getById(item.id!, page2Deets);
-      expect(page2Result, isRight);
-      expect(page2Result.getOrRaise().item, isNull);
+      expect(page2Result, isA<ReadSuccess>());
+      expect((page2Result as ReadSuccess).item, isNull);
     });
   });
 
@@ -197,11 +197,11 @@ void main() {
         {item.id!, item2.id!},
         details,
       );
-      expect(maybeResult.isRight(), true);
-      final result = maybeResult.getOrRaise();
+      expect(maybeResult, isA<ReadListSuccess>());
+      final result = maybeResult as ReadListSuccess<TestModel>;
       expect(
         result,
-        ReadListSuccess<TestModel>.fromList([item, item2], details, {}),
+        ReadListResult<TestModel>.fromList([item, item2], details, {}),
       );
     });
 
@@ -212,11 +212,11 @@ void main() {
         {item.id!, item2.id!, item3.id!},
         details,
       );
-      expect(maybeResult.isRight(), true);
-      final result = maybeResult.getOrRaise();
+      expect(maybeResult, isA<ReadListSuccess>());
+      final result = maybeResult as ReadListSuccess<TestModel>;
       expect(
         result,
-        ReadListSuccess<TestModel>.fromList(
+        ReadListResult<TestModel>.fromList(
           [item, item2],
           details,
           {item3.id!},
@@ -234,10 +234,9 @@ void main() {
     test('return items', () async {
       await mem.setItems([item, item2], details);
       final maybeResult = await mem.getItems(details);
-      final result = maybeResult.getOrRaise();
       expect(
-        result,
-        ReadListSuccess<TestModel>.fromList([item, item2], details, {}),
+        maybeResult,
+        ReadListResult<TestModel>.fromList([item, item2], details, {}),
       );
     });
 
@@ -248,8 +247,8 @@ void main() {
         filters: const [MsgStartsWithFilter('xyz')],
       );
       final maybeResult = await mem.getItems(xyzDetails);
-      expect(maybeResult, isRight);
-      final result = maybeResult.getOrRaise();
+      expect(maybeResult, isA<ReadListSuccess>());
+      final result = maybeResult as ReadListSuccess;
       expect(result.items, isEmpty);
       expect(result.itemsMap, isEmpty);
       expect(result.missingItemIds, isEmpty);
@@ -257,21 +256,21 @@ void main() {
       expect(result.details, xyzDetails);
 
       final maybeResult2 = await mem.getItems(details);
-      final result2 = maybeResult2.getOrRaise();
+      final result2 = maybeResult2 as ReadListSuccess;
       expect(
         result2,
-        ReadListSuccess<TestModel>.fromList([item, item2], details, {}),
+        ReadListResult<TestModel>.fromList([item, item2], details, {}),
       );
     });
 
     test('return no items from custom setName if empty', () async {
       await mem.setItems([item, item2], details);
       final maybeResult = await mem.getItems(abcDetails);
-      expect(maybeResult, isRight);
-      final result = maybeResult.getOrRaise();
+      expect(maybeResult, isA<ReadListSuccess>());
+      final result = maybeResult as ReadListSuccess<TestModel>;
       expect(
         result,
-        ReadListSuccess<TestModel>.fromList(
+        ReadListResult<TestModel>.fromList(
           [],
           abcDetails,
           {},
@@ -286,20 +285,20 @@ void main() {
         filters: const [MsgStartsWithFilter('holy')],
       );
       final maybeResult = await mem.getItems(holyDetails);
-      final result = maybeResult.getOrRaise();
+      final result = maybeResult as ReadListSuccess;
       expect(
         result,
-        ReadListSuccess<TestModel>.fromList([item3], holyDetails, {}),
+        ReadListResult<TestModel>.fromList([item3], holyDetails, {}),
       );
     });
 
     test('return items', () async {
       await mem.setItems([item, item2], details);
       final maybeResult = await mem.getItems(details);
-      final result = maybeResult.getOrRaise();
+      final result = maybeResult as ReadListSuccess;
       expect(
         result,
-        ReadListSuccess<TestModel>.fromList([item, item2], details, {}),
+        ReadListResult<TestModel>.fromList([item, item2], details, {}),
       );
     });
 
@@ -312,7 +311,7 @@ void main() {
         filters: const [MsgStartsWithFilter('asdf')],
       );
       final maybeResult = await mem.getItems(deets);
-      final result = maybeResult.getOrRaise();
+      final result = maybeResult as ReadListSuccess<TestModel>;
       expect(result.items, hasLength(1));
       expect(result.items.first.msg, 'asdf');
     });
@@ -331,11 +330,11 @@ void main() {
       await mem.setItems([item, item2], page2Deets);
 
       final deetsResults = await mem.getItems(deets);
-      expect(deetsResults.getOrRaise().items, hasLength(2));
+      expect((deetsResults as ReadListSuccess).items, hasLength(2));
       final page1DeetsResults = await mem.getItems(page1Deets);
-      expect(page1DeetsResults.getOrRaise().items, hasLength(0));
+      expect((page1DeetsResults as ReadListSuccess).items, hasLength(0));
       final page2DeetsResults = await mem.getItems(page2Deets);
-      expect(page2DeetsResults.getOrRaise().items, hasLength(2));
+      expect((page2DeetsResults as ReadListSuccess).items, hasLength(2));
     });
   });
 

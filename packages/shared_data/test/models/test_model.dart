@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:dartz/dartz.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_data/shared_data.dart';
 
@@ -20,7 +19,7 @@ class TestModel extends Model {
   static const defaultMessage = 'default';
 
   @override
-  Map<String, dynamic> toJson() => {'id': this.id, 'msg': msg};
+  Map<String, dynamic> toJson() => {'id': id, 'msg': msg};
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
@@ -28,15 +27,15 @@ class TestModel extends Model {
       identical(this, other) ||
       other is TestModel &&
           runtimeType == other.runtimeType &&
-          this.id == other.id &&
+          id == other.id &&
           msg == other.msg;
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll([this.id, msg]);
+  int get hashCode => Object.hashAll([id, msg]);
 
   @override
-  String toString() => 'TestModel(id: ${this.id}, msg: $msg)';
+  String toString() => 'TestModel(id: $id, msg: $msg)';
 
   static final bindings = Bindings<TestModel>(
     fromJson: TestModel.fromJson,
@@ -68,7 +67,7 @@ class FakeSourceList<T extends Model> extends Fake implements SourceList<T> {
     RequestDetails<T> details,
   ) =>
       Future.value(
-        Right(ReadSuccess<T>(objs.first, details: details)),
+        ReadSuccess<T>(objs.first, details: details),
       );
 
   @override
@@ -76,37 +75,23 @@ class FakeSourceList<T extends Model> extends Fake implements SourceList<T> {
     Set<String> ids,
     RequestDetails<T> details,
   ) =>
-      Future.value(
-        Right(
-          ReadListSuccess<T>.fromList([objs.first], details, {}),
-        ),
-      );
+      Future.value(ReadListResult<T>.fromList([objs.first], details, {}));
 
   @override
   Future<ReadListResult<T>> getItems(RequestDetails<T> details) => Future.value(
-        Right(
-          ReadListSuccess<T>.fromList([objs.first], details, {}),
-        ),
+        ReadListResult<T>.fromList([objs.first], details, {}),
       );
 
   @override
   Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) =>
-      Future.value(
-        Right(
-          WriteSuccess<T>(objs.first, details: details),
-        ),
-      );
+      Future.value(WriteSuccess<T>(objs.first, details: details));
 
   @override
   Future<WriteListResult<T>> setItems(
     List<T> items,
     RequestDetails<T> details,
   ) =>
-      Future.value(
-        Right(
-          BulkWriteSuccess<T>([objs.first], details: details),
-        ),
-      );
+      Future.value(WriteListSuccess<T>([objs.first], details: details));
 }
 
 /// Checks whether a model's given field name equals the given value.

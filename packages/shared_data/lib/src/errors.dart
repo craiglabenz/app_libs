@@ -5,7 +5,7 @@ part 'errors.g.dart';
 
 /// Validation error for a value type.
 @Freezed()
-class InvalidValueError with _$InvalidValueError {
+abstract class InvalidValueError with _$InvalidValueError {
   const InvalidValueError._();
 
   /// Impossible ApiKey error.

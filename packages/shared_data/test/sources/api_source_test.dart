@@ -43,9 +43,9 @@ void main() {
         },
       );
       final result = await src.getById('abc', RequestDetails());
-      expect(result, isRight);
+      expect(result, isA<ReadSuccess>());
       expect(
-        result.getOrRaise().item,
+        (result as ReadSuccess).item,
         const TestModel(id: 'abc', msg: 'amazing'),
       );
     });
@@ -62,9 +62,9 @@ void main() {
         timer: BatchTimer(),
       );
       final result = await src.getById('abc', RequestDetails());
-      expect(result, isRight);
+      expect(result, isA<ReadSuccess>());
       expect(
-        result.getOrRaise().item,
+        (result as ReadSuccess).item,
         const TestModel(id: 'abc', msg: 'amazing'),
       );
     });
@@ -82,8 +82,8 @@ void main() {
           },
         );
         final result = await src.getById('abc', RequestDetails());
-        expect(result, isRight);
-        expect(result.getOrRaise().item, null);
+        expect(result, isA<ReadSuccess>());
+        expect((result as ReadSuccess).item, null);
       },
       timeout: const Timeout(Duration(milliseconds: 50)),
     );
@@ -108,8 +108,8 @@ void main() {
         },
       );
       final result = await src.getByIds({'abc', 'xyz'}, RequestDetails());
-      expect(result.isRight(), isTrue);
-      final items = result.getOrRaise().items;
+      expect(result, isA<ReadListSuccess>());
+      final items = (result as ReadListSuccess).items;
       expect(items.first, const TestModel(id: 'abc', msg: 'amazing'));
       expect(items.last, const TestModel(id: 'xyz', msg: 'pretty good'));
     });
@@ -131,10 +131,11 @@ void main() {
         },
       );
       final result = await src.getByIds({'abc', 'xyz'}, RequestDetails());
-      expect(result.isRight(), isTrue);
-      final items = result.getOrRaise().items;
+      expect(result, isA<ReadListSuccess>());
+      final success = result as ReadListSuccess;
+      final items = success.items;
       expect(items.first, const TestModel(id: 'abc', msg: 'amazing'));
-      expect(result.getOrRaise().missingItemIds.contains('xyz'), isTrue);
+      expect(success.missingItemIds.contains('xyz'), isTrue);
     });
 
     test('handle zero hits', () async {
@@ -148,11 +149,12 @@ void main() {
         },
       );
       final result = await src.getByIds({'abc', 'xyz'}, RequestDetails());
-      expect(result.isRight(), isTrue);
-      final items = result.getOrRaise().items;
+      expect(result, isA<ReadListSuccess>());
+      final success = result as ReadListSuccess;
+      final items = success.items;
       expect(items, isEmpty);
-      expect(result.getOrRaise().missingItemIds.contains('abc'), isTrue);
-      expect(result.getOrRaise().missingItemIds.contains('xyz'), isTrue);
+      expect(success.missingItemIds.contains('abc'), isTrue);
+      expect(success.missingItemIds.contains('xyz'), isTrue);
     });
 
     test('handle a 404', () async {
@@ -166,7 +168,7 @@ void main() {
         },
       );
       final result = await src.getByIds({'abc', 'xyz'}, RequestDetails());
-      expect(result.isLeft(), isTrue);
+      expect(result, isA<ReadListFailure>());
     });
   });
 }

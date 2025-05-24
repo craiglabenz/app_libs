@@ -14,31 +14,31 @@ void main() {
     test('including getById', () async {
       expect(
         await repo.getById('also does not matter', emptyDetails),
-        isRight,
+        isA<ReadSuccess>(),
       );
     });
     test('including getById', () async {
       expect(
         await repo.getByIds({'also does not matter'}, emptyDetails),
-        isRight,
+        isA<ReadListSuccess>(),
       );
     });
     test('including getItems', () async {
       expect(
         await repo.getItems(emptyDetails),
-        isRight,
+        isA<ReadListSuccess>(),
       );
     });
     test('including setItem', () async {
       expect(
         await repo.setItem(obj, emptyDetails),
-        isRight,
+        isA<WriteSuccess>(),
       );
     });
     test('including setItems', () async {
       expect(
         await repo.setItems([obj], emptyDetails),
-        isRight,
+        isA<WriteListSuccess>(),
       );
     });
   });

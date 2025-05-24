@@ -1,11 +1,11 @@
 import 'package:shared_data/shared_data.dart';
 import 'package:test/test.dart';
 
-class LoginUrl extends ApiUrl {
+class LoginUrl extends ApiV1Url {
   const LoginUrl() : super(path: 'users/login/');
 }
 
-class DynamicUrl extends ApiUrl {
+class DynamicUrl extends ApiV1Url {
   DynamicUrl(String token)
       : super(
           path: 'users/{{token}}/',

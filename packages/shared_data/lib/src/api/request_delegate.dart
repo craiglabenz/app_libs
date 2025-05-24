@@ -284,12 +284,12 @@ class RequestDelegate {
     }
 
     // Error time!
-    final errorMessage = body!.map(
-      html: (HtmlApiResultBody body) => ErrorMessage.fromString(body.html),
-      json: (JsonApiResultBody body) => ErrorMessage.fromMap(body.data),
-      plainText: (PlainTextApiResultBody body) =>
-          ErrorMessage.fromString(body.text),
-    );
+    final errorMessage = switch (body!) {
+      HtmlApiResultBody(:final html) => ErrorMessage.fromString(html),
+      JsonApiResultBody(:final data) => ErrorMessage.fromMap(data),
+      PlainTextApiResultBody(:final text) => ErrorMessage.fromString(text),
+    };
+
     // Application.shared.logEvent(
     //   '${resp.statusCode} API Error to ${resp.request.url}: ${error.plain}',
     // );

@@ -6,35 +6,32 @@ part of 'errors.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$InvalidApiKeyImpl _$$InvalidApiKeyImplFromJson(Map<String, dynamic> json) =>
-    _$InvalidApiKeyImpl(
+InvalidApiKey _$InvalidApiKeyFromJson(Map<String, dynamic> json) =>
+    InvalidApiKey(
       $type: json['runtimeType'] as String?,
     );
 
-Map<String, dynamic> _$$InvalidApiKeyImplToJson(_$InvalidApiKeyImpl instance) =>
+Map<String, dynamic> _$InvalidApiKeyToJson(InvalidApiKey instance) =>
     <String, dynamic>{
       'runtimeType': instance.$type,
     };
 
-_$InvalidEmailImpl _$$InvalidEmailImplFromJson(Map<String, dynamic> json) =>
-    _$InvalidEmailImpl(
+InvalidEmail _$InvalidEmailFromJson(Map<String, dynamic> json) => InvalidEmail(
       $type: json['runtimeType'] as String?,
     );
 
-Map<String, dynamic> _$$InvalidEmailImplToJson(_$InvalidEmailImpl instance) =>
+Map<String, dynamic> _$InvalidEmailToJson(InvalidEmail instance) =>
     <String, dynamic>{
       'runtimeType': instance.$type,
     };
 
-_$PasswordTooShortImpl _$$PasswordTooShortImplFromJson(
-        Map<String, dynamic> json) =>
-    _$PasswordTooShortImpl(
-      json['minimumLength'] as int,
+PasswordTooShort _$PasswordTooShortFromJson(Map<String, dynamic> json) =>
+    PasswordTooShort(
+      (json['minimumLength'] as num).toInt(),
       $type: json['runtimeType'] as String?,
     );
 
-Map<String, dynamic> _$$PasswordTooShortImplToJson(
-        _$PasswordTooShortImpl instance) =>
+Map<String, dynamic> _$PasswordTooShortToJson(PasswordTooShort instance) =>
     <String, dynamic>{
       'minimumLength': instance.minimumLength,
       'runtimeType': instance.$type,

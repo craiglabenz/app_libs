@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,88 +10,62 @@ part of 'users.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
-
-AuthUser _$AuthUserFromJson(Map<String, dynamic> json) {
-  return _AuthUser.fromJson(json);
-}
 
 /// @nodoc
 mixin _$AuthUser {
-  String get id => throw _privateConstructorUsedError;
-  String get apiKey => throw _privateConstructorUsedError;
-  String? get email => throw _privateConstructorUsedError;
+  String get id;
+  String get apiKey;
+  String? get email;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $AuthUserCopyWith<AuthUser> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $AuthUserCopyWith<$Res> {
-  factory $AuthUserCopyWith(AuthUser value, $Res Function(AuthUser) then) =
-      _$AuthUserCopyWithImpl<$Res, AuthUser>;
-  @useResult
-  $Res call({String id, String apiKey, String? email});
-}
-
-/// @nodoc
-class _$AuthUserCopyWithImpl<$Res, $Val extends AuthUser>
-    implements $AuthUserCopyWith<$Res> {
-  _$AuthUserCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of AuthUser
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $AuthUserCopyWith<AuthUser> get copyWith =>
+      _$AuthUserCopyWithImpl<AuthUser>(this as AuthUser, _$identity);
+
+  /// Serializes this AuthUser to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = null,
-    Object? apiKey = null,
-    Object? email = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      apiKey: null == apiKey
-          ? _value.apiKey
-          : apiKey // ignore: cast_nullable_to_non_nullable
-              as String,
-      email: freezed == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is AuthUser &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.apiKey, apiKey) || other.apiKey == apiKey) &&
+            (identical(other.email, email) || other.email == email));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, apiKey, email);
+
+  @override
+  String toString() {
+    return 'AuthUser(id: $id, apiKey: $apiKey, email: $email)';
   }
 }
 
 /// @nodoc
-abstract class _$$AuthUserImplCopyWith<$Res>
-    implements $AuthUserCopyWith<$Res> {
-  factory _$$AuthUserImplCopyWith(
-          _$AuthUserImpl value, $Res Function(_$AuthUserImpl) then) =
-      __$$AuthUserImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $AuthUserCopyWith<$Res> {
+  factory $AuthUserCopyWith(AuthUser value, $Res Function(AuthUser) _then) =
+      _$AuthUserCopyWithImpl;
   @useResult
   $Res call({String id, String apiKey, String? email});
 }
 
 /// @nodoc
-class __$$AuthUserImplCopyWithImpl<$Res>
-    extends _$AuthUserCopyWithImpl<$Res, _$AuthUserImpl>
-    implements _$$AuthUserImplCopyWith<$Res> {
-  __$$AuthUserImplCopyWithImpl(
-      _$AuthUserImpl _value, $Res Function(_$AuthUserImpl) _then)
-      : super(_value, _then);
+class _$AuthUserCopyWithImpl<$Res> implements $AuthUserCopyWith<$Res> {
+  _$AuthUserCopyWithImpl(this._self, this._then);
 
+  final AuthUser _self;
+  final $Res Function(AuthUser) _then;
+
+  /// Create a copy of AuthUser
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -98,17 +73,17 @@ class __$$AuthUserImplCopyWithImpl<$Res>
     Object? apiKey = null,
     Object? email = freezed,
   }) {
-    return _then(_$AuthUserImpl(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
       apiKey: null == apiKey
-          ? _value.apiKey
+          ? _self.apiKey
           : apiKey // ignore: cast_nullable_to_non_nullable
               as String,
       email: freezed == email
-          ? _value.email
+          ? _self.email
           : email // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
@@ -117,12 +92,11 @@ class __$$AuthUserImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$AuthUserImpl extends _AuthUser {
-  const _$AuthUserImpl({required this.id, required this.apiKey, this.email})
+class _AuthUser extends AuthUser {
+  const _AuthUser({required this.id, required this.apiKey, this.email})
       : super._();
-
-  factory _$AuthUserImpl.fromJson(Map<String, dynamic> json) =>
-      _$$AuthUserImplFromJson(json);
+  factory _AuthUser.fromJson(Map<String, dynamic> json) =>
+      _$AuthUserFromJson(json);
 
   @override
   final String id;
@@ -131,57 +105,82 @@ class _$AuthUserImpl extends _AuthUser {
   @override
   final String? email;
 
+  /// Create a copy of AuthUser
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'AuthUser(id: $id, apiKey: $apiKey, email: $email)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$AuthUserCopyWith<_AuthUser> get copyWith =>
+      __$AuthUserCopyWithImpl<_AuthUser>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$AuthUserToJson(
+      this,
+    );
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$AuthUserImpl &&
+            other is _AuthUser &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.apiKey, apiKey) || other.apiKey == apiKey) &&
             (identical(other.email, email) || other.email == email));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, apiKey, email);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$AuthUserImplCopyWith<_$AuthUserImpl> get copyWith =>
-      __$$AuthUserImplCopyWithImpl<_$AuthUserImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$AuthUserImplToJson(
-      this,
-    );
+  String toString() {
+    return 'AuthUser(id: $id, apiKey: $apiKey, email: $email)';
   }
 }
 
-abstract class _AuthUser extends AuthUser {
-  const factory _AuthUser(
-      {required final String id,
-      required final String apiKey,
-      final String? email}) = _$AuthUserImpl;
-  const _AuthUser._() : super._();
-
-  factory _AuthUser.fromJson(Map<String, dynamic> json) =
-      _$AuthUserImpl.fromJson;
-
+/// @nodoc
+abstract mixin class _$AuthUserCopyWith<$Res>
+    implements $AuthUserCopyWith<$Res> {
+  factory _$AuthUserCopyWith(_AuthUser value, $Res Function(_AuthUser) _then) =
+      __$AuthUserCopyWithImpl;
   @override
-  String get id;
-  @override
-  String get apiKey;
-  @override
-  String? get email;
-  @override
-  @JsonKey(ignore: true)
-  _$$AuthUserImplCopyWith<_$AuthUserImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @useResult
+  $Res call({String id, String apiKey, String? email});
 }
+
+/// @nodoc
+class __$AuthUserCopyWithImpl<$Res> implements _$AuthUserCopyWith<$Res> {
+  __$AuthUserCopyWithImpl(this._self, this._then);
+
+  final _AuthUser _self;
+  final $Res Function(_AuthUser) _then;
+
+  /// Create a copy of AuthUser
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? apiKey = null,
+    Object? email = freezed,
+  }) {
+    return _then(_AuthUser(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      apiKey: null == apiKey
+          ? _self.apiKey
+          : apiKey // ignore: cast_nullable_to_non_nullable
+              as String,
+      email: freezed == email
+          ? _self.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+// dart format on

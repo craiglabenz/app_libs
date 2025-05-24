@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dartz/dartz.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// {@template ApiSource}
@@ -51,9 +50,7 @@ class ApiSource<T extends Model> extends Source<T> {
       _print('Maybe queuing Id $id');
       queueId(id);
     }
-    return Right(
-      ReadSuccess(await loadedItems[id]!.future, details: details),
-    );
+    return ReadSuccess(await loadedItems[id]!.future, details: details);
   }
 
   @override
@@ -69,16 +66,14 @@ class ApiSource<T extends Model> extends Source<T> {
 
     final result = await fetchItems(params);
 
-    return result.map(
-      success: (s) => Right(
-        ReadListSuccess.fromList(
-          hydrateListResponse(s),
+    return switch (result) {
+      ApiSuccess() => ReadListResult.fromList(
+          hydrateListResponse(result),
           details,
           {},
         ),
-      ),
-      error: (e) => Left(ReadFailure.fromApiError(e)),
-    );
+      ApiError() => ReadListResult.fromApiError(result),
+    };
   }
 
   @override
@@ -89,7 +84,7 @@ class ApiSource<T extends Model> extends Source<T> {
     assert(details.filters.isEmpty, 'Must not supply filters to `getByIds`');
 
     if (ids.isEmpty) {
-      return Right(ReadListSuccess<T>.fromList([], details, {}));
+      return ReadListResult<T>.fromList([], details, {});
     }
     final Params params = <String, String>{
       'id__in': ids.join(','),
@@ -97,28 +92,29 @@ class ApiSource<T extends Model> extends Source<T> {
 
     final result = await fetchItems(params);
 
-    return result.map(
-      success: (s) {
-        final items = hydrateListResponse(result as ApiSuccess);
-        final itemsById = <String, T>{};
-        for (final item in items) {
-          // Objects from the server must always have an Id set.
-          itemsById[item.id!] = item;
-        }
-
-        final missingItemIds = <String>{};
-        for (final id in ids) {
-          if (!itemsById.containsKey(id)) {
-            missingItemIds.add(id);
+    switch (result) {
+      case ApiSuccess():
+        {
+          final items = hydrateListResponse(result);
+          final itemsById = <String, T>{};
+          for (final item in items) {
+            // Objects from the server must always have an Id set.
+            itemsById[item.id!] = item;
           }
-        }
 
-        return Right(
-          ReadListSuccess<T>.fromMap(itemsById, details, missingItemIds),
-        );
-      },
-      error: (e) => Left(ReadFailure.fromApiError(e)),
-    );
+          final missingItemIds = <String>{};
+          for (final id in ids) {
+            if (!itemsById.containsKey(id)) {
+              missingItemIds.add(id);
+            }
+          }
+          return ReadListResult<T>.fromMap(itemsById, details, missingItemIds);
+        }
+      case ApiError():
+        {
+          return ReadListResult.fromApiError(result);
+        }
+    }
   }
 
   /// Prepares an Id to be loaded in the next batch.
@@ -143,28 +139,30 @@ class ApiSource<T extends Model> extends Source<T> {
       ids,
       RequestDetails<T>(),
     );
-    byIds.fold(
-      (ReadFailure<T> l) {
-        for (final id in ids) {
-          loadedItems[id]!.complete(null);
-        }
-      },
-      (ReadListSuccess<T> r) {
-        for (final id in r.missingItemIds) {
-          loadedItems[id]!.complete(null);
-        }
-        for (final id in r.itemsMap.keys) {
-          if (!loadedItems.containsKey(id)) {
-            continue;
-          }
-          if (!loadedItems[id]!.isCompleted) {
-            idsCurrentlyBeingFetched.remove(id);
-            loadedItems[id]!.complete(r.itemsMap[id]!);
-            loadedItems.remove(id);
+    switch (byIds) {
+      case ReadListFailure():
+        {
+          for (final id in ids) {
+            loadedItems[id]!.complete(null);
           }
         }
-      },
-    );
+      case ReadListSuccess():
+        {
+          for (final id in byIds.missingItemIds) {
+            loadedItems[id]!.complete(null);
+          }
+          for (final id in byIds.itemsMap.keys) {
+            if (!loadedItems.containsKey(id)) {
+              continue;
+            }
+            if (!loadedItems[id]!.isCompleted) {
+              idsCurrentlyBeingFetched.remove(id);
+              loadedItems[id]!.complete(byIds.itemsMap[id]!);
+              loadedItems.remove(id);
+            }
+          }
+        }
+    }
   }
 
   /// Submits a network request for data.
@@ -190,14 +188,11 @@ class ApiSource<T extends Model> extends Source<T> {
             : api.update(request) //
         );
 
-    return result.map(
-      success: (s) {
-        return Right(
-          WriteSuccess(hydrateItemResponse(s)!, details: details),
-        );
-      },
-      error: (e) => Left(WriteFailure.fromApiError(e)),
-    );
+    return switch (result) {
+      ApiSuccess() =>
+        WriteSuccess(hydrateItemResponse(result)!, details: details),
+      ApiError() => WriteResult.fromApiError(result),
+    };
   }
 
   @override
@@ -208,39 +203,55 @@ class ApiSource<T extends Model> extends Source<T> {
       throw Exception('Should never call ApiSource.setItems');
 
   /// Deserializes the result of a network request into the actual object(s).
-  T? hydrateItemResponse(ApiSuccess success) => success.body.map(
-        html: (HtmlApiResultBody body) => null,
-        json: (JsonApiResultBody body) {
-          if (body.data.containsKey('results')) {
+  T? hydrateItemResponse(ApiSuccess success) {
+    switch (success.body) {
+      case HtmlApiResultBody():
+        {
+          return null;
+        }
+      case JsonApiResultBody(:final data):
+        {
+          if (data.containsKey('results')) {
             // TODO(craiglabenz): log that this is unexpected for [result.url]
-            if ((body.data['results']! as List).length != 1) {
+            if ((data['results']! as List).length != 1) {
               // TODO(craiglabenz): log that this is even more unexpected
             }
-            final items = (body.data['results']! as List)
+            final items = (data['results']! as List)
                 .cast<Json>()
                 .map<T>(bindings.fromJson)
                 .toList();
             return items.first;
           } else {
-            return bindings.fromJson(body.data);
+            return bindings.fromJson(data);
           }
-        },
-        plainText: (PlainTextApiResultBody body) => null,
-      );
+        }
+      case PlainTextApiResultBody():
+        {
+          return null;
+        }
+    }
+  }
 
   /// Deserializes the results of a network request into the actual object(s).
-  List<T> hydrateListResponse(ApiSuccess success) => success.body.map(
-        html: (HtmlApiResultBody body) => <T>[],
-        json: (JsonApiResultBody body) {
-          if (body.data.containsKey('results')) {
-            final List<Map<String, dynamic>> results =
-                (body.data['results']! as List).cast<Json>();
-            final items = results.map<T>(bindings.fromJson).toList();
-            return items;
+  List<T> hydrateListResponse(ApiSuccess success) {
+    switch (success.body) {
+      case HtmlApiResultBody():
+        {
+          return <T>[];
+        }
+      case JsonApiResultBody(:final data):
+        {
+          if (data.containsKey('results')) {
+            final List<Json> results = (data['results']! as List).cast<Json>();
+            return results.map<T>(bindings.fromJson).toList();
           } else {
-            return [bindings.fromJson(body.data)];
+            return [bindings.fromJson(data)];
           }
-        },
-        plainText: (PlainTextApiResultBody body) => <T>[],
-      );
+        }
+      case PlainTextApiResultBody():
+        {
+          return <T>[];
+        }
+    }
+  }
 }

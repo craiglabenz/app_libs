@@ -1,4 +1,3 @@
-import 'package:dartz/dartz.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// {@template LocalMemorySource}
@@ -49,7 +48,7 @@ class LocalMemorySource<T extends Model> extends Source<T> {
       item = items[id];
     }
     return Future.value(
-      Right(ReadSuccess(item, details: details)),
+      ReadSuccess(item, details: details),
     );
   }
 
@@ -79,22 +78,18 @@ class LocalMemorySource<T extends Model> extends Source<T> {
         missingItemIds.add(id);
       }
     }
-    return Right(
-      ReadListSuccess<T>.fromMap(itemsById, details, missingItemIds),
-    );
+    return ReadListResult<T>.fromMap(itemsById, details, missingItemIds);
   }
 
   @override
   Future<ReadListResult<T>> getItems(RequestDetails<T> details) async {
     if (knownEmptySets.contains(details.cacheKey)) {
       // TODO(craiglabenz): log this behavior
-      return Right(
-        ReadListSuccess<T>(
-          items: [],
-          itemsMap: {},
-          details: details,
-          missingItemIds: {},
-        ),
+      return ReadListSuccess<T>(
+        items: [],
+        itemsMap: {},
+        details: details,
+        missingItemIds: {},
       );
     }
     if (!requestCache.containsKey(details.cacheKey)) {
@@ -110,9 +105,7 @@ class LocalMemorySource<T extends Model> extends Source<T> {
       (T obj) => _passesAllFilters(obj, details.filters),
     );
 
-    return Right(
-      ReadListSuccess<T>.fromList(filteredItemsIter.toList(), details, {}),
-    );
+    return ReadListResult<T>.fromList(filteredItemsIter.toList(), details, {});
   }
 
   bool _passesAllFilters(T obj, List<ReadFilter<T>> filters) {
@@ -126,7 +119,7 @@ class LocalMemorySource<T extends Model> extends Source<T> {
     // Unseen requests with pagination cannot be fulfilled, as we cannot know we
     // have all the results for that page.
     if (details.pagination != null) {
-      return Right(ReadListSuccess.fromList([], details, <String>{}));
+      return ReadListResult.fromList([], details, <String>{});
     }
 
     final satisfyingIds = itemIds;
@@ -142,9 +135,7 @@ class LocalMemorySource<T extends Model> extends Source<T> {
     for (final id in satisfyingIds) {
       satisfyingItems.add(items[id]!);
     }
-    return Right(
-      ReadListSuccess.fromList(satisfyingItems, details, <String>{}),
-    );
+    return ReadListResult.fromList(satisfyingItems, details, <String>{});
   }
 
   /// Sets an Id value to this item.
@@ -185,7 +176,7 @@ class LocalMemorySource<T extends Model> extends Source<T> {
     if (details.isNotEmpty) {
       requestCache[details.empty.cacheKey]!.add(itemCopy.id!);
     }
-    return Right(WriteSuccess<T>(itemCopy, details: details));
+    return WriteSuccess<T>(itemCopy, details: details);
   }
 
   @override
@@ -196,6 +187,6 @@ class LocalMemorySource<T extends Model> extends Source<T> {
     for (final item in items) {
       setItem(item, details);
     }
-    return Future.value(Right(BulkWriteSuccess<T>(items, details: details)));
+    return Future.value(WriteListSuccess<T>(items, details: details));
   }
 }
