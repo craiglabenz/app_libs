@@ -85,30 +85,31 @@ RequestDelegate getRequestDelegate(
   );
 }
 
-final delegate200 = getRequestDelegate([listResponseBody]);
-final twoItemdelegate200 = getRequestDelegate([twoElementResponseBody]);
-final twoItemdelegate200x2 =
+final RequestDelegate delegate200 = getRequestDelegate([listResponseBody]);
+final RequestDelegate twoItemdelegate200 =
+    getRequestDelegate([twoElementResponseBody]);
+final RequestDelegate twoItemdelegate200x2 =
     getRequestDelegate([twoElementResponseBody, twoElementResponseBody]);
-final delegate404 = getRequestDelegate(
+final RequestDelegate delegate404 = getRequestDelegate(
   [errorBody],
   statusCode: HttpStatus.notFound,
 );
-final delegate404x2 = getRequestDelegate(
+final RequestDelegate delegate404x2 = getRequestDelegate(
   [errorBody, errorBody],
   statusCode: HttpStatus.notFound,
 );
-final emptyDelegate = getRequestDelegate([emptyResponseBody]);
+final RequestDelegate emptyDelegate = getRequestDelegate([emptyResponseBody]);
 
-final creatableDelegate =
+final RequestDelegate creatableDelegate =
     getRequestDelegate([listResponseBody], canCreate: true);
-final updateableDelegate =
+final RequestDelegate updateableDelegate =
     getRequestDelegate([listResponseBody], canUpdate: true);
 
 SourceList<TestModel> getSourceList(RequestDelegate delegate) =>
     SourceList<TestModel>(
       sources: <Source<TestModel>>[
-        LocalMemorySource<TestModel>(),
-        LocalMemorySource<TestModel>(),
+        LocalMemorySource<TestModel>(bindings: TestModel.bindings),
+        LocalMemorySource<TestModel>(bindings: TestModel.bindings),
         ApiSource<TestModel>(
           bindings: TestModel.bindings,
           restApi: RestApi(

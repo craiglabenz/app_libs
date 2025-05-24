@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_data/shared_data.dart';
 import 'package:test/test.dart';
 
-final stubUri = const StubUrl().uri;
+final Uri stubUri = const StubUrl().uri;
 final getRequest = http.Request('GET', stubUri);
 const ms1 = Duration(milliseconds: 1);
 

@@ -1,3 +1,4 @@
+import 'package:get_it/get_it.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// {@template repo}
@@ -7,6 +8,21 @@ import 'package:shared_data/shared_data.dart';
 class Repository<T extends Model> extends DataContract<T> {
   /// {@macro repo}
   Repository(this.sourceList);
+
+  /// Generates a stock Repository with a typical [SourceList].
+  static Repository<T> create<T extends Model>(Bindings<T> bindings) =>
+      Repository(
+        SourceList<T>(
+          bindings: bindings,
+          sources: [
+            LocalMemorySource(bindings: bindings),
+            ApiSource(
+              bindings: bindings,
+              restApi: GetIt.I<RestApi>(),
+            )
+          ],
+        ),
+      );
 
   /// Data loader within a [Repository] which can cascade through a list of data
   /// sources, treating each as a write-through cache.

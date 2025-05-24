@@ -105,8 +105,7 @@ class SourceList<T extends Model> extends DataContract<T> {
     // Called `missingIds` not because we've deemed these are all missing, but
     // because we're going to iteratively remove items that are locally known -
     // meaning at the end of the loop, remaining ids will be confirmed missing.
-    // ignore: omit_local_variable_types
-    Set<String> missingIds = Set<String>.from(ids);
+    var missingIds = Set<String>.from(ids);
 
     for (final matchedSource in getSources(requestType: details.requestType)) {
       if (missingIds.isEmpty) {

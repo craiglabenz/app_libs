@@ -7,7 +7,7 @@ class Email {
   Email(String raw) : _raw = raw;
 
   final String _raw;
-  bool _hasValidated = false;
+  var _hasValidated = false;
 
   /// Guarantees this raw email passes all checks. Call this before saving
   /// to the database.
@@ -20,7 +20,7 @@ class Email {
   }
 
   /// Static value for testing.
-  static Email test = Email('some@email.com');
+  static final test = Email('some@email.com');
 
   /// Access raw email value. Must call `validate()` before accessing this.
   String get value {

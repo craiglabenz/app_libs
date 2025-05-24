@@ -29,10 +29,10 @@ class Password {
 
   /// Minimum length of a valid password.
   static const minimumLength = 6;
-  bool _hasValidated = false;
+  var _hasValidated = false;
 
   /// Static value for testing.
-  static Password test = Password('long-enough');
+  static final test = Password('long-enough');
 
   /// Guarantees this raw password passes all checks. Call this before saving
   /// to the database.

@@ -38,7 +38,7 @@ class TestModel extends Model {
   @override
   String toString() => 'TestModel(id: ${this.id}, msg: $msg)';
 
-  static Bindings<TestModel> bindings = Bindings<TestModel>(
+  static final bindings = Bindings<TestModel>(
     fromJson: TestModel.fromJson,
     getDetailUrl: (id) => ApiUrl(path: 'test/$id'),
     getListUrl: () => const ApiUrl(path: 'test/'),
@@ -58,7 +58,7 @@ class MsgStartsWithFilter<T extends TestModel> extends ReadFilter<T> {
 }
 
 class FakeSourceList<T extends Model> extends Fake implements SourceList<T> {
-  List<T> objs = <T>[];
+  final objs = <T>[];
 
   void addObj(T obj) => objs.add(obj);
 

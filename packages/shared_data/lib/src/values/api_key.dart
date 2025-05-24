@@ -13,7 +13,7 @@ class ApiKey {
       ApiKey(const Uuid().v4().replaceAll('-', ''))..validate();
 
   final String _raw;
-  bool _hasValidated = false;
+  var _hasValidated = false;
 
   /// Ensures this instance has a valid value.
   InvalidValueError? validate() {
@@ -26,7 +26,7 @@ class ApiKey {
 
   //                                   10        20          32
   /// Test-suitable constant.
-  static ApiKey test = ApiKey('12345678901234567890123456789012');
+  static final test = ApiKey('12345678901234567890123456789012');
 
   /// Raw value for this ApiKey.
   String get value {

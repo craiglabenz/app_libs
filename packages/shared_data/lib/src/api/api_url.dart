@@ -19,35 +19,45 @@
 ///    const LogoutUrl() : super(path: 'users/logout/');
 ///  }
 /// ```
+///
+///  Can construct with placeholders and contexts, like so:
+///
+/// Usage:
+/// ```dart
+///   final url = ApiUrl(
+///     path: "a/{{value}}/",
+///     context: <String, String>{"value": "url"},
+///     base: "api/v1",
+///   );
+///   url.value  # api/v1/a/url/
+/// ```
 /// {@endtemplate}
 class ApiUrl {
   /// {@macro ApiUrl}
-  const ApiUrl({required this.path, this.context = _empty});
+  const ApiUrl({required this.path, this.context = _empty, this.baseUrl});
 
-  /// Versioning chunk for this Url. Subtypes can override this.
-  static const String v1 = 'api/v1';
+  /// Optional versioning chunk for this Url. Subtypes can override this.
+  final String? baseUrl;
 
   /// Chunk of the URL between the host and a possible querystring. May contain
   /// placeholders of the form {{placeholder}} that are hydrated by [context].
   ///
   /// Combined with baseUrl in the RestApi.
   ///
-  /// Usage:
-  /// ```dart
-  ///   final url = MyApiUrl.someType(uri="a/{{value}}/", context=<String, String>{"value": "url"})
-  ///   url.value  # api/v1/a/url/
-  /// ```
   final String path;
 
   /// Map of values used to fill placeholders in [uri].
-  final Map<String, dynamic> context;
+  final Map<String, Object?> context;
 
   /// Computed value which flattens the [ApiUrl] into a plain string.
   String get value {
-    var url = '${ApiUrl.v1}/$path';
+    var url = <String>[
+      if (baseUrl != null && baseUrl != '') baseUrl!,
+      path,
+    ].join('/');
     for (final key in context.keys) {
       if (url.contains('{{$key}}')) {
-        url = url.replaceAll('{{$key}}', context[key] as String);
+        url = url.replaceAll('{{$key}}', context[key]! as String);
       }
     }
     return url;
@@ -58,10 +68,19 @@ class ApiUrl {
   Uri get uri => Uri.parse(value);
 }
 
+/// {@template ApiUrl}
+/// [ApiUrl] with an "api/v1" leading namespace.
+/// {@endtemplate}
+class ApiV1Url extends ApiUrl {
+  /// {@macro ApiUrl}
+  ApiV1Url({required super.path, super.context = _empty})
+      : super(baseUrl: 'api/v1');
+}
+
 /// Useful for tests.
 class StubUrl extends ApiUrl {
   /// Constructor.
   const StubUrl() : super(path: '/');
 }
 
-const Map<String, Object?> _empty = <String, Object?>{};
+const _empty = <String, Object?>{};

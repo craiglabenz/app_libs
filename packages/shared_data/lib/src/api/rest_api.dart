@@ -20,8 +20,9 @@ class RestApi {
     required this.apiBaseUrl,
     required this.headersBuilder,
     RequestDelegate? delegate,
+    // TODO(craiglabenz): Add tests for this
     this.forceEndingSlash = false,
-  }) : _delegate = delegate ?? RequestDelegate.live();
+  }) : _delegate = delegate ?? const RequestDelegate.live();
 
   final RequestDelegate _delegate;
 
@@ -35,10 +36,11 @@ class RestApi {
   /// Whether to force a trailing slash on the end of the final Uri.
   final bool forceEndingSlash;
 
-  final bool _shouldPrint = false;
+  final _shouldPrint = false;
 
   void _print(String msg) {
     if (!_shouldPrint) return;
+    // Logging wrapper.
     // ignore: avoid_print
     print(msg);
   }

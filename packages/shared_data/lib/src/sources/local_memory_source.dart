@@ -1,9 +1,17 @@
 import 'package:dartz/dartz.dart';
 import 'package:shared_data/shared_data.dart';
 
+/// {@template LocalMemorySource}
 /// On-device, in-memory store which caches previously loaded data for
 /// instantaneous retrieval. Does not persist any data across sessions.
+/// {@endtemplate}
 class LocalMemorySource<T extends Model> extends Source<T> {
+  /// {@macro LocalMemorySource}
+  LocalMemorySource({
+    required this.bindings,
+    this.canSetIds = false,
+  });
+
   /// Map of the stored items, with database primary keys as map keys.
   Map<String, T> items = {};
 
@@ -20,6 +28,13 @@ class LocalMemorySource<T extends Model> extends Source<T> {
 
   @override
   SourceType get sourceType => SourceType.local;
+
+  /// If false, `setItem` will require that new objects have non-null `id`
+  /// values.
+  bool canSetIds;
+
+  /// Meta-data provider for [T].
+  final Bindings<T> bindings;
 
   /// Returns the object with the given `id`, as long as the item is associated
   /// with the given setName in `details`.
@@ -132,16 +147,32 @@ class LocalMemorySource<T extends Model> extends Source<T> {
     );
   }
 
+  /// Sets an Id value to this item.
+  T setId(T item) {
+    assert(
+      item.id == null,
+      'Unexpectedly called `setId` on item with an `id` value of ${item.id}',
+    );
+    return bindings.fromJson(item.toJson()..update('id', (value) => 'new'));
+  }
+
   @override
   Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) async {
     assert(
-      item.id != null,
-      'LocalMemorySource can only persist items with an Id',
+      canSetIds || item.id != null,
+      'LocalMemorySource can only persist items with an Id. To allow this '
+      'source to set Ids, set `canSetIds` to true.',
     );
 
+    T itemCopy = item;
+
+    if (itemCopy.id == null) {
+      itemCopy = setId(itemCopy);
+    }
+
     if (details.shouldOverwrite ||
-        (item.id != null && !items.containsKey(item.id))) {
-      items[item.id!] = item;
+        (itemCopy.id != null && !items.containsKey(itemCopy.id))) {
+      items[itemCopy.id!] = itemCopy;
     }
     if (!requestCache.containsKey(details.cacheKey)) {
       requestCache[details.cacheKey] = <String>{};
@@ -149,12 +180,12 @@ class LocalMemorySource<T extends Model> extends Source<T> {
     if (!requestCache.containsKey(details.empty.cacheKey)) {
       requestCache[details.empty.cacheKey] = <String>{};
     }
-    requestCache[details.cacheKey]!.add(item.id!);
+    requestCache[details.cacheKey]!.add(itemCopy.id!);
 
     if (details.isNotEmpty) {
-      requestCache[details.empty.cacheKey]!.add(item.id!);
+      requestCache[details.empty.cacheKey]!.add(itemCopy.id!);
     }
-    return Right(WriteSuccess<T>(item, details: details));
+    return Right(WriteSuccess<T>(itemCopy, details: details));
   }
 
   @override

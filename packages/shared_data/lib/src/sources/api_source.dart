@@ -18,7 +18,7 @@ class ApiSource<T extends Model> extends Source<T> {
         timer = timer ?? BatchTimer(),
         queuedIds = <String>{};
 
-  /// Model meta-data used to construct raw json into instances of [T].
+  /// Meta-data provider for [T].
   final Bindings<T> bindings;
 
   /// Utility able to send network requests.
@@ -40,7 +40,7 @@ class ApiSource<T extends Model> extends Source<T> {
   // ignore: avoid_print
   void _print(String msg) => ApiSource._shouldPrint ? print(msg) : null;
 
-  static const bool _shouldPrint = false;
+  static const _shouldPrint = false;
 
   @override
   SourceType get sourceType => SourceType.remote;

@@ -9,6 +9,20 @@ abstract class DataContract<T extends Model> {
   );
 
   /// Loads all instances of [T] whose primary key is in the set [ids].
+  ///
+  /// This could in theory be a version of [getItems] with a specific `IdsIn`
+  /// filter, but that would complicate the extra caching logic handled by this
+  /// method. The source of that complication is the difference between a
+  /// "where in" filter and a "where equals" filter. The difference is that with
+  /// a "where in" filter, you know when you are still missing objects and can
+  /// forward that request onto the server just to fill in the gaps. However,
+  /// with a "where equals" filter, you do not know whether or not you are
+  /// missing any records and thus cannot be clever with the final request to
+  /// the server.
+  ///
+  /// This method makes use of that extra knowledge afforded by a "where in"
+  /// filter to load records efficiently; which is what would be lost if this
+  /// method was rolled into calling [getItems] with an equivalent filter.
   Future<ReadListResult<T>> getByIds(
     Set<String> ids,
     RequestDetails<T> details,

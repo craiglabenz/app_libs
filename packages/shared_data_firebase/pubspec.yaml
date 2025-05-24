@@ -1,0 +1,23 @@
+name: shared_data_firebase
+description: A Very Good Project created by Very Good CLI.
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+  flutter: ^3.24.0
+
+dependencies:
+  cloud_firestore: ^5.6.7
+  dartz: ^0.10.1
+  firebase_core: ^3.13.0
+  flutter:
+    sdk: flutter
+  shared_data:
+    path: ../shared_data
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^1.0.4
+  very_good_analysis: ^8.0.0-rc.1

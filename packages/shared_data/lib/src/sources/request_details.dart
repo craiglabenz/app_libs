@@ -58,7 +58,7 @@ class RequestDetails<T extends Model> extends Equatable {
   final defaultPagination = Pagination.page(1);
 
   /// Default [RequestType].
-  static const defaultRequestType = RequestType.global;
+  static const RequestType defaultRequestType = RequestType.global;
 
   /// Default value for [shouldOverwrite].
   static const defaultShouldOverwrite = true;

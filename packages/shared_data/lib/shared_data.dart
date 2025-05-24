@@ -1,8 +1,3 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
-library shared_data;
-
 export 'src/api/api.dart';
 export 'src/contract.dart';
 export 'src/dartz_extensions.dart';

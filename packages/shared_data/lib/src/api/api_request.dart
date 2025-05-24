@@ -30,8 +30,7 @@ abstract class ApiRequest {
 
   /// Returns complete map of HTTP headers for this request.
   Headers buildHeaders() {
-    // ignore: omit_local_variable_types
-    final Headers headers = Map<String, String>.from(_headers);
+    final headers = Map<String, String>.from(_headers);
     headers['Content-Type'] = contentType;
     if (user != null) {
       headers[HttpHeaders.authorizationHeader] = 'Token ${user!.apiKey}';

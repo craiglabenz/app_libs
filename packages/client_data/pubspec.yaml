@@ -17,7 +17,7 @@ dependencies:
     sdk: flutter
   freezed_annotation: ^2.4.1
   get_it: ^7.6.4
-  http: ^1.1.0
+  http: ^1.2.0
   json_annotation: ^4.8.1
   matcher: ^0.12.16
   platform: ^3.1.3

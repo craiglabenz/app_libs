@@ -9,6 +9,15 @@ class Nested extends Model {
   // Doesn't matter
   @override
   Map<String, dynamic> toJson() => {};
+
+  static Bindings<Nested> get bindings => Bindings<Nested>(
+        fromJson: (Json data) => Nested(
+          id: data['id'] as String?,
+          body: data['body']! as String,
+        ),
+        getDetailUrl: (String id) => ApiUrl(path: 'fake/$id'),
+        getListUrl: () => const ApiUrl(path: 'fake'),
+      );
 }
 
 class WithNestedDetail extends Model {
@@ -40,7 +49,7 @@ class WithNestedList extends Model {
 void main() {
   final nestedSourceList = SourceList(
     sources: [
-      LocalMemorySource<Nested>(),
+      LocalMemorySource<Nested>(bindings: Nested.bindings),
     ],
     bindings: Bindings<Nested>(
       getDetailUrl: (String id) => ApiUrl(path: '/nested/$id'),

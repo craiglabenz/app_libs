@@ -15,8 +15,13 @@ void main() {
   late LocalMemorySource<TestModel> mem;
 
   group('LocalMemorySource.setItem should', () {
+    late LocalMemorySource<TestModel> idSettingMem;
     setUp(() {
-      mem = LocalMemorySource<TestModel>();
+      mem = LocalMemorySource<TestModel>(bindings: TestModel.bindings);
+      idSettingMem = LocalMemorySource<TestModel>(
+        bindings: TestModel.bindings,
+        canSetIds: true,
+      );
     });
 
     test('save items', () {
@@ -72,11 +77,18 @@ void main() {
       expect(mem.requestCache[deets.cacheKey], contains(item.id));
       expect(mem.requestCache[deets.empty.cacheKey], contains(item.id));
     });
+
+    test('set Ids', () async {
+      const item = TestModel(id: null, msg: 'hello');
+      final result = await idSettingMem.setItem(item, details);
+      expect(result, isRight);
+      expect(result.getOrRaise().item.id, isNotNull);
+    });
   });
 
   group('LocalMemorySource.setItems should', () {
     setUp(() {
-      mem = LocalMemorySource<TestModel>();
+      mem = LocalMemorySource<TestModel>(bindings: TestModel.bindings);
     });
 
     test('set items', () {
@@ -112,7 +124,7 @@ void main() {
 
   group('LocalMemorySource.getById should', () {
     setUp(() {
-      mem = LocalMemorySource<TestModel>();
+      mem = LocalMemorySource<TestModel>(bindings: TestModel.bindings);
     });
 
     test('return known items', () async {
@@ -176,7 +188,7 @@ void main() {
     const item = TestModel(id: 'item 1');
     const item2 = TestModel(id: 'item 2');
     setUp(() {
-      mem = LocalMemorySource<TestModel>();
+      mem = LocalMemorySource<TestModel>(bindings: TestModel.bindings);
     });
 
     test('return items', () async {
@@ -217,7 +229,7 @@ void main() {
     const item = TestModel(id: 'item 1');
     const item2 = TestModel(id: 'item 2');
     setUp(() {
-      mem = LocalMemorySource<TestModel>();
+      mem = LocalMemorySource<TestModel>(bindings: TestModel.bindings);
     });
     test('return items', () async {
       await mem.setItems([item, item2], details);
@@ -331,7 +343,7 @@ void main() {
     const item = TestModel(id: 'item 1');
     const item2 = TestModel(id: 'item 2');
     setUp(() {
-      mem = LocalMemorySource<TestModel>();
+      mem = LocalMemorySource<TestModel>(bindings: TestModel.bindings);
     });
     test('contain saved objects', () {
       mem.setItems([item, item2], details);

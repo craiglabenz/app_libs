@@ -88,14 +88,7 @@ class RequestDelegate {
 
   /// Live [RequestDelegate] which uses the [http] library to make real
   /// network requests.
-  factory RequestDelegate.live() => const RequestDelegate._(
-        readHandler: http.get,
-        postHandler: http.post,
-        putHandler: http.put,
-        patchHandler: http.patch,
-        deleteHandler: http.delete,
-        responseProcessor: RequestDelegate.processResponse,
-      );
+  const factory RequestDelegate.live() = _LiveRequestDelegate;
 
   /// Fake [RequestDelegate] which uses stubs to fake network requests. Omitting
   /// a value for some of the http verbs will cause this fake to throw an
@@ -214,10 +207,11 @@ class RequestDelegate {
         ),
       );
 
-  static const bool _shouldPrint = false;
+  static const _shouldPrint = false;
 
   static void _print(String msg) {
     if (!RequestDelegate._shouldPrint) return;
+    // This is the logging wrapper.
     // ignore: avoid_print
     print(msg);
   }
@@ -259,7 +253,7 @@ class RequestDelegate {
             body = ApiResultBody.json(
               jsonDecode(rawResponseBody) as Map<String, dynamic>,
             );
-          } catch (e) {
+          } on Exception catch (_) {
             body = ApiResultBody.plainText(rawResponseBody);
           }
         }
@@ -306,4 +300,16 @@ class RequestDelegate {
       url: resp.request?.url.toString() ?? '',
     );
   }
+}
+
+class _LiveRequestDelegate extends RequestDelegate {
+  const _LiveRequestDelegate()
+      : super._(
+          readHandler: http.get,
+          postHandler: http.post,
+          putHandler: http.put,
+          patchHandler: http.patch,
+          deleteHandler: http.delete,
+          responseProcessor: RequestDelegate.processResponse,
+        );
 }

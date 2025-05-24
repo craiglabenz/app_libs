@@ -19,9 +19,26 @@ class Bindings<T extends Model> {
   final ApiUrl Function() getListUrl;
 
   /// Json deserializer for this data type.
-  final T Function(Map<String, dynamic> data) fromJson;
+  final T Function(Json data) fromJson;
 
   /// Overrideable method which returns the creation Url for this data type. By
   /// default, this proxies to [getListUrl].
   ApiUrl getCreateUrl() => getListUrl();
+}
+
+/// {@template CreationBindings}
+/// [Bindings] for an object that the client can save locally without requiring
+/// the use of the server to generate an Id.
+/// {@endtemplate}
+class CreationBindings<T extends Model> extends Bindings<T> {
+  /// {@macro CreationBindings}
+  CreationBindings({
+    required super.fromJson,
+    required super.getDetailUrl,
+    required super.getListUrl,
+    required this.save,
+  });
+
+  /// Method which takes an unsaved child and locally determines its [id] value.
+  T Function(T) save;
 }
