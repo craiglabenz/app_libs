@@ -1,45 +1,35 @@
 import 'dart:collection';
 
 import 'package:client_auth/client_auth.dart';
-import 'package:dartz/dartz.dart';
-import 'package:shared_data/shared_data.dart';
 
 /// Scriptable auth results from the application server.
-class FakeRestAuth<T extends BaseUser> implements BaseRestAuth<T> {
+class FakeRestAuth implements AuthService {
   FakeRestAuth({
-    Queue<AuthUserOrError>? loginResults,
-    Queue<AuthUserOrError>? registerResults,
-    Queue<Either<ApiError, T>>? profileResults,
-  })  : loginResults = loginResults ?? Queue<AuthUserOrError>(),
-        profileResults = profileResults ?? Queue<Either<ApiError, T>>(),
-        registerResults = registerResults ?? Queue<AuthUserOrError>();
+    Queue<AuthResponse>? loginResults,
+    Queue<AuthResponse>? registerResults,
+  })  : loginResults = loginResults ?? Queue<AuthResponse>(),
+        registerResults = registerResults ?? Queue<AuthResponse>();
 
-  final Queue<AuthUserOrError> loginResults;
-  final Queue<AuthUserOrError> registerResults;
-  final Queue<Either<ApiError, T>> profileResults;
+  final Queue<AuthResponse> loginResults;
+  final Queue<AuthResponse> registerResults;
 
   @override
-  Future<AuthUserOrError> login({
+  Future<AuthResponse> logInWithEmailAndPassword({
     required String email,
     required String password,
   }) =>
       Future.value(loginResults.removeFirst());
 
   @override
-  Future<AuthUserOrError> register({
+  Future<AuthResponse> signUp({
     required String email,
     required String password,
   }) =>
       Future.value(registerResults.removeFirst());
 
   @override
-  Future<Either<ApiError, T>> loadUserProfile(AuthUser user) =>
-      Future.value(profileResults.removeFirst());
+  void dispose() {}
 
   @override
-  Future<Either<ApiError, T>> updateUserProfile(
-    AuthUser user,
-    BaseUser profile,
-  ) =>
-      Future.value(profileResults.removeFirst());
+  Future<AuthFailure?> logOut() => Future.value();
 }

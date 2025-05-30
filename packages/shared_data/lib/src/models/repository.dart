@@ -53,4 +53,7 @@ class Repository<T extends Model> extends DataContract<T> {
     RequestDetails<T> details,
   ) =>
       sourceList.setItems(items, details);
+
+  /// Clears all local data. Does not delete anything from any remote sources.
+  Future<void> clear() => sourceList.clear();
 }

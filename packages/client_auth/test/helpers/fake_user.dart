@@ -1,4 +1,3 @@
-import 'package:client_auth/client_auth.dart';
 import 'package:shared_data/shared_data.dart';
 
 class FakeUser extends BaseUser {
@@ -21,20 +20,4 @@ class FakeUserBindings extends Bindings<FakeUser> {
     required super.getDetailUrl,
     required super.getListUrl,
   });
-}
-
-class FakeUserRequestBuilder extends RestAuthRequestBuilder {
-  const FakeUserRequestBuilder();
-
-  @override
-  ApiUrl loadProfileUrl(AuthUser user) => ApiUrl(path: 'users/${user.id}');
-
-  @override
-  ApiUrl get loginUrl => const ApiUrl(path: 'login');
-
-  @override
-  ApiUrl get registerUrl => const ApiUrl(path: 'register');
-
-  @override
-  ApiUrl updateProfileUrl(AuthUser user) => ApiUrl(path: 'users/${user.id}');
 }

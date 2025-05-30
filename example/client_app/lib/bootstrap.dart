@@ -2,9 +2,13 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:client_app/dependency_injection.dart';
 import 'package:client_app/firebase_options.dart';
+import 'package:client_auth/client_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
+
+enum Environment { prod, staging, dev }
 
 class AppBlocObserver extends BlocObserver {
   const AppBlocObserver();
@@ -22,15 +26,28 @@ class AppBlocObserver extends BlocObserver {
   }
 }
 
-Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
+Future<void> bootstrap(
+  FutureOr<Widget> Function() builder,
+  Environment env,
+) async {
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
   };
 
   Bloc.observer = const AppBlocObserver();
 
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  setUpDI(
+    apiBaseUrl: switch (env) {
+      Environment.dev => '127.0.0.1',
+      Environment.staging => '127.0.0.1',
+      Environment.prod => '127.0.0.1',
+    },
+    firebaseAuthService: FirebaseAuthService(),
   );
 
   runApp(await builder());

@@ -129,7 +129,7 @@ void main() {
       final sl = getSourceList(delegate200);
       final readResult = await sl.getById(_id, details);
       final obj = readResult.getOrRaise().item;
-      expect(readResult, isRight);
+      expect(readResult, isSuccess);
       expect(
         readResult.getOrRaise().item,
         equals(
@@ -146,7 +146,7 @@ void main() {
     test('return Left when the item is not found', () async {
       final sl = getSourceList(delegate404);
       final readResult = await sl.getById(_id, details);
-      expect(readResult, isRight);
+      expect(readResult, isSuccess);
       expect((sl.sources[0] as LocalMemorySource).itemIds, isEmpty);
       expect((sl.sources[1] as LocalMemorySource).itemIds, isEmpty);
       expect(readResult.getOrRaise().item, isNull);
@@ -174,7 +174,7 @@ void main() {
     test('get and cache items', () async {
       final sl = getSourceList(getRequestDelegate([twoElementResponseBody]));
       final readResult = await sl.getByIds({_id, _id2}, details);
-      expect(readResult, isRight);
+      expect(readResult, isSuccess);
       expect(
         readResult.getOrRaise().items,
         equals([
@@ -199,7 +199,7 @@ void main() {
     test('get and cache items on partial returns', () async {
       final sl = getSourceList(getRequestDelegate([listResponseBody]));
       final readResult = await sl.getByIds({_id, _id2}, details);
-      expect(readResult, isRight);
+      expect(readResult, isSuccess);
       expect(
         readResult.getOrRaise().items,
         equals([

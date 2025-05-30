@@ -3,7 +3,12 @@ import 'package:client_auth/client_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_data/shared_data.dart';
-import 'helpers/helpers.dart';
+import '../helpers/helpers.dart';
+
+const userPayload =
+//
+// ignore: lines_longer_than_80_chars
+    '{"id": "abc", "apiKey": "123xyz", "provider": "google", "allProviders": ["google"], "createdAt": "2025-01-01T12:00:00Z"}';
 
 Future<http.Response> login200Handler(
   Uri url, {
@@ -18,11 +23,7 @@ Future<http.Response> login200Handler(
   if (!url.queryParameters.containsKey('password')) {
     return http.Response('Bad Request', 400, headers: normalHeaders);
   }
-  return http.Response(
-    '{"id": "abc", "apiKey": "123xyz"}',
-    200,
-    headers: normalHeaders,
-  );
+  return http.Response(userPayload, 200, headers: normalHeaders);
 }
 
 Future<http.Response> login400Handler(
@@ -50,11 +51,7 @@ Future<http.Response> register200Handler(
   if (!requestBody.containsKey('password')) {
     return http.Response('Bad Request', 400, headers: normalHeaders);
   }
-  return http.Response(
-    '{"id": "abc", "apiKey": "123xyz"}',
-    200,
-    headers: normalHeaders,
-  );
+  return http.Response(userPayload, 200, headers: normalHeaders);
 }
 
 Future<http.Response> register409Handler(
@@ -88,8 +85,9 @@ RestAuth<FakeUser> setUpAuthService({
   );
   return RestAuth<FakeUser>(
     api: api,
-    requestBuilder: const FakeUserRequestBuilder(),
-    userBuilder: FakeUser.fromJson,
+    logInUrl: const ApiUrl(path: 'login', baseUrl: 'api/v1'),
+    registerUrl: const ApiUrl(path: 'register', baseUrl: 'api/v1'),
+    logOutUrl: const ApiUrl(path: 'logout', baseUrl: 'api/v1'),
   );
 }
 
@@ -97,47 +95,47 @@ void main() {
   group('RestAuth.login should', () {
     test('return a logged in user', () async {
       final auth = setUpAuthService(readHandler: login200Handler);
-      final result = await auth.login(
+      final result = await auth.logInWithEmailAndPassword(
         email: 'fake@email.com',
         password: 'password',
       );
-      expect(result, isRight);
+      expect(result, isAuthSuccess);
       final AuthUser user = result.getOrRaise();
       expect(user.id, 'abc');
-      expect(user.apiKey, '123xyz');
+      // expect(user.apiKey, '123xyz');
     });
 
     test('handle a bad response', () async {
       final auth = setUpAuthService(readHandler: login400Handler);
-      final result = await auth.login(
+      final result = await auth.logInWithEmailAndPassword(
         email: 'does not matter',
         password: 'does not matter',
       );
-      expect(result, isLeft);
-      expect(result.leftOrRaise(), isA<BadEmailPasswordError>());
+      expect(result, isAuthFailure);
+      expect((result as AuthFailure).error, isA<BadEmailPasswordError>());
     });
   });
 
-  group('RestAuth.register should', () {
+  group('RestAuth.signUp should', () {
     test('return a registered user', () async {
       final auth = setUpAuthService(postHandler: register200Handler);
-      final result = await auth.register(
+      final result = await auth.signUp(
         email: 'fake@email.com',
         password: 'password',
       );
-      expect(result, isRight);
+      expect(result, isAuthSuccess);
       final AuthUser user = result.getOrRaise();
       expect(user.id, 'abc');
-      expect(user.apiKey, '123xyz');
+      // expect(user.apiKey, '123xyz');
     });
     test('handle a bad response', () async {
       final auth = setUpAuthService(postHandler: register409Handler);
-      final result = await auth.register(
+      final result = await auth.signUp(
         email: 'does not matter',
         password: 'does not matter',
       );
-      expect(result, isLeft);
-      expect(result.leftOrRaise(), isA<EmailTakenError>());
+      expect(result, isAuthFailure);
+      expect((result as AuthFailure).error, isA<EmailTakenError>());
     });
   });
 }

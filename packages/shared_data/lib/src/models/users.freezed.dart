@@ -15,9 +15,21 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$AuthUser {
+  /// Unique identifier.
   String get id;
-  String get apiKey;
+
+  /// User's email address. Null for anonymous users and possibly some social
+  /// auth situations.
   String? get email;
+
+  /// Origin timestamp of the user.
+  DateTime get createdAt;
+
+  /// Identity verifying provider for this session.
+  AuthProvider get provider;
+
+  /// All providers the user has attached to their account.
+  Set<AuthProvider> get allProviders;
 
   /// Create a copy of AuthUser
   /// with the given fields replaced by the non-null parameter values.
@@ -35,17 +47,23 @@ mixin _$AuthUser {
         (other.runtimeType == runtimeType &&
             other is AuthUser &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.apiKey, apiKey) || other.apiKey == apiKey) &&
-            (identical(other.email, email) || other.email == email));
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.provider, provider) ||
+                other.provider == provider) &&
+            const DeepCollectionEquality()
+                .equals(other.allProviders, allProviders));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, apiKey, email);
+  int get hashCode => Object.hash(runtimeType, id, email, createdAt, provider,
+      const DeepCollectionEquality().hash(allProviders));
 
   @override
   String toString() {
-    return 'AuthUser(id: $id, apiKey: $apiKey, email: $email)';
+    return 'AuthUser(id: $id, email: $email, createdAt: $createdAt, provider: $provider, allProviders: $allProviders)';
   }
 }
 
@@ -54,7 +72,12 @@ abstract mixin class $AuthUserCopyWith<$Res> {
   factory $AuthUserCopyWith(AuthUser value, $Res Function(AuthUser) _then) =
       _$AuthUserCopyWithImpl;
   @useResult
-  $Res call({String id, String apiKey, String? email});
+  $Res call(
+      {String id,
+      String? email,
+      DateTime createdAt,
+      AuthProvider provider,
+      Set<AuthProvider> allProviders});
 }
 
 /// @nodoc
@@ -70,22 +93,32 @@ class _$AuthUserCopyWithImpl<$Res> implements $AuthUserCopyWith<$Res> {
   @override
   $Res call({
     Object? id = null,
-    Object? apiKey = null,
     Object? email = freezed,
+    Object? createdAt = null,
+    Object? provider = null,
+    Object? allProviders = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      apiKey: null == apiKey
-          ? _self.apiKey
-          : apiKey // ignore: cast_nullable_to_non_nullable
-              as String,
       email: freezed == email
           ? _self.email
           : email // ignore: cast_nullable_to_non_nullable
               as String?,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      provider: null == provider
+          ? _self.provider
+          : provider // ignore: cast_nullable_to_non_nullable
+              as AuthProvider,
+      allProviders: null == allProviders
+          ? _self.allProviders
+          : allProviders // ignore: cast_nullable_to_non_nullable
+              as Set<AuthProvider>,
     ));
   }
 }
@@ -93,17 +126,44 @@ class _$AuthUserCopyWithImpl<$Res> implements $AuthUserCopyWith<$Res> {
 /// @nodoc
 @JsonSerializable()
 class _AuthUser extends AuthUser {
-  const _AuthUser({required this.id, required this.apiKey, this.email})
-      : super._();
+  const _AuthUser(
+      {required this.id,
+      this.email,
+      required this.createdAt,
+      required this.provider,
+      required final Set<AuthProvider> allProviders})
+      : _allProviders = allProviders,
+        super._();
   factory _AuthUser.fromJson(Map<String, dynamic> json) =>
       _$AuthUserFromJson(json);
 
+  /// Unique identifier.
   @override
   final String id;
-  @override
-  final String apiKey;
+
+  /// User's email address. Null for anonymous users and possibly some social
+  /// auth situations.
   @override
   final String? email;
+
+  /// Origin timestamp of the user.
+  @override
+  final DateTime createdAt;
+
+  /// Identity verifying provider for this session.
+  @override
+  final AuthProvider provider;
+
+  /// All providers the user has attached to their account.
+  final Set<AuthProvider> _allProviders;
+
+  /// All providers the user has attached to their account.
+  @override
+  Set<AuthProvider> get allProviders {
+    if (_allProviders is EqualUnmodifiableSetView) return _allProviders;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableSetView(_allProviders);
+  }
 
   /// Create a copy of AuthUser
   /// with the given fields replaced by the non-null parameter values.
@@ -126,17 +186,23 @@ class _AuthUser extends AuthUser {
         (other.runtimeType == runtimeType &&
             other is _AuthUser &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.apiKey, apiKey) || other.apiKey == apiKey) &&
-            (identical(other.email, email) || other.email == email));
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.provider, provider) ||
+                other.provider == provider) &&
+            const DeepCollectionEquality()
+                .equals(other._allProviders, _allProviders));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, apiKey, email);
+  int get hashCode => Object.hash(runtimeType, id, email, createdAt, provider,
+      const DeepCollectionEquality().hash(_allProviders));
 
   @override
   String toString() {
-    return 'AuthUser(id: $id, apiKey: $apiKey, email: $email)';
+    return 'AuthUser(id: $id, email: $email, createdAt: $createdAt, provider: $provider, allProviders: $allProviders)';
   }
 }
 
@@ -147,7 +213,12 @@ abstract mixin class _$AuthUserCopyWith<$Res>
       __$AuthUserCopyWithImpl;
   @override
   @useResult
-  $Res call({String id, String apiKey, String? email});
+  $Res call(
+      {String id,
+      String? email,
+      DateTime createdAt,
+      AuthProvider provider,
+      Set<AuthProvider> allProviders});
 }
 
 /// @nodoc
@@ -163,22 +234,32 @@ class __$AuthUserCopyWithImpl<$Res> implements _$AuthUserCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? id = null,
-    Object? apiKey = null,
     Object? email = freezed,
+    Object? createdAt = null,
+    Object? provider = null,
+    Object? allProviders = null,
   }) {
     return _then(_AuthUser(
       id: null == id
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      apiKey: null == apiKey
-          ? _self.apiKey
-          : apiKey // ignore: cast_nullable_to_non_nullable
-              as String,
       email: freezed == email
           ? _self.email
           : email // ignore: cast_nullable_to_non_nullable
               as String?,
+      createdAt: null == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      provider: null == provider
+          ? _self.provider
+          : provider // ignore: cast_nullable_to_non_nullable
+              as AuthProvider,
+      allProviders: null == allProviders
+          ? _self._allProviders
+          : allProviders // ignore: cast_nullable_to_non_nullable
+              as Set<AuthProvider>,
     ));
   }
 }

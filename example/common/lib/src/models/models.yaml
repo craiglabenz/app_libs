@@ -1,0 +1,14 @@
+classes:
+  Increment:
+    fields:
+      - id:
+          type: String
+          nullable: false
+          setOnSave: true
+      - delta:
+          type: int
+          nullable: false
+      - createdAt:
+          type: DateTime
+          nullable: false
+          setOnSave: true

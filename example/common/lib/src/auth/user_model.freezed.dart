@@ -120,7 +120,7 @@ class _$UserImpl extends _User {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$UserImpl &&
@@ -161,5 +161,159 @@ abstract class _User extends User {
   @override
   @JsonKey(ignore: true)
   _$$UserImplCopyWith<_$UserImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+UserCompanion _$UserCompanionFromJson(Map<String, dynamic> json) {
+  return _UserCompanion.fromJson(json);
+}
+
+/// @nodoc
+mixin _$UserCompanion {
+  String? get id => throw _privateConstructorUsedError;
+  String? get username => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $UserCompanionCopyWith<UserCompanion> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $UserCompanionCopyWith<$Res> {
+  factory $UserCompanionCopyWith(
+          UserCompanion value, $Res Function(UserCompanion) then) =
+      _$UserCompanionCopyWithImpl<$Res, UserCompanion>;
+  @useResult
+  $Res call({String? id, String? username});
+}
+
+/// @nodoc
+class _$UserCompanionCopyWithImpl<$Res, $Val extends UserCompanion>
+    implements $UserCompanionCopyWith<$Res> {
+  _$UserCompanionCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = freezed,
+    Object? username = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      username: freezed == username
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$UserCompanionImplCopyWith<$Res>
+    implements $UserCompanionCopyWith<$Res> {
+  factory _$$UserCompanionImplCopyWith(
+          _$UserCompanionImpl value, $Res Function(_$UserCompanionImpl) then) =
+      __$$UserCompanionImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String? id, String? username});
+}
+
+/// @nodoc
+class __$$UserCompanionImplCopyWithImpl<$Res>
+    extends _$UserCompanionCopyWithImpl<$Res, _$UserCompanionImpl>
+    implements _$$UserCompanionImplCopyWith<$Res> {
+  __$$UserCompanionImplCopyWithImpl(
+      _$UserCompanionImpl _value, $Res Function(_$UserCompanionImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = freezed,
+    Object? username = freezed,
+  }) {
+    return _then(_$UserCompanionImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      username: freezed == username
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$UserCompanionImpl implements _UserCompanion {
+  const _$UserCompanionImpl({this.id, this.username});
+
+  factory _$UserCompanionImpl.fromJson(Map<String, dynamic> json) =>
+      _$$UserCompanionImplFromJson(json);
+
+  @override
+  final String? id;
+  @override
+  final String? username;
+
+  @override
+  String toString() {
+    return 'UserCompanion(id: $id, username: $username)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$UserCompanionImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.username, username) ||
+                other.username == username));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, username);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UserCompanionImplCopyWith<_$UserCompanionImpl> get copyWith =>
+      __$$UserCompanionImplCopyWithImpl<_$UserCompanionImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$UserCompanionImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _UserCompanion implements UserCompanion {
+  const factory _UserCompanion({final String? id, final String? username}) =
+      _$UserCompanionImpl;
+
+  factory _UserCompanion.fromJson(Map<String, dynamic> json) =
+      _$UserCompanionImpl.fromJson;
+
+  @override
+  String? get id;
+  @override
+  String? get username;
+  @override
+  @JsonKey(ignore: true)
+  _$$UserCompanionImplCopyWith<_$UserCompanionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

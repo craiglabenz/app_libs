@@ -6,14 +6,21 @@ import 'package:shared_data/shared_data.dart';
 
 import 'helpers.dart';
 
-/// Bootstraps a runtime for unit tests.
+// /// Bootstraps a runtime for unit tests.
 Future<void> setUpTestingDI({
   RequestDelegate? requestDelegate,
   TargetPlatform? targetPlatform,
 }) async {
   await GetIt.I.reset();
-  GetIt.I.registerSingleton<BaseStreamAuth>(FakeFirebaseAuth());
-  GetIt.I.registerSingleton<BaseRestAuth>(FakeRestAuth());
+  GetIt.I.registerSingleton<Bindings<AuthUser>>(
+    Bindings<AuthUser>(
+      fromJson: AuthUser.fromJson,
+      getDetailUrl: (String id) => ApiUrl(path: 'authUsers/$id'),
+      getListUrl: () => const ApiUrl(path: 'authUsers'),
+    ),
+  );
+  GetIt.I.registerSingleton<StreamAuthService>(FakeFirebaseAuth());
+  GetIt.I.registerSingleton<AuthService>(FakeRestAuth());
 
   GetIt.I.registerSingleton<RequestDelegate>(
     requestDelegate ?? RequestDelegate.fake(),
@@ -21,10 +28,10 @@ Future<void> setUpTestingDI({
   if (targetPlatform != null) {
     GetIt.I.registerSingleton<TargetPlatform>(targetPlatform);
   }
-  GetIt.I.registerSingleton<AuthenticationRepository>(
-    AuthenticationRepository(
-      streamAuthService: GetIt.I<BaseStreamAuth>(),
-      restAuthService: GetIt.I<BaseRestAuth>(),
+  GetIt.I.registerSingleton<AuthRepository>(
+    AuthRepository(
+      GetIt.I<StreamAuthService>(),
+      secondaryAuths: [GetIt.I<AuthService>()],
     ),
   );
 }

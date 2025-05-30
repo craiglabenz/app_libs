@@ -179,6 +179,25 @@ sealed class ReadResult<T extends Model> with _$ReadResult<T> {
         }
     }
   }
+
+  /// Helper to extract expected [T?] objects or throw in the case of
+  /// an unexpected [ReadFailure].
+  ///
+  /// Note that this will return `null` without throwing, as that is part of the
+  /// contract of a [ReadSuccess]. This merely unwraps the possible
+  /// [ReadFailure] which should have already been ruled out.
+  T? itemOrRaise() {
+    switch (this) {
+      case ReadSuccess():
+        {
+          return (this as ReadSuccess<T>).item;
+        }
+      case ReadFailure():
+        {
+          throw Exception('Unexpected $runtimeType');
+        }
+    }
+  }
 }
 
 /// {@template ReadListResult}
@@ -226,6 +245,12 @@ sealed class ReadListResult<T extends Model> with _$ReadListResult<T> {
       missingItemIds: missingItemIds,
     );
   }
+
+  factory ReadListResult.empty(
+    RequestDetails<T> details, {
+    Set<String> missingItemIds = const <String>{},
+  }) =>
+      ReadListResult.fromList(<T>[], details, missingItemIds);
 
   /// {@macro RequestFailure}
   const factory ReadListResult.failure(
@@ -277,11 +302,12 @@ class _IsFailure extends Matcher {
       item is WriteListFailure;
 
   @override
-  Description describe(Description description) => description.add('is-left');
+  Description describe(Description description) =>
+      description.add('is-failure');
 }
 
 /// Testing matcher for whether this was a success.
-const Matcher isRight = _IsSuccess();
+const Matcher isSuccess = _IsSuccess();
 
 class _IsSuccess extends Matcher {
   const _IsSuccess();
@@ -293,5 +319,6 @@ class _IsSuccess extends Matcher {
       item is WriteListSuccess;
 
   @override
-  Description describe(Description description) => description.add('is-right');
+  Description describe(Description description) =>
+      description.add('is-success');
 }

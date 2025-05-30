@@ -29,6 +29,15 @@ class SourceList<T extends Model> extends DataContract<T> {
   /// requested data.
   final List<Source<T>> sources;
 
+  /// Calls clear on all [LocalSource]s.
+  Future<void> clear() async {
+    for (final s in sources) {
+      if (s is LocalSource) {
+        await (s as LocalSource).clear();
+      }
+    }
+  }
+
   /// Returns all sources that match a given [RequestType]. Unmatches sources
   /// are also returned with that indicator, so they can still be stored in a
   /// list of empty sources for the purposes of caching.

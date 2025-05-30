@@ -1,2 +1,3 @@
-export 'dependency_injection.dart';
-export 'view/app.dart';
+export 'bloc/bloc.dart';
+export 'data.dart';
+export 'view.dart';

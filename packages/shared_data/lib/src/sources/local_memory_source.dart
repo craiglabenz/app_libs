@@ -4,7 +4,7 @@ import 'package:shared_data/shared_data.dart';
 /// On-device, in-memory store which caches previously loaded data for
 /// instantaneous retrieval. Does not persist any data across sessions.
 /// {@endtemplate}
-class LocalMemorySource<T extends Model> extends Source<T> {
+class LocalMemorySource<T extends Model> extends LocalSource<T> {
   /// {@macro LocalMemorySource}
   LocalMemorySource({
     required this.bindings,
@@ -188,5 +188,12 @@ class LocalMemorySource<T extends Model> extends Source<T> {
       setItem(item, details);
     }
     return Future.value(WriteListSuccess<T>(items, details: details));
+  }
+
+  @override
+  Future<void> clear() async {
+    items.clear();
+    knownEmptySets.clear();
+    requestCache.clear();
   }
 }

@@ -1,7 +1,7 @@
 import 'package:shared_data/shared_data.dart';
 
-/// Outline of core methods to which all data loaders must adhere.
-abstract class DataContract<T extends Model> {
+/// Adds [getById] to a data contract.
+mixin ReadMixin<T extends Model> {
   /// Loads the instance of [T] whose primary key is [id].
   Future<ReadResult<T>> getById(
     String id,
@@ -31,7 +31,19 @@ abstract class DataContract<T extends Model> {
   /// Loads all instances of [T] that satisfy any filtes or pagination on
   /// [details].
   Future<ReadListResult<T>> getItems(RequestDetails<T> details);
+}
 
+/// Introduces [setItem] to a data contract, but not [WriteMixin.setItems].
+mixin SingleWriteMixin<T extends Model> {
+  /// Persists [item].
+  Future<WriteResult<T>> setItem(
+    T item,
+    RequestDetails<T> details,
+  );
+}
+
+/// Introduces [setItem] and [setItems] to a data contract.
+mixin WriteMixin<T extends Model> {
   /// Persists [item].
   Future<WriteResult<T>> setItem(
     T item,
@@ -44,3 +56,6 @@ abstract class DataContract<T extends Model> {
     RequestDetails<T> details,
   );
 }
+
+/// Outline of core methods to which all data loaders must adhere.
+abstract class DataContract<T extends Model> with ReadMixin<T>, WriteMixin<T> {}

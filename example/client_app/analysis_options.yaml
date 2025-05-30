@@ -8,3 +8,5 @@ analyzer:
     todo: ignore
   exclude:
     - lib/firebase_options.dart
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"

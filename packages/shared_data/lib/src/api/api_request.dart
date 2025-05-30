@@ -33,7 +33,8 @@ abstract class ApiRequest {
     final headers = Map<String, String>.from(_headers);
     headers['Content-Type'] = contentType;
     if (user != null) {
-      headers[HttpHeaders.authorizationHeader] = 'Token ${user!.apiKey}';
+      // TODO(craiglabenz): Recreate this
+      // headers[HttpHeaders.authorizationHeader] = 'Token ${user!.apiKey}';
     }
     return headers;
   }
