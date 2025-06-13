@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:client_auth/client_auth.dart';
 import 'package:shared_data/shared_data.dart';
 
@@ -31,7 +33,10 @@ abstract class StreamAuthService extends AuthService {
   Future<AuthUser?> initialize();
 
   /// Emits a nullable [AuthUser] every time the state of the session changes.
-  Stream<AuthUser?> get userUpdates;
+  // Stream<AuthUser?> get userUpdates;
+
+  /// Registers a callback with the stream of user updates.
+  StreamSubscription<AuthUser?> listen(void Function(AuthUser?) cb);
 }
 
 /// Mixin for social-powered auth on an [AuthService].

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'users.dart';
+part of 'user.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -8,6 +8,7 @@ part of 'users.dart';
 
 _AuthUser _$AuthUserFromJson(Map<String, dynamic> json) => _AuthUser(
       id: json['id'] as String,
+      privateId: json['privateId'] as String,
       email: json['email'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       provider: $enumDecode(_$AuthProviderEnumMap, json['provider']),
@@ -18,6 +19,7 @@ _AuthUser _$AuthUserFromJson(Map<String, dynamic> json) => _AuthUser(
 
 Map<String, dynamic> _$AuthUserToJson(_AuthUser instance) => <String, dynamic>{
       'id': instance.id,
+      'privateId': instance.privateId,
       'email': instance.email,
       'createdAt': instance.createdAt.toIso8601String(),
       'provider': _$AuthProviderEnumMap[instance.provider]!,

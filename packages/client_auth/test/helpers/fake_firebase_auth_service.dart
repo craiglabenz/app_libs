@@ -22,6 +22,15 @@ class FakeFirebaseAuth extends StreamAuthService
   // ignore: use_setters_to_change_properties
   void prepareLoginError(AuthFailure e) => error = e;
 
+  AuthUser? _lastEmittedUser;
+
+  // Centralized place to emit users to the stream.
+  void _emitUser() {
+    _lastEmittedUser = _user;
+    _user = null;
+    _controller.sink.add(_lastEmittedUser);
+  }
+
   @override
   Future<Set<AuthProvider>> getAvailableMethods(String email) =>
       Future.value(<AuthProvider>{});
@@ -48,7 +57,7 @@ class FakeFirebaseAuth extends StreamAuthService
     }
 
     _user = null;
-    _controller.sink.add(_user);
+    _emitUser();
     return null;
   }
 
@@ -68,12 +77,22 @@ class FakeFirebaseAuth extends StreamAuthService
       return errorPtr;
     }
 
-    _controller.sink.add(_user);
-    return AuthSuccess(_user!);
+    final userCopy = _user!.copyWith();
+    _emitUser();
+    return AuthSuccess(userCopy);
   }
 
   @override
-  Stream<AuthUser?> get userUpdates => _controller.stream;
+  StreamSubscription<AuthUser?> listen(void Function(AuthUser? user) cb) {
+    final sub = _controller.stream.listen(cb);
+    if (_lastEmittedUser != null) {
+      // This is the only place it is safe to call _controller.sink.add outside
+      // of _emitUser, which we do here merely to immediately publish the last
+      // emitted user.
+      _controller.sink.add(_lastEmittedUser);
+    }
+    return sub;
+  }
 
   @override
   Future<AuthResponse> createAnonymousAccount() async => _doLogin();
@@ -83,7 +102,7 @@ class FakeFirebaseAuth extends StreamAuthService
 
   @override
   Future<AuthUser?> initialize() {
-    _controller.sink.add(_user);
+    _emitUser();
     return Future<AuthUser?>.value(_user);
   }
 

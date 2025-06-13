@@ -9,11 +9,17 @@ import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
 import 'package:shared_data_firebase/shared_data_firebase.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:uuid/uuid.dart';
 
-final _log = Logger('client_auth.StreamAuth');
+final _log = Logger('client_auth.FirebaseAuthService');
 
 /// Alias for Firebase's [firebase_auth.User] class.
 typedef FirebaseUser = firebase_auth.User;
+
+/// Yields `privateId` values for new [AuthUser] records.
+typedef PrivateIdBuilder = String Function();
+
+const _uuid = Uuid();
 
 /// Signature for [SignInWithApple.getAppleIDCredential].
 typedef GetAppleCredentials = Future<AuthorizationCredentialAppleID> Function({
@@ -32,16 +38,19 @@ class FirebaseAuthService extends StreamAuthService
     GetAppleCredentials? getAppleCredentials,
     GoogleSignIn? googleSignIn,
     firebase_auth.FirebaseAuth? firebaseAuth,
+    PrivateIdBuilder? privateIdBuilder,
   })  : _getAppleCredentials =
             getAppleCredentials ?? SignInWithApple.getAppleIDCredential,
         _googleSignIn = googleSignIn ?? GoogleSignIn.standard(),
-        _firebaseAuth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
+        _auth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
         _userUpdatesController = StreamController<AuthUser?>(),
-        _authUserRepo = authUserRepo ?? _AuthUserRepo();
+        _authUserRepo = authUserRepo ?? _AuthUserRepo(),
+        _privateIdBuilder = privateIdBuilder ?? _uuidV7;
 
-  final firebase_auth.FirebaseAuth _firebaseAuth;
+  final firebase_auth.FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
   final GetAppleCredentials _getAppleCredentials;
+  final PrivateIdBuilder _privateIdBuilder;
   late final Repository<AuthUser> _authUserRepo;
 
   StreamSubscription<FirebaseUser?>? _firebaseStreamSubscription;
@@ -50,33 +59,54 @@ class FirebaseAuthService extends StreamAuthService
   // auth repository will listen to this.
   final StreamController<AuthUser?> _userUpdatesController;
 
-  @override
-  Stream<AuthUser?> get userUpdates => _userUpdatesController.stream;
-
   AuthUser? _lastUserEmitted;
 
   final _initializationCompleter = Completer<AuthUser?>();
   bool get _initialized => _initializationCompleter.isCompleted;
 
+  /// Set to true before calling a Firebase auth function and set back to false
+  /// after completing _syncFirebaseUserWithDatabase.
+  ///
+  /// The purpose of this method is to throw away users emitted by
+  /// _firebaseAuth.authStateChanges(), which fires before auth methods return.
+  bool _isAuthorizing = false;
+
   @override
   Future<AuthUser?> initialize() async {
     _log.finest('Initializing FirebaseAuthService');
-    _firebaseStreamSubscription ??= _firebaseAuth.authStateChanges().listen(
+    _firebaseStreamSubscription ??= _auth.authStateChanges().listen(
       (FirebaseUser? firebaseUser) async {
+        if (_isAuthorizing) return;
+        _log.fine('New FirebaseUser from Firebase: $firebaseUser');
         final AuthUser? newUser = firebaseUser != null
-            ? await _syncFirebaseUserWithFirestore(firebaseUser)
+            ? await _syncFirebaseUserWithDatabase(firebaseUser)
             : null;
-        _log.fine('New AuthUser from Firebase: $newUser');
-        if (!_initialized || newUser?.id != _lastUserEmitted?.id) {
-          _lastUserEmitted = newUser;
-          _userUpdatesController.sink.add(newUser);
+        if (firebaseUser != null || newUser != null) {
+          _log.fine('New AuthUser from database: $newUser');
         }
-        if (!_initialized) {
-          _initializationCompleter.complete(newUser);
-        }
+        _emitUser(newUser);
       },
     );
     return _initializationCompleter.future;
+  }
+
+  void _emitUser(AuthUser? user) {
+    if (!_initialized || user?.id != _lastUserEmitted?.id) {
+      _lastUserEmitted = user;
+      _userUpdatesController.sink.add(user);
+    }
+    if (!_initialized) {
+      _initializationCompleter.complete(user);
+    }
+  }
+
+  @override
+  StreamSubscription<AuthUser?> listen(void Function(AuthUser?) cb) {
+    final sub = _userUpdatesController.stream.listen(cb);
+    if (_lastUserEmitted != null) {
+      cb(_lastUserEmitted);
+    }
+    return sub;
   }
 
   @override
@@ -86,13 +116,16 @@ class FirebaseAuthService extends StreamAuthService
   @override
   Future<AuthResponse> createAnonymousAccount() async {
     try {
-      final userCred = await _firebaseAuth.signInAnonymously();
+      _isAuthorizing = true;
+      final userCred = await _auth.signInAnonymously();
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithFirestore(
+        final authUser = await _syncFirebaseUserWithDatabase(
           userCred.user!,
-          AuthProvider.anonymous,
+          provider: AuthProvider.anonymous,
         );
+        _isAuthorizing = false;
         if (authUser != null) {
+          _emitUser(authUser);
           return AuthSuccess(authUser);
         } else {
           return const AuthFailure(AuthenticationError.unknownError());
@@ -108,6 +141,7 @@ class FirebaseAuthService extends StreamAuthService
   @override
   Future<AuthResponse> logInWithApple() async {
     try {
+      _isAuthorizing = true;
       final appleIdCredential = await _getAppleCredentials(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -119,13 +153,19 @@ class FirebaseAuthService extends StreamAuthService
         idToken: appleIdCredential.identityToken,
         accessToken: appleIdCredential.authorizationCode,
       );
-      final userCred = await _firebaseAuth.signInWithCredential(credential);
+
+      final userCred = await ((_auth.currentUser != null)
+          ? _auth.currentUser!.linkWithCredential(credential)
+          : _auth.signInWithCredential(credential));
+
+      _isAuthorizing = false;
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithFirestore(
+        final authUser = await _syncFirebaseUserWithDatabase(
           userCred.user!,
-          AuthProvider.apple,
+          provider: AuthProvider.apple,
         );
         if (authUser != null) {
+          _emitUser(authUser);
           return AuthSuccess(authUser);
         } else {
           return const AuthFailure(AuthenticationError.unknownError());
@@ -133,7 +173,6 @@ class FirebaseAuthService extends StreamAuthService
       }
       _log.severe('loginWithApple failed without throwing exception');
       return const AuthFailure(AuthenticationError.unknownError());
-      // return const Left(AuthenticationError.unknownError());
     } on firebase_auth.FirebaseAuthException catch (e) {
       _log.severe('Firebase exception during logInWithApple: $e');
       return AuthResponse.fromFirebaseException(e);
@@ -149,16 +188,26 @@ class FirebaseAuthService extends StreamAuthService
     required String password,
   }) async {
     try {
-      final userCred = await _firebaseAuth.signInWithEmailAndPassword(
+      _isAuthorizing = true;
+
+      if (_auth.currentUser != null && _auth.currentUser!.isAnonymous) {
+        throw Exception(
+          'Should not call logIn for anonymous user - call signUp instead.',
+        );
+      }
+
+      final userCred = await _auth.signInWithEmailAndPassword(
         email: email.toLowerCase().trim(),
         password: password,
       );
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithFirestore(
+        final authUser = await _syncFirebaseUserWithDatabase(
           userCred.user!,
-          AuthProvider.email,
+          provider: AuthProvider.email,
         );
+        _isAuthorizing = false;
         if (authUser != null) {
+          _emitUser(authUser);
           return AuthSuccess(authUser);
         } else {
           return const AuthFailure(AuthenticationError.unknownError());
@@ -180,19 +229,26 @@ class FirebaseAuthService extends StreamAuthService
   @override
   Future<AuthResponse> logInWithGoogle() async {
     try {
+      _isAuthorizing = true;
       final googleUser = await _googleSignIn.signIn();
       final googleAuth = await googleUser?.authentication;
       final credential = firebase_auth.GoogleAuthProvider.credential(
         accessToken: googleAuth?.accessToken,
         idToken: googleAuth?.idToken,
       );
-      final userCred = await _firebaseAuth.signInWithCredential(credential);
+
+      final userCred = await ((_auth.currentUser != null)
+          ? _auth.currentUser!.linkWithCredential(credential)
+          : _auth.signInWithCredential(credential));
+
+      _isAuthorizing = false;
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithFirestore(
+        final authUser = await _syncFirebaseUserWithDatabase(
           userCred.user!,
-          AuthProvider.google,
+          provider: AuthProvider.google,
         );
         if (authUser != null) {
+          _emitUser(authUser);
           return AuthSuccess(authUser);
         } else {
           return const AuthFailure(AuthenticationError.unknownError());
@@ -213,18 +269,56 @@ class FirebaseAuthService extends StreamAuthService
   Future<AuthResponse> signUp({
     required String email,
     required String password,
-  }) async {
-    try {
-      final userCred = await _firebaseAuth.createUserWithEmailAndPassword(
+  }) async =>
+      _signUpWithCleanEmail(
         email: email.toLowerCase().trim(),
         password: password,
       );
+
+  Future<AuthResponse> _signUpWithCleanEmail({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      _isAuthorizing = true;
+
+      late final firebase_auth.UserCredential userCred;
+      AuthUser? preloadedUser;
+      bool mustSave = false;
+
+      if (_auth.currentUser != null) {
+        preloadedUser = await _loadUserWithExpectations(
+          _auth.currentUser!.uid,
+          'signUp',
+          unexpectedProviders: {AuthProvider.email},
+        );
+        final authCred = firebase_auth.EmailAuthProvider.credential(
+          email: email,
+          password: password,
+        );
+        userCred = await _auth.currentUser!.linkWithCredential(authCred);
+      } else {
+        userCred = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      }
+
+      if (preloadedUser != null && preloadedUser.email != email) {
+        preloadedUser = preloadedUser.copyWith(email: email);
+        mustSave = true;
+      }
+
+      _isAuthorizing = false;
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithFirestore(
+        final authUser = await _syncFirebaseUserWithDatabase(
           userCred.user!,
-          AuthProvider.email,
+          provider: AuthProvider.email,
+          user: preloadedUser,
+          mustSave: mustSave,
         );
         if (authUser != null) {
+          _emitUser(authUser);
           return AuthSuccess(authUser);
         } else {
           return const AuthFailure(AuthenticationError.unknownError());
@@ -245,7 +339,7 @@ class FirebaseAuthService extends StreamAuthService
   Future<AuthFailure?> logOut() async {
     try {
       await Future.wait([
-        _firebaseAuth.signOut(),
+        _auth.signOut(),
         _googleSignIn.signOut(),
       ]);
       _log.finer('Successfully logged out');
@@ -256,74 +350,147 @@ class FirebaseAuthService extends StreamAuthService
     }
   }
 
-  Future<AuthUser?> _syncFirebaseUserWithFirestore(
-    FirebaseUser firebaseUser, [
+  Future<AuthUser?> _syncFirebaseUserWithDatabase(
+    FirebaseUser firebaseUser, {
     AuthProvider? provider,
-  ]) async {
-    final readResult = await _authUserRepo.getById(
-      firebaseUser.uid,
-      RequestDetails.read(),
-    );
-    switch (readResult) {
-      case ReadSuccess<AuthUser>():
-        {
-          bool shouldSave = false;
-          var authUser = readResult.itemOrRaise();
-          if (authUser == null) {
-            if (provider == null) {
-              _log.shout(
-                'Reached invalid state with no AuthUser in Firestore '
-                'and a null authProvider value passed to '
-                '_syncFirebaseUserWithFirestore. An AuthUser should have been '
-                'created in Firestore when this user first signed up.',
-              );
-              return null;
-            }
-            authUser = toAuthUser(firebaseUser, provider, {provider});
-            shouldSave = true;
-          } else {
-            if (provider != null) {
-              if (authUser.provider != provider ||
-                  !authUser.allProviders.contains(provider)) {
-                authUser = authUser.copyWith(provider: provider);
-                authUser = authUser.copyWith(
-                  allProviders: Set<AuthProvider>.from(authUser.allProviders)
-                    ..add(provider),
-                );
-                shouldSave = true;
-              }
-            }
-          }
-          if (shouldSave) {
-            final writeResult = await _authUserRepo.setItem(
-              authUser,
-              RequestDetails.write(),
-            );
 
-            switch (writeResult) {
-              case WriteSuccess():
-                {
-                  return writeResult.item;
-                }
-              case WriteFailure():
-                {
-                  _log.shout(
-                    'Failed to write $authUser to Firestore: $writeResult',
-                  );
-                  return null;
-                }
-            }
-          } else {
-            return authUser;
-          }
+    /// If the user was preloaded for account state checks, provide the object
+    /// here to prevent duplicate read
+    AuthUser? user,
+
+    /// If the user was both preloaded and had modifications made to it (because
+    /// a new auth method yielded new information, for example), then this can
+    /// be passed in to guarantee a save.
+    bool mustSave = false,
+  }) async {
+    if (mustSave) {
+      assert(user != null, 'Can only pass mustSave=true when user is not null');
+    }
+
+    AuthUser? loadedUser = user ??
+        await _loadUserWithExpectations(
+          firebaseUser.uid,
+          '_syncFirebaseUserWithDatabase',
+          exists: null,
+        );
+
+    bool shouldSave = false;
+    if (loadedUser == null) {
+      if (provider == null) {
+        _log.shout(
+          'Reached invalid state with no AuthUser in Firestore '
+          'and a null authProvider value passed to '
+          '_syncFirebaseUserWithDatabase. An AuthUser should have been '
+          'created in Firestore when this account was first created.',
+        );
+        await logOut();
+        return null;
+      }
+      // Write the new AuthUser record to Firestore
+      loadedUser = toAuthUser(
+        firebaseUser,
+        provider,
+        {provider},
+        _privateIdBuilder(),
+      );
+      shouldSave = true;
+    } else {
+      if (provider != null) {
+        if (loadedUser.provider != provider ||
+            !loadedUser.allProviders.contains(provider)) {
+          loadedUser = loadedUser.copyWith(provider: provider);
+          loadedUser = loadedUser.copyWith(
+            allProviders: Set<AuthProvider>.from(loadedUser.allProviders)
+              ..add(provider),
+          );
+          shouldSave = true;
         }
-      case ReadFailure<AuthUser>():
-        {
+      }
+    }
+    if (shouldSave) {
+      final writeResult = await _authUserRepo.setItem(
+        loadedUser,
+        RequestDetails.write(),
+      );
+
+      switch (writeResult) {
+        case WriteSuccess():
+          return writeResult.item;
+        case WriteFailure():
           _log.shout(
-            'Failed to sync UserCredential with Firestore: $readResult',
+            'Failed to write $loadedUser to Firestore: $writeResult',
           );
           return null;
+      }
+    } else {
+      return loadedUser;
+    }
+  }
+
+  Future<AuthUser?> _loadUserWithExpectations(
+    String id,
+    String originMethod, {
+    /// If true, the user is expected to exist.
+    /// If false, the user is expected to not exist (it is being created).
+    /// If null, no assumption is made.
+    bool? exists = true,
+    Set<AuthProvider> expectedProviders = const {},
+    Set<AuthProvider> unexpectedProviders = const {},
+  }) async {
+    final readResponse = await _authUserRepo.getById(
+      id,
+      RequestDetails.read(requestType: RequestType.refresh),
+    );
+
+    switch (readResponse) {
+      case ReadSuccess<AuthUser>():
+        if (exists != null) {
+          if (readResponse.item != null && !exists) {
+            _log.shout(
+              'Found unexpected existing AuthUser in $originMethod with Id $id',
+            );
+          }
+          if (readResponse.item == null) {
+            if (exists) {
+              _log.shout(
+                'Did not find expected AuthUser in $originMethod with Id $id',
+              );
+            }
+            return null;
+          }
         }
+        final loadedUser = readResponse.item;
+
+        if (loadedUser != null && expectedProviders.isNotEmpty) {
+          final missingProviders =
+              loadedUser.allProviders.difference(expectedProviders);
+          if (missingProviders.isNotEmpty) {
+            _log.shout(
+              'Expected to find AuthUser in $originMethod with Id $id and at '
+              'least $expectedProviders. Instead, found AuthUser with '
+              '${loadedUser.allProviders}',
+            );
+          }
+        }
+
+        if (loadedUser != null && unexpectedProviders.isNotEmpty) {
+          final surprisingProviders =
+              loadedUser.allProviders.intersection(unexpectedProviders);
+          if (surprisingProviders.isNotEmpty) {
+            _log.shout(
+              'Found AuthUser in $originMethod with Id $id which unexpectedly '
+              'already had $surprisingProviders.',
+            );
+          }
+        }
+        return loadedUser;
+
+      case ReadFailure<AuthUser>():
+        _log.shout(
+          'Failed to read existing AuthUser with Id '
+          '${_auth.currentUser!.uid} :: ${readResponse.reason}',
+        );
+        return null;
     }
   }
 
@@ -332,9 +499,11 @@ class FirebaseAuthService extends StreamAuthService
     FirebaseUser user,
     AuthProvider thisSession,
     Set<AuthProvider> allProviders,
+    String uuid,
   ) =>
       AuthUser(
         id: user.uid,
+        privateId: uuid,
         email: user.email,
         createdAt: user.metadata.creationTime!,
         provider: thisSession,
@@ -353,6 +522,9 @@ class FirebaseAuthService extends StreamAuthService
       'FirebaseAuthService is not designed to be a secondaryAuth',
     );
   }
+
+  @override
+  String toString() => 'FirebaseAuthService';
 }
 
 /// Converts provider names into [AuthProvider] enums.
@@ -398,3 +570,5 @@ extension NewAwareFirebaseUser on FirebaseUser {
       (metadata.lastSignInTime!.difference(metadata.creationTime!)) <
           const Duration(seconds: 5);
 }
+
+String _uuidV7() => _uuid.v7();

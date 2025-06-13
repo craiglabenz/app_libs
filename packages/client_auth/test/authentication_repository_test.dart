@@ -10,6 +10,7 @@ void main() {
 
   final AuthUser user = AuthUser(
     id: 'asdf',
+    privateId: 'abc',
     email: 'user@email.com',
     createdAt: DateTime(2025, 1, 1, 12),
     provider: AuthProvider.anonymous,
@@ -172,6 +173,7 @@ void main() {
       setUp(() {
         user = AuthUser(
           id: userId,
+          privateId: 'abc',
           email: email,
           provider: AuthProvider.email,
           createdAt: DateTime(2020),
@@ -184,12 +186,11 @@ void main() {
           final authRepo = AuthRepository(
             FakeFirebaseAuth(),
           );
-          final expectation = expectLater(
-            authRepo.userUpdates,
-            emitsInOrder(const <AuthUser?>[null]),
-          );
+          final emitted = <AuthUser?>[];
+          final sub = authRepo.listen(emitted.add);
           await authRepo.initialize();
-          await expectation;
+          expect(emitted, equals([null]));
+          await sub.cancel();
         },
         timeout: const Timeout(Duration(seconds: 1)),
       );
@@ -200,12 +201,11 @@ void main() {
           final authRepo = AuthRepository(
             FakeFirebaseAuth()..prepareLogin(user),
           );
-          final expectation = expectLater(
-            authRepo.userUpdates,
-            emitsInOrder(<AuthUser?>[user]),
-          );
+          final emitted = <AuthUser?>[];
+          final sub = authRepo.listen(emitted.add);
           await authRepo.initialize();
-          await expectation;
+          expect(emitted, equals([user]));
+          await sub.cancel();
         },
         timeout: const Timeout(Duration(seconds: 1)),
       );

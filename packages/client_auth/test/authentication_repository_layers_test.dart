@@ -23,6 +23,7 @@ void main() {
   late AuthRepository authRepo;
   final AuthUser user = AuthUser(
     id: 'asdf',
+    privateId: 'abc',
     email: 'user@email.com',
     createdAt: DateTime(2025, 1, 1, 12),
     provider: AuthProvider.anonymous,

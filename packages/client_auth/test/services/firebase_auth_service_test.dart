@@ -85,6 +85,7 @@ void main() {
         getAppleCredentials: getAppleCredentials,
         googleSignIn: googleSignIn,
         authUserRepo: authUserRepo,
+        privateIdBuilder: () => 'private-eye',
       );
     });
 
@@ -119,6 +120,7 @@ void main() {
     group('logInWithApple', () {
       final homerSimpson = AuthUser(
         id: 'abc',
+        privateId: 'private-eye',
         email: 'homer@simpson.com',
         createdAt: DateTime(2021).toUtc(),
         provider: AuthProvider.apple,
@@ -174,6 +176,7 @@ void main() {
     group('signUp', () {
       final homerSimpson = AuthUser(
         id: 'abc',
+        privateId: 'private-eye',
         email: 'homer@simpson.com',
         createdAt: DateTime(2021).toUtc(),
         provider: AuthProvider.email,
@@ -239,6 +242,7 @@ void main() {
 
       final homerSimpson = AuthUser(
         id: 'abc',
+        privateId: 'private-eye',
         email: 'homer@simpson.com',
         createdAt: DateTime(2021).toUtc(),
         provider: AuthProvider.google,
@@ -289,6 +293,7 @@ void main() {
     group('logInWithEmailAndPassword', () {
       final homerSimpson = AuthUser(
         id: 'abc',
+        privateId: 'private-eye',
         email: 'homer@simpson.com',
         createdAt: DateTime(2021).toUtc(),
         provider: AuthProvider.email,

@@ -26,9 +26,6 @@ class AuthRepository
 
   final StreamController<AuthUser?> _userUpdatesController;
 
-  @override
-  Stream<AuthUser?> get userUpdates => _userUpdatesController.stream;
-
   StreamSubscription<AuthUser?>? _primaryAuthSubscription;
 
   AuthUser? _lastUser;
@@ -67,24 +64,32 @@ class AuthRepository
   Future<AuthUser?> initialize() async {
     _log.finest('Initializing AuthRepository');
     if (primaryAuth is StreamAuthService) {
-      _primaryAuthSubscription ??=
-          (primaryAuth as StreamAuthService).userUpdates.listen(
-                (AuthUser? user) => lastUser = user,
-              );
+      _primaryAuthSubscription ??= (primaryAuth as StreamAuthService).listen(
+        (AuthUser? user) => lastUser = user,
+      );
       // StreamAuthService.initialize also completes when a user is emitted,
       // meaning awaiting it is synonymous with awaiting our own
-      // initCompleter.future.
+      // initCompleter.future which is resolved in the [lastUser] setter.
       unawaited((primaryAuth as StreamAuthService).initialize());
 
       return _initializationCompleter.future;
     } else if (primaryAuth is RestAuth) {
-      // TODO(craiglabenz): Should this still kick off its initial updates?
+      // TODO(craiglabenz): Should this still call an `initialize` fnc?
       if (!_initializationCompleter.isCompleted) {
         _initializationCompleter.complete();
       }
       return _initializationCompleter.future;
     }
     throw Exception('Unexpected type of primaryAuth: $primaryAuth');
+  }
+
+  @override
+  StreamSubscription<AuthUser?> listen(void Function(AuthUser?) cb) {
+    final sub = _userUpdatesController.stream.listen(cb);
+    if (_lastUser != null) {
+      cb(_lastUser);
+    }
+    return sub;
   }
 
   /// {@macro createAnonymousAccount}
@@ -102,34 +107,32 @@ class AuthRepository
 
     switch (authResponse) {
       case AuthSuccess():
-        {
-          for (final secondaryAuth in secondaryAuths) {
-            if (secondaryAuth is! AnonymousAuthService) {
-              _log.severe(
-                '$secondaryAuth is not configured to sync an anonymous account',
-              );
-              continue;
-            }
-            final secondaryAuthResponse =
-                await (secondaryAuth as AnonymousAuthService)
-                    .syncAnonymousAccount(authResponse);
+        for (final secondaryAuth in secondaryAuths) {
+          if (secondaryAuth is! AnonymousAuthService) {
+            _log.severe(
+              '$secondaryAuth is not configured to sync an anonymous account',
+            );
+            continue;
+          }
+          final secondaryAuthResponse =
+              await (secondaryAuth as AnonymousAuthService)
+                  .syncAnonymousAccount(authResponse);
 
-            if (secondaryAuthResponse is AuthFailure) {
-              _log.shout(
-                '$secondaryAuth failed to create a matching anonymous account. '
-                '${authResponse.user} is likely in a compromised state.',
-              );
-            }
+          if (secondaryAuthResponse is AuthFailure) {
+            _log.shout(
+              '$secondaryAuth failed to create a matching anonymous account. '
+              '${authResponse.user} is likely in a compromised state.',
+            );
           }
         }
+        // Publish this information.
+        lastUser = authResponse.user;
       case AuthFailure():
-        {
-          _log.shout(
-            '$primaryAuth unable to create new anonymous account. Auth system '
-            'may be down entirely.',
-          );
-          lastUser = null;
-        }
+        _log.shout(
+          '$primaryAuth unable to create new anonymous account. Auth system '
+          'may be down entirely.',
+        );
+        lastUser = null;
     }
     return authResponse;
   }
@@ -153,35 +156,31 @@ class AuthRepository
 
     switch (authResponse) {
       case AuthSuccess():
-        {
-          for (final secondaryAuth in secondaryAuths) {
-            final syncAuthResponse = await secondaryAuth.signUp(
-              email: email,
-              password: password,
-            );
-
-            // In the case of a failed sync, do not cancel the effort, which
-            // would likely necessitate deleting the primaryAuth account.
-            // Instead, log the error and allow for `loginWithEmailAndPassword`
-            // to attempt to heal the system.
-            if (syncAuthResponse is AuthFailure) {
-              _log.severe(
-                'Failed to sync user $email to $secondaryAuth :: '
-                '$syncAuthResponse',
-              );
-            }
-          }
-
-          // Publish this information.
-          lastUser = authResponse.user;
-        }
-      case AuthFailure():
-        {
-          _log.severe(
-            'Failed to signUp new user $email with primary auth $primaryAuth',
+        for (final secondaryAuth in secondaryAuths) {
+          final syncAuthResponse = await secondaryAuth.signUp(
+            email: email,
+            password: password,
           );
-          _lastUser = null;
+
+          // In the case of a failed sync, do not cancel the effort, which
+          // would likely necessitate deleting the primaryAuth account.
+          // Instead, log the error and allow for `loginWithEmailAndPassword`
+          // to attempt to heal the system.
+          if (syncAuthResponse is AuthFailure) {
+            _log.severe(
+              'Failed to sync user $email to $secondaryAuth :: '
+              '$syncAuthResponse',
+            );
+          }
         }
+
+        // Publish this information.
+        lastUser = authResponse.user;
+      case AuthFailure():
+        _log.severe(
+          'Failed to signUp new user $email with primary auth $primaryAuth',
+        );
+        _lastUser = null;
     }
     return authResponse;
   }
@@ -198,45 +197,41 @@ class AuthRepository
 
     switch (authResponse) {
       case AuthSuccess():
-        {
-          for (final secondaryAuth in secondaryAuths) {
-            final syncAuthResponse =
-                await secondaryAuth.logInWithEmailAndPassword(
+        for (final secondaryAuth in secondaryAuths) {
+          final syncAuthResponse =
+              await secondaryAuth.logInWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+
+          if (syncAuthResponse is AuthFailure) {
+            _log.severe(
+              'Failed to login user $email to $secondaryAuth :: '
+              '$syncAuthResponse. Attempting to signUp user instead.',
+            );
+
+            final syncAuthFallbackResponse = await secondaryAuth.signUp(
               email: email,
               password: password,
             );
 
-            if (syncAuthResponse is AuthFailure) {
+            if (syncAuthFallbackResponse is AuthFailure) {
               _log.severe(
-                'Failed to login user $email to $secondaryAuth :: '
-                '$syncAuthResponse. Attempting to signUp user instead.',
+                'Failed at fallback signUp of user $email :: '
+                '$syncAuthFallbackResponse. Account is likely compromised '
+                'state.',
               );
-
-              final syncAuthFallbackResponse = await secondaryAuth.signUp(
-                email: email,
-                password: password,
-              );
-
-              if (syncAuthFallbackResponse is AuthFailure) {
-                _log.severe(
-                  'Failed at fallback signUp of user $email :: '
-                  '$syncAuthFallbackResponse. Account is likely compromised '
-                  'state.',
-                );
-              }
             }
           }
+        }
 
-          // Publish this information.
-          lastUser = authResponse.user;
-        }
+        // Publish this information.
+        lastUser = authResponse.user;
       case AuthFailure():
-        {
-          _log.severe(
-            'Failed to signUp new user $email with primary auth $primaryAuth',
-          );
-          _lastUser = null;
-        }
+        _log.severe(
+          'Failed to signUp new user $email with primary auth $primaryAuth',
+        );
+        _lastUser = null;
     }
     return authResponse;
   }
@@ -249,20 +244,21 @@ class AuthRepository
         'SocialAuthService',
       );
     }
-    final res = await (primaryAuth as SocialAuthService).logInWithApple();
-    switch (res) {
+    final authResponse =
+        await (primaryAuth as SocialAuthService).logInWithApple();
+    switch (authResponse) {
       case AuthSuccess():
-        {
-          for (final _ in secondaryAuths) {
-            // TODO(craiglabenz): Figure out how to sync accounts when an app
-            // actually has >1 auth backends.
-            throw UnimplementedError();
-          }
+        for (final _ in secondaryAuths) {
+          // TODO(craiglabenz): Figure out how to sync accounts when an app
+          // actually has >1 auth backends.
+          throw UnimplementedError();
         }
+        // Publish this information.
+        lastUser = authResponse.user;
       case AuthFailure():
         {}
     }
-    return res;
+    return authResponse;
   }
 
   @override
@@ -273,20 +269,21 @@ class AuthRepository
         'SocialAuthService',
       );
     }
-    final res = await (primaryAuth as SocialAuthService).logInWithGoogle();
-    switch (res) {
+    final authResponse =
+        await (primaryAuth as SocialAuthService).logInWithGoogle();
+    switch (authResponse) {
       case AuthSuccess():
-        {
-          for (final _ in secondaryAuths) {
-            // TODO(craiglabenz): Figure out how to sync accounts when an app
-            // actually has >1 auth backends.
-            throw UnimplementedError();
-          }
+        for (final _ in secondaryAuths) {
+          // TODO(craiglabenz): Figure out how to sync accounts when an app
+          // actually has >1 auth backends.
+          throw UnimplementedError();
         }
+        // Publish this information.
+        lastUser = authResponse.user;
       case AuthFailure():
         {}
     }
-    return res;
+    return authResponse;
   }
 
   @override
@@ -310,6 +307,7 @@ class AuthRepository
         );
       }
     }
+    lastUser = null;
     return failure;
   }
 

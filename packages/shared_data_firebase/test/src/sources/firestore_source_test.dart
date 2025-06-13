@@ -24,6 +24,7 @@ class DocumentReferenceMock<T> extends Mock implements DocumentReference<T> {}
 
 class DocumentSnapshotMock<T> extends Mock implements DocumentSnapshot<T> {}
 
+/// Used for reads
 const homerSimpsonData = {'id': 'abc', 'name': 'Homer Simpson'};
 const homerSimpsonCreationData = {'name': 'Homer Simpson'};
 

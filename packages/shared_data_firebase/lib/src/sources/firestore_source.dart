@@ -1,16 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Source;
+import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
 import 'package:shared_data_firebase/shared_data_firebase.dart';
+
+final _log = Logger('FirestoreSource');
 
 /// {@template FirestoreSource}
 /// {@endtemplate}
 class FirestoreSource<T extends Model> extends Source<T> {
   /// {@macro FirestoreSource}
   FirestoreSource({
-    required this.db,
     required this.bindings,
+    FirebaseFirestore? db,
     this.idFieldName = 'id',
-  });
+  }) : db = db ?? FirebaseFirestore.instance;
 
   /// Live connection to the Firestore database.
   final FirebaseFirestore db;
@@ -32,11 +35,15 @@ class FirestoreSource<T extends Model> extends Source<T> {
   DocumentReference<Json> doc(String id) => collection.doc(id);
 
   @override
-  Future<ReadResult<T>> getById(String id, RequestDetails<T> details) async =>
-      doc(id).get().then(
-            (snapshot) =>
-                ReadSuccess<T>(_hydrateDocument(snapshot), details: details),
-          );
+  Future<ReadResult<T>> getById(String id, RequestDetails<T> details) async {
+    try {
+      final snapshot = await doc(id).get();
+      return ReadSuccess<T>(_hydrateDocument(snapshot), details: details);
+    } on FirebaseException catch (e) {
+      _log.shout('Failed to get $T by Id $id');
+      return ReadFailure<T>(FailureReason.badRequest, e.code);
+    }
+  }
 
   @override
   Future<ReadListResult<T>> getByIds(
@@ -67,18 +74,20 @@ class FirestoreSource<T extends Model> extends Source<T> {
   @override
   Future<ReadListResult<T>> getItems(RequestDetails<T> details) async {
     final query = _applyFilters(collection, details);
-    return query.get().then(
-      (snapshot) {
-        if (snapshot.docs.isEmpty) {
-          return ReadListResult.empty(details);
-        }
-        return ReadListResult.fromList(
-          _hydrateQuery(snapshot),
-          details,
-          {},
-        );
-      },
-    );
+    try {
+      final snapshot = await query.get();
+      if (snapshot.docs.isEmpty) {
+        return ReadListResult.empty(details);
+      }
+      return ReadListResult.fromList(
+        _hydrateQuery(snapshot),
+        details,
+        {},
+      );
+    } on FirebaseException catch (e) {
+      _log.shout('Failed to get $T items');
+      return ReadListFailure<T>(FailureReason.badRequest, e.code);
+    }
   }
 
   @override
@@ -88,35 +97,42 @@ class FirestoreSource<T extends Model> extends Source<T> {
   }
 
   Future<(WriteResult<T>, T)> _setItem(
-      T item, RequestDetails<T> details) async {
+    T item,
+    RequestDetails<T> details,
+  ) async {
     if (item.id != null) {
-      await collection.doc(item.id).set(_serializeItem(item));
-      return (
-        WriteSuccess(
+      try {
+        await collection.doc(item.id).set(_serializeItem(item));
+        return (WriteSuccess(item, details: details), item);
+      } on FirebaseException catch (e) {
+        _log.shout('Failed to set $item');
+        return (WriteFailure<T>(FailureReason.badRequest, e.code), item);
+      }
+    }
+
+    try {
+      final savedItem = await collection.add(_serializeItem(item)).then(
+        (ref) async {
+          final snapshot = await ref.get();
+          return _hydrateDocument(snapshot);
+        },
+      );
+
+      if (savedItem == null) {
+        return (
+          WriteFailure<T>(
+            FailureReason.serverError,
+            'Failed to save ${T.runtimeType}',
+          ),
           item,
-          details: details,
-        ),
-        item
-      );
-    }
+        );
+      }
 
-    final savedItem = await collection.add(_serializeItem(item)).then(
-      (ref) async {
-        final snapshot = await ref.get();
-        return _hydrateDocument(snapshot);
-      },
-    );
-
-    if (savedItem == null) {
-      return (
-        WriteFailure<T>(
-          FailureReason.serverError,
-          'Failed to save ${T.runtimeType}',
-        ),
-        item,
-      );
+      return (WriteSuccess(savedItem, details: details), item);
+    } on FirebaseException catch (e) {
+      _log.shout('Failed to set $item');
+      return (WriteFailure<T>(FailureReason.badRequest, e.code), item);
     }
-    return (WriteSuccess(savedItem, details: details), item);
   }
 
   @override
@@ -179,6 +195,18 @@ class FirestoreSource<T extends Model> extends Source<T> {
     if (!data.containsKey(idFieldName)) {
       data[idFieldName] = snapshot.id;
     }
+    if (data.containsKey('createdAt')) {
+      final rawCreatedAt = data['createdAt'];
+      data['createdAt'] = switch (rawCreatedAt) {
+        Timestamp() => rawCreatedAt.toDate().toIso8601String(),
+        DateTime() => rawCreatedAt.toIso8601String(),
+        String() => rawCreatedAt,
+        _ => throw Exception(
+            'Unexpected type in FirestoreTimestampConverter: '
+            '${rawCreatedAt.runtimeType}',
+          )
+      };
+    }
     return bindings.fromJson(data);
   }
 
@@ -186,6 +214,9 @@ class FirestoreSource<T extends Model> extends Source<T> {
     final serialized = item.toJson();
     if (serialized.containsKey(idFieldName)) {
       serialized.remove(idFieldName);
+    }
+    if (T is CreatedAtModel && item.id == null) {
+      serialized['createdAt'] = FieldValue.serverTimestamp();
     }
     return serialized;
   }
