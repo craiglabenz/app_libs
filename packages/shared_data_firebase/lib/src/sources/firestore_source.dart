@@ -105,7 +105,7 @@ class FirestoreSource<T extends Model> extends Source<T> {
         await collection.doc(item.id).set(_serializeItem(item));
         return (WriteSuccess(item, details: details), item);
       } on FirebaseException catch (e) {
-        _log.shout('Failed to set $item');
+        _log.shout('Failed to update $item');
         return (WriteFailure<T>(FailureReason.badRequest, e.code), item);
       }
     }
@@ -130,7 +130,7 @@ class FirestoreSource<T extends Model> extends Source<T> {
 
       return (WriteSuccess(savedItem, details: details), item);
     } on FirebaseException catch (e) {
-      _log.shout('Failed to set $item');
+      _log.shout('Failed to create $item');
       return (WriteFailure<T>(FailureReason.badRequest, e.code), item);
     }
   }
@@ -215,7 +215,9 @@ class FirestoreSource<T extends Model> extends Source<T> {
     if (serialized.containsKey(idFieldName)) {
       serialized.remove(idFieldName);
     }
-    if (T is CreatedAtModel && item.id == null) {
+    if (serialized.containsKey('createdAt') &&
+        serialized['createdAt'] == null &&
+        item.id == null) {
       serialized['createdAt'] = FieldValue.serverTimestamp();
     }
     return serialized;

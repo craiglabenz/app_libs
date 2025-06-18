@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:meta/meta.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// {@template repo}
@@ -56,4 +57,8 @@ class Repository<T extends Model> extends DataContract<T> {
 
   /// Clears all local data. Does not delete anything from any remote sources.
   Future<void> clear() => sourceList.clear();
+
+  /// Releases any open resources like stream subscriptions.
+  @mustCallSuper
+  void close() {}
 }
