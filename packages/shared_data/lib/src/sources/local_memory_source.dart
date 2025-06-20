@@ -181,7 +181,7 @@ class LocalMemorySource<T extends Model> extends LocalSource<T> {
 
   @override
   Future<WriteListResult<T>> setItems(
-    List<T> items,
+    Iterable<T> items,
     RequestDetails<T> details,
   ) {
     for (final item in items) {

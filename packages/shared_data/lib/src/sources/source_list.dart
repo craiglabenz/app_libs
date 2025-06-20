@@ -65,7 +65,7 @@ class SourceList<T extends Model> extends DataContract<T> {
   }
 
   Future<void> _cacheItems(
-    List<T> items,
+    Iterable<T> items,
     List<Source> emptySources,
     RequestDetails<T> details,
   ) async {
@@ -236,7 +236,7 @@ class SourceList<T extends Model> extends DataContract<T> {
 
   @override
   Future<WriteListResult<T>> setItems(
-    List<T> items,
+    Iterable<T> items,
     RequestDetails<T> details,
   ) async {
     assert(

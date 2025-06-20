@@ -137,7 +137,7 @@ class FirestoreSource<T extends Model> extends Source<T> {
 
   @override
   Future<WriteListResult<T>> setItems(
-    List<T> items,
+    Iterable<T> items,
     RequestDetails<T> details,
   ) async {
     var (savedItems, failedWrites) = await _setItems(items, details);
@@ -162,7 +162,7 @@ class FirestoreSource<T extends Model> extends Source<T> {
   }
 
   Future<(List<T>, List<T>)> _setItems(
-    List<T> items,
+    Iterable<T> items,
     RequestDetails<T> details,
   ) async {
     final writeFutures = <Future<(WriteResult, T)>>[];

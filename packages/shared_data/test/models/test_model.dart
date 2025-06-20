@@ -88,7 +88,7 @@ class FakeSourceList<T extends Model> extends Fake implements SourceList<T> {
 
   @override
   Future<WriteListResult<T>> setItems(
-    List<T> items,
+    Iterable<T> items,
     RequestDetails<T> details,
   ) =>
       Future.value(WriteListSuccess<T>([objs.first], details: details));

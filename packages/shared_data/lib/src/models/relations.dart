@@ -55,7 +55,7 @@ class RelatedModelList<T extends Model> extends Equatable {
   final Repository<T> repository;
 
   /// The related objects in question, loaded from the [Repository].
-  Future<List<T>> get objs async {
+  Future<Iterable<T>> get objs async {
     if (ids.isEmpty) return <T>[];
     final result = await repository.getByIds(ids, RequestDetails.read());
     if (result is ReadListSuccess) {

@@ -50,7 +50,7 @@ class Repository<T extends Model> extends DataContract<T> {
 
   @override
   Future<WriteListResult<T>> setItems(
-    List<T> items,
+    Iterable<T> items,
     RequestDetails<T> details,
   ) =>
       sourceList.setItems(items, details);

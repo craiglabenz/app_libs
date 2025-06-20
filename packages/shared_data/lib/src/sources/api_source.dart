@@ -197,7 +197,7 @@ class ApiSource<T extends Model> extends Source<T> {
 
   @override
   Future<WriteListResult<T>> setItems(
-    List<T> items,
+    Iterable<T> items,
     RequestDetails<T> details,
   ) =>
       throw Exception('Should never call ApiSource.setItems');

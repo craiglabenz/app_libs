@@ -85,7 +85,7 @@ sealed class WriteListResult<T extends Model> with _$WriteListResult<T> {
   /// Container for a bulk write request which did not encounter any errors.
   /// {@endtemplate}
   const factory WriteListResult.success(
-    List<T> items, {
+    Iterable<T> items, {
     required RequestDetails<T> details,
   }) = WriteListSuccess;
 
@@ -207,7 +207,7 @@ sealed class ReadListResult<T extends Model> with _$ReadListResult<T> {
   /// Container for the results of a list read that did not encounter any
   /// errors. Note that the list of results may be empty, which is not an error.
   const factory ReadListResult({
-    required List<T> items,
+    required Iterable<T> items,
     required Map<String, T> itemsMap,
     required Set<String> missingItemIds,
     required RequestDetails<T> details,
@@ -230,7 +230,7 @@ sealed class ReadListResult<T extends Model> with _$ReadListResult<T> {
 
   /// List-friendly constructor.
   factory ReadListResult.fromList(
-    List<T> items,
+    Iterable<T> items,
     RequestDetails<T> details,
     Set<String> missingItemIds,
   ) {

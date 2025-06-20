@@ -204,17 +204,9 @@ class $WriteListResultCopyWith<T extends Model, $Res> {
 /// @nodoc
 
 class WriteListSuccess<T extends Model> extends WriteListResult<T> {
-  const WriteListSuccess(final List<T> items, {required this.details})
-      : _items = items,
-        super._();
+  const WriteListSuccess(this.items, {required this.details}) : super._();
 
-  final List<T> _items;
-  List<T> get items {
-    if (_items is EqualUnmodifiableListView) return _items;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_items);
-  }
-
+  final Iterable<T> items;
   final RequestDetails<T> details;
 
   /// Create a copy of WriteListResult
@@ -229,13 +221,13 @@ class WriteListSuccess<T extends Model> extends WriteListResult<T> {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is WriteListSuccess<T> &&
-            const DeepCollectionEquality().equals(other._items, _items) &&
+            const DeepCollectionEquality().equals(other.items, items) &&
             (identical(other.details, details) || other.details == details));
   }
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, const DeepCollectionEquality().hash(_items), details);
+      runtimeType, const DeepCollectionEquality().hash(items), details);
 
   @override
   String toString() {
@@ -250,7 +242,7 @@ abstract mixin class $WriteListSuccessCopyWith<T extends Model, $Res>
           WriteListSuccess<T> value, $Res Function(WriteListSuccess<T>) _then) =
       _$WriteListSuccessCopyWithImpl;
   @useResult
-  $Res call({List<T> items, RequestDetails<T> details});
+  $Res call({Iterable<T> items, RequestDetails<T> details});
 }
 
 /// @nodoc
@@ -270,9 +262,9 @@ class _$WriteListSuccessCopyWithImpl<T extends Model, $Res>
   }) {
     return _then(WriteListSuccess<T>(
       null == items
-          ? _self._items
+          ? _self.items
           : items // ignore: cast_nullable_to_non_nullable
-              as List<T>,
+              as Iterable<T>,
       details: null == details
           ? _self.details
           : details // ignore: cast_nullable_to_non_nullable
@@ -544,22 +536,15 @@ class $ReadListResultCopyWith<T extends Model, $Res> {
 
 class ReadListSuccess<T extends Model> extends ReadListResult<T> {
   const ReadListSuccess(
-      {required final List<T> items,
+      {required this.items,
       required final Map<String, T> itemsMap,
       required final Set<String> missingItemIds,
       required this.details})
-      : _items = items,
-        _itemsMap = itemsMap,
+      : _itemsMap = itemsMap,
         _missingItemIds = missingItemIds,
         super._();
 
-  final List<T> _items;
-  List<T> get items {
-    if (_items is EqualUnmodifiableListView) return _items;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_items);
-  }
-
+  final Iterable<T> items;
   final Map<String, T> _itemsMap;
   Map<String, T> get itemsMap {
     if (_itemsMap is EqualUnmodifiableMapView) return _itemsMap;
@@ -588,7 +573,7 @@ class ReadListSuccess<T extends Model> extends ReadListResult<T> {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is ReadListSuccess<T> &&
-            const DeepCollectionEquality().equals(other._items, _items) &&
+            const DeepCollectionEquality().equals(other.items, items) &&
             const DeepCollectionEquality().equals(other._itemsMap, _itemsMap) &&
             const DeepCollectionEquality()
                 .equals(other._missingItemIds, _missingItemIds) &&
@@ -598,7 +583,7 @@ class ReadListSuccess<T extends Model> extends ReadListResult<T> {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      const DeepCollectionEquality().hash(_items),
+      const DeepCollectionEquality().hash(items),
       const DeepCollectionEquality().hash(_itemsMap),
       const DeepCollectionEquality().hash(_missingItemIds),
       details);
@@ -617,7 +602,7 @@ abstract mixin class $ReadListSuccessCopyWith<T extends Model, $Res>
       _$ReadListSuccessCopyWithImpl;
   @useResult
   $Res call(
-      {List<T> items,
+      {Iterable<T> items,
       Map<String, T> itemsMap,
       Set<String> missingItemIds,
       RequestDetails<T> details});
@@ -642,9 +627,9 @@ class _$ReadListSuccessCopyWithImpl<T extends Model, $Res>
   }) {
     return _then(ReadListSuccess<T>(
       items: null == items
-          ? _self._items
+          ? _self.items
           : items // ignore: cast_nullable_to_non_nullable
-              as List<T>,
+              as Iterable<T>,
       itemsMap: null == itemsMap
           ? _self._itemsMap
           : itemsMap // ignore: cast_nullable_to_non_nullable
