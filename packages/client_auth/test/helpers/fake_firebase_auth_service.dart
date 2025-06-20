@@ -24,6 +24,12 @@ class FakeFirebaseAuth extends StreamAuthService
 
   AuthUser? _lastEmittedUser;
 
+  @override
+  Future<AuthUser?> initialize() {
+    _emitUser();
+    return Future<AuthUser?>.value(_lastEmittedUser);
+  }
+
   // Centralized place to emit users to the stream.
   void _emitUser() {
     _lastEmittedUser = _user;
@@ -99,12 +105,6 @@ class FakeFirebaseAuth extends StreamAuthService
 
   @override
   void dispose() {}
-
-  @override
-  Future<AuthUser?> initialize() {
-    _emitUser();
-    return Future<AuthUser?>.value(_user);
-  }
 
   @override
   Future<AuthResponse> syncAnonymousAccount(AuthSuccess authSuccess) {

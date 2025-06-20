@@ -28,13 +28,8 @@ abstract class AuthService {
 }
 
 /// Variant of [AuthService] with realtime updates.
-abstract class StreamAuthService extends AuthService {
-  /// Handles any necessary setup.
-  Future<AuthUser?> initialize();
-
-  /// Emits a nullable [AuthUser] every time the state of the session changes.
-  // Stream<AuthUser?> get userUpdates;
-
+abstract class StreamAuthService extends AuthService
+    with ReadinessMixin<AuthUser?> {
   /// Registers a callback with the stream of user updates.
   StreamSubscription<AuthUser?> listen(void Function(AuthUser?) cb);
 }
@@ -53,7 +48,10 @@ mixin SocialAuthService {
 
 /// Indicates that an [AuthService] supports anonymous user sessions.
 mixin AnonymousAuthService {
-  /// Produces a new anonymous account.
+  /// Creates a new account without an identifying information, but suitable to
+  /// read and write data. The user may or may not one day add identifying
+  /// information to make this account recoverable or able to signed into from
+  /// multiple devices.
   Future<AuthResponse> createAnonymousAccount();
 
   /// Allows a secondary [AuthService] to create a matching account for a new

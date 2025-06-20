@@ -20,6 +20,9 @@ abstract class Source<T extends Model> extends DataContract<T> {
 abstract class LocalSource<T extends Model> extends Source<T> {
   /// Clears all local data.
   Future<void> clear();
+
+  @override
+  SourceType sourceType = SourceType.local;
 }
 
 /// Classifier for a given [Source] instance's primary data location.

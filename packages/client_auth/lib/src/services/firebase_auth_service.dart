@@ -1,13 +1,11 @@
 import 'dart:async';
 
 import 'package:client_auth/client_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
-import 'package:shared_data_firebase/shared_data_firebase.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:uuid/uuid.dart';
 
@@ -44,7 +42,7 @@ class FirebaseAuthService extends StreamAuthService
         _googleSignIn = googleSignIn ?? GoogleSignIn.standard(),
         _auth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
         _userUpdatesController = StreamController<AuthUser?>(),
-        _authUserRepo = authUserRepo ?? _AuthUserRepo(),
+        _authUserRepo = authUserRepo ?? GetIt.I<Repository<AuthUser>>(),
         _privateIdBuilder = privateIdBuilder ?? _uuidV7;
 
   final firebase_auth.FirebaseAuth _auth;
@@ -61,9 +59,6 @@ class FirebaseAuthService extends StreamAuthService
 
   AuthUser? _lastUserEmitted;
 
-  final _initializationCompleter = Completer<AuthUser?>();
-  bool get _initialized => _initializationCompleter.isCompleted;
-
   /// Set to true before calling a Firebase auth function and set back to false
   /// after completing _syncFirebaseUserWithDatabase.
   ///
@@ -77,26 +72,26 @@ class FirebaseAuthService extends StreamAuthService
     _firebaseStreamSubscription ??= _auth.authStateChanges().listen(
       (FirebaseUser? firebaseUser) async {
         if (_isAuthorizing) return;
-        _log.fine('New FirebaseUser from Firebase: $firebaseUser');
+        _log.finest('New FirebaseUser from Firebase: $firebaseUser');
         final AuthUser? newUser = firebaseUser != null
             ? await _syncFirebaseUserWithDatabase(firebaseUser)
             : null;
         if (firebaseUser != null || newUser != null) {
-          _log.fine('New AuthUser from database: $newUser');
+          _log.finest('New AuthUser from database: $newUser');
         }
         _emitUser(newUser);
       },
     );
-    return _initializationCompleter.future;
+    return ready;
   }
 
   void _emitUser(AuthUser? user) {
-    if (!_initialized || user?.id != _lastUserEmitted?.id) {
+    if (isNotResolved || user?.id != _lastUserEmitted?.id) {
       _lastUserEmitted = user;
       _userUpdatesController.sink.add(user);
     }
-    if (!_initialized) {
-      _initializationCompleter.complete(user);
+    if (isNotResolved) {
+      markReady(user);
     }
   }
 
@@ -540,24 +535,6 @@ Set<AuthProvider> loginTypesFromStrings(List<String> methods) {
       .where((AuthProvider? authProvider) => authProvider != null)
       .cast<AuthProvider>()
       .toSet();
-}
-
-class _AuthUserRepo extends Repository<AuthUser> {
-  _AuthUserRepo()
-      : super(
-          SourceList<AuthUser>(
-            bindings: GetIt.I<Bindings<AuthUser>>(),
-            sources: <Source<AuthUser>>[
-              LocalMemorySource<AuthUser>(
-                bindings: GetIt.I<Bindings<AuthUser>>(),
-              ),
-              FirestoreSource<AuthUser>(
-                db: GetIt.I<FirebaseFirestore>(),
-                bindings: GetIt.I<Bindings<AuthUser>>(),
-              ),
-            ],
-          ),
-        );
 }
 
 /// Adds the boolean [isNew] getter to [FirebaseUser].

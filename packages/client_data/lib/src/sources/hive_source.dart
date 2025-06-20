@@ -12,7 +12,7 @@ abstract class HiveInitializer {
 
 /// {@template HiveSource}
 /// {@endtemplate}
-class HiveSource<T extends Model> extends Source<T> {
+class HiveSource<T extends Model> extends LocalSource<T> {
   /// {@macro HiveSource}
   HiveSource({required this.bindings});
 
@@ -134,5 +134,5 @@ class HiveSource<T extends Model> extends Source<T> {
   }
 
   @override
-  SourceType sourceType = SourceType.local;
+  Future<void> clear() => _box.clear();
 }

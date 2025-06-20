@@ -62,10 +62,12 @@ void main() {
     test(
       'fail to login a bad password and do not register',
       () async {
-        authRepo = AuthRepository(FakeFirebaseAuth()
-          ..prepareLoginError(
-            const AuthFailure(AuthenticationError.invalidPassword()),
-          ));
+        authRepo = AuthRepository(
+          FakeFirebaseAuth()
+            ..prepareLoginError(
+              const AuthFailure(AuthenticationError.invalidPassword()),
+            ),
+        );
         await authRepo.initialize();
         final AuthResponse result = await authRepo.logInWithEmailAndPassword(
           email: user.email!,
@@ -78,7 +80,6 @@ void main() {
     );
 
     test('successfully logs in a user on EM/PW login', () async {
-      // final fbUser = buildFbUser(accountAge: const Duration(seconds: 10));
       restAuth = FakeRestAuth(
         loginResults: Queue.from(<AuthResponse>[AuthSuccess(user)]),
       );
@@ -90,6 +91,7 @@ void main() {
         email: user.email!,
         password: pw,
       );
+      expect(authRepo.lastUser, isNotNull);
       expect(result, isAuthSuccess);
       expect(restAuth.loginResults.isEmpty, true);
     });

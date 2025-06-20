@@ -16,6 +16,6 @@
   ],
   "useGitignore": true,
   "words": [
-    "shared_data_firebase"
+    "client_data_firebase"
   ]
 }

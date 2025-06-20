@@ -158,7 +158,7 @@ void main() {
         authRepository.lastUser = MockAuthUser();
         await authRepository.logOut();
         expect(
-          (authRepository.primaryAuth as FakeFirebaseAuth).getStoredUser(),
+          firebaseAuthService.getStoredUser(),
           isNull,
         );
       });

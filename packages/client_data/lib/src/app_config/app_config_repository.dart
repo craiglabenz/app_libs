@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:client_data/client_data.dart';
+import 'package:meta/meta.dart';
 
 /// {@template AppConfigRepository}
 /// Repository which manages determining whether the application
@@ -32,6 +33,13 @@ class AppConfigRepository {
 
   /// Pass-thru stream from underlying `_service.appConfig()`
   final StreamController<ForceUpgrade> _upgradeController;
+
+  @visibleForTesting
+  void publishRequiredMaintenance() => _maintenanceController.add(true);
+
+  @visibleForTesting
+  void publishUpgradeStatus(ForceUpgrade forceUpgrade) =>
+      _upgradeController.add(forceUpgrade);
 
   void _onAppConfig(Map<String, dynamic> configData) {
     try {

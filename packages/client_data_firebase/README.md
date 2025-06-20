@@ -8,12 +8,12 @@ A Very Good Project created by Very Good CLI.
 
 ## Installation 💻
 
-**❗ In order to start using Shared Data Firebase you must have the [Flutter SDK][flutter_install_link] installed on your machine.**
+**❗ In order to start using Client Data Firebase you must have the [Flutter SDK][flutter_install_link] installed on your machine.**
 
 Install via `flutter pub add`:
 
 ```sh
-dart pub add shared_data_firebase
+dart pub add client_data_firebase
 ```
 
 ---
