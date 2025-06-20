@@ -39,7 +39,7 @@ mixin ReadinessMixin<T> {
   bool get isNotResolved => status == Readiness.loading;
 
   // That which flips the readiness bit.
-  final _readinessCompleter = Completer<T>();
+  var _readinessCompleter = Completer<T>();
 
   /// Resolves when readiness is achieved, or immediately if it has already been
   /// achieved.
@@ -48,6 +48,16 @@ mixin ReadinessMixin<T> {
   /// Wires up all necessary resources for this object to be ready for general
   /// use.
   Future<T> initialize();
+
+  /// Removes any established readiness, if for example a dependency of this
+  /// object has also lost readiness.
+  ///
+  /// A common use case is anything that marks itself ready once a user session
+  /// is established; after that user logs out.
+  void resetReadiness() {
+    _readinessCompleter = Completer<T>();
+    status = Readiness.loading;
+  }
 
   /// Marks this object as ready.
   void markReady(T obj) {
