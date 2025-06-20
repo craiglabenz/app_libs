@@ -1,4 +1,5 @@
 import 'package:client_data/client_data.dart';
+import 'package:platform/platform.dart';
 
 /// Indicator for the nature of the runtime - for real, for development, or
 /// tests.
@@ -13,7 +14,7 @@ enum Environment {
   dev,
 
   /// Indicates we are running in a `flutter test` simulation.
-  test
+  test,
 }
 
 /// Container for all the answers to that famous question from Lost:
@@ -33,24 +34,26 @@ class AppDetails {
     required String apiBaseUrl,
     required Environment env,
     required String version,
-  }) =>
-      AppDetails(
-        apiBaseUrl: apiBaseUrl,
-        appVersion: getBuildVersion(version),
-        buildNumber: getBuildNumber(version),
-        environment: env,
-        os: getCurrentPlatform(),
-        osVersion: currentPlatformVersion(),
-      );
+  }) => AppDetails(
+    apiBaseUrl: apiBaseUrl,
+    appVersion: getBuildVersion(version),
+    buildNumber: getBuildNumber(version),
+    environment: env,
+    os: getCurrentPlatform(),
+    osVersion: currentPlatformVersion(),
+  );
 
-  factory AppDetails.fake() => const AppDetails(
-        apiBaseUrl: 'https://fake.com',
-        appVersion: 'fake',
-        environment: Environment.test,
-        buildNumber: 1,
-        os: Platform.iOS,
-        osVersion: '1',
-      );
+  factory AppDetails.fake({
+    String? os,
+    int? buildNumber,
+  }) => AppDetails(
+    apiBaseUrl: 'https://fake.com',
+    appVersion: 'fake',
+    environment: Environment.test,
+    buildNumber: buildNumber ?? 1,
+    os: os ?? Platform.iOS,
+    osVersion: '1',
+  );
 
   /// Scheme, host, and TLD of the main Django REST API
   final String apiBaseUrl;
@@ -65,8 +68,32 @@ class AppDetails {
   final int buildNumber;
 
   /// Runtime OS
-  final Platform os;
+  final String os;
 
   /// Version of the OS.
   final String osVersion;
+
+  /// Returns base headers for network requests.
+  Map<String, String> getDefaultHeaders() => <String, String>{
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'App-Name': 'Hexonacci',
+    'App-Version': appVersion,
+    'App-Build': buildNumber.toString(),
+
+    /// iOS/Android/web
+    'App-OS': os,
+
+    /// OS build number
+    'App-OS-Version': osVersion,
+
+    /// Dev/Prod/etc
+    'App-Environment': environment.toString(),
+  };
+
+  /// True if the app is currently running on an iPhone.
+  bool get isIos => os == Platform.iOS;
+
+  /// True if the app is currently running on an Android device.
+  bool get isAndroid => os == Platform.android;
 }

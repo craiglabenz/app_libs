@@ -1,25 +1,27 @@
 import 'dart:async';
-
 import 'package:client_data/client_data.dart';
 
+/// {@template AppConfigRepository}
 /// Repository which manages determining whether the application
 /// is in maintenance mode or needs to be force upgraded.
 ///
 /// [AppConfigRepository] listens to a stream of Maps from its supplied
-/// [BaseLiveAppConfigService] and converts each yielded entry into updates for
+/// [BaseAppConfigService] and converts each yielded entry into updates for
 /// the app.
+/// {@endtemplate}
 class AppConfigRepository {
+  /// {@macro AppConfigInterface}
   AppConfigRepository({
-    required BaseLiveAppConfigService service,
+    required BaseAppConfigService service,
     required AppDetails details,
-  })  : _appDetails = details,
-        _service = service,
-        _maintenanceController = StreamController<bool>(),
-        _upgradeController = StreamController<ForceUpgrade>() {
+  }) : _appDetails = details,
+       _service = service,
+       _maintenanceController = StreamController<bool>(),
+       _upgradeController = StreamController<ForceUpgrade>() {
     _service.appConfig().listen(_onAppConfig);
   }
 
-  final BaseLiveAppConfigService _service;
+  final BaseAppConfigService _service;
   final AppDetails _appDetails;
 
   bool? _lastDownForMaintenance;
@@ -39,8 +41,10 @@ class AppConfigRepository {
         _maintenanceController.add(_lastDownForMaintenance!);
       }
 
-      final upgrade =
-          ForceUpgrade.fromAppConfig(config, appDetails: _appDetails);
+      final upgrade = ForceUpgrade.fromAppConfig(
+        config,
+        appDetails: _appDetails,
+      );
       if (upgrade != _lastForceUpgrade) {
         _lastForceUpgrade = upgrade;
         _upgradeController.add(_lastForceUpgrade!);
@@ -58,8 +62,8 @@ class AppConfigRepository {
   ///
   /// By default, [isDownForMaintenance] will emit `false` if unable to connect
   /// to the backend.
-  Stream<bool> isDownForMaintenance() =>
-      _maintenanceController.stream.transform<bool>(
+  Stream<bool> get isDownForMaintenance => _maintenanceController.stream
+      .transform<bool>(
         StreamTransformer.fromHandlers(
           handleError: (obj, stackTrace, sink) {
             // ignore: avoid_print
@@ -67,12 +71,16 @@ class AppConfigRepository {
             sink.add(false);
           },
         ),
-      ).asBroadcastStream();
+      )
+      .asBroadcastStream();
 
   /// Returns a [Stream<ForceUpgrade>] which indicates whether the current
   /// application requires a force upgrade.
-  Stream<ForceUpgrade> isForceUpgradeRequired() =>
-      _upgradeController.stream.transform<ForceUpgrade>(
+  ///
+  /// By default, [isForceUpgradeRequired] will emit `false` if unable to connect
+  /// to the backend.
+  Stream<ForceUpgrade> get isForceUpgradeRequired => _upgradeController.stream
+      .transform<ForceUpgrade>(
         StreamTransformer.fromHandlers(
           handleError: (obj, stacktrace, sink) {
             // ignore: avoid_print
@@ -80,5 +88,6 @@ class AppConfigRepository {
             sink.add(const ForceUpgrade(isUpgradeRequired: false));
           },
         ),
-      ).asBroadcastStream();
+      )
+      .asBroadcastStream();
 }

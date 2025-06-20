@@ -9,3 +9,6 @@ analyzer:
     todo: ignore
   exclude:
     - "**.g.dart"
+
+formatter:
+  trailing_commas: preserve

@@ -7,7 +7,7 @@ part 'app_config.g.dart';
 /// information needed to determine whether or not the application is
 /// down for maintenance or requires a force upgrade.
 @Freezed()
-class AppConfig with _$AppConfig {
+abstract class AppConfig with _$AppConfig {
   const factory AppConfig({
     /// The upgrade URL for Android.
     @Default('') String androidUpgradeUrl,

@@ -1,5 +1,6 @@
 import 'package:client_data/client_data.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:platform/platform.dart';
 
 void main() {
   group('ForceUpgrade', () {
@@ -10,20 +11,26 @@ void main() {
       );
       expect(
         const ForceUpgrade(isUpgradeRequired: true),
+        const ForceUpgrade(isUpgradeRequired: true),
+      );
+      expect(
+        const ForceUpgrade(isUpgradeRequired: true),
         isNot(const ForceUpgrade(isUpgradeRequired: false)),
       );
     });
 
-    group('ForceUpgradeX', () {
-      test('is correct for Platform.android', () {
-        expect(Platform.android.isAndroid, isTrue);
-        expect(Platform.android.isIos, isFalse);
-      });
+    test('builds from AppConfig', () {
+      ForceUpgrade.fromAppConfig(
+        const AppConfig(
+          androidUpgradeUrl: 'android',
+          minAndroidBuildNumber: 11,
+        ),
 
-      test('is correct for Platform.iOS', () {
-        expect(Platform.iOS.isAndroid, isFalse);
-        expect(Platform.iOS.isIos, isTrue);
-      });
+        appDetails: AppDetails.fake(
+          os: Platform.android,
+          buildNumber: 10,
+        ),
+      );
     });
   });
 }

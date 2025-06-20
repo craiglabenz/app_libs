@@ -1,5 +1,5 @@
+export 'app_config_repository.dart';
+export 'app_config_service.dart';
 export 'app_details.dart';
 export 'helpers.dart';
-export 'live_app_config.dart';
 export 'models/models.dart';
-export 'repository.dart';

@@ -2,25 +2,6 @@ import 'package:client_data/client_data.dart';
 import 'package:equatable/equatable.dart';
 import 'package:get_it/get_it.dart';
 
-/// Platform which is used to determine whether an upgrade is required.
-enum Platform {
-  /// Google's OS for mobile and tablet.
-  android,
-
-  /// Apple's OS for iPhone and iPad.
-  iOS,
-}
-
-/// Extension on [Platform] which exposes getters
-/// to interpret the current [Platform].
-extension PlatformX on Platform {
-  /// Whether the current platform is [Platform.android].
-  bool get isAndroid => this == Platform.android;
-
-  /// Whether the current platform is [Platform.iOS].
-  bool get isIos => this == Platform.iOS;
-}
-
 /// {@template force_upgrade}
 /// Model used to encapsulate configuration information
 /// regarding force upgrade.
@@ -31,10 +12,7 @@ extension PlatformX on Platform {
 /// {@endtemplate}
 class ForceUpgrade extends Equatable {
   /// {@macro force_upgrade}
-  const ForceUpgrade({
-    required this.isUpgradeRequired,
-    this.upgradeUrl,
-  });
+  const ForceUpgrade({required this.isUpgradeRequired, this.upgradeUrl});
 
   factory ForceUpgrade.yes(String upgradeUrl) =>
       ForceUpgrade(isUpgradeRequired: true, upgradeUrl: upgradeUrl);
@@ -48,12 +26,17 @@ class ForceUpgrade extends Equatable {
     int minBuildNumber;
     String upgradeUrl;
     appDetails ??= GetIt.I<AppDetails>();
-    if (appDetails.os.isAndroid) {
+    if (appDetails.isAndroid) {
       minBuildNumber = config.minAndroidBuildNumber;
       upgradeUrl = config.androidUpgradeUrl;
-    } else {
+    } else if (appDetails.isIos) {
       minBuildNumber = config.minIosBuildNumber;
       upgradeUrl = config.iosUpgradeUrl;
+    } else {
+      throw Exception(
+        'Could not determine platform for $appDetails in '
+        'ForceUpgrade.fromAppConfig',
+      );
     }
     return ForceUpgrade(
       isUpgradeRequired: appDetails.buildNumber < minBuildNumber,

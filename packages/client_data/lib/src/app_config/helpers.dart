@@ -1,10 +1,7 @@
-import 'package:client_data/client_data.dart';
 import 'package:flutter/widgets.dart';
-import 'package:platform/platform.dart' as platform;
+import 'package:platform/platform.dart';
 
-Platform getCurrentPlatform([
-  platform.Platform localPlatform = const platform.LocalPlatform(),
-]) {
+String getCurrentPlatform([Platform localPlatform = const LocalPlatform()]) {
   if (localPlatform.isAndroid) {
     return Platform.android;
   }
@@ -17,8 +14,7 @@ Platform getCurrentPlatform([
   throw UnsupportedError('unsupported platform exception');
 }
 
-String currentPlatformVersion() =>
-    const platform.LocalPlatform().operatingSystemVersion;
+String currentPlatformVersion() => const LocalPlatform().operatingSystemVersion;
 
 String getLanguageCode(BuildContext context) =>
     Localizations.localeOf(context).languageCode;

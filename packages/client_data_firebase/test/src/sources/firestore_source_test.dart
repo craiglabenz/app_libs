@@ -1,12 +1,12 @@
 // Subtyping for tests.
 // ignore_for_file: subtype_of_sealed_class
 
+import 'package:client_data_firebase/client_data_firebase.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_data/shared_data.dart';
-import 'package:shared_data_firebase/shared_data_firebase.dart';
 
 class FirebaseFirestoreMock extends Mock implements FirebaseFirestore {}
 

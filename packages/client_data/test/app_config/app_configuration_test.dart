@@ -1,11 +1,11 @@
 import 'package:client_data/client_data.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:platform/platform.dart' as platform;
+import 'package:platform/platform.dart';
 
-class MockPlatform extends Mock implements platform.Platform {}
+class MockPlatform extends Mock implements Platform {}
 
-platform.Platform iOSPlatform() {
+Platform iOSPlatform() {
   final platform = MockPlatform();
   when(() => platform.isAndroid).thenReturn(false);
   when(() => platform.isIOS).thenReturn(true);
@@ -13,7 +13,7 @@ platform.Platform iOSPlatform() {
   return platform;
 }
 
-platform.Platform androidPlatform() {
+Platform androidPlatform() {
   final platform = MockPlatform();
   when(() => platform.isAndroid).thenReturn(true);
   when(() => platform.isIOS).thenReturn(false);
@@ -21,7 +21,7 @@ platform.Platform androidPlatform() {
   return platform;
 }
 
-platform.Platform unknownPlatform() {
+Platform unknownPlatform() {
   final platform = MockPlatform();
   when(() => platform.isAndroid).thenReturn(false);
   when(() => platform.isIOS).thenReturn(false);

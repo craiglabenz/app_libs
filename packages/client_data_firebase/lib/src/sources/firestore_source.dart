@@ -1,7 +1,7 @@
+import 'package:client_data_firebase/client_data_firebase.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' hide Source;
 import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
-import 'package:shared_data_firebase/shared_data_firebase.dart';
 
 final _log = Logger('FirestoreSource');
 
