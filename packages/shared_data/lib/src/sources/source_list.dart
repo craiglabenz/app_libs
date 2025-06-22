@@ -29,15 +29,6 @@ class SourceList<T extends Model> extends DataContract<T> {
   /// requested data.
   final List<Source<T>> sources;
 
-  /// Calls clear on all [LocalSource]s.
-  Future<void> clear() async {
-    for (final s in sources) {
-      if (s is LocalSource) {
-        await (s as LocalSource).clear();
-      }
-    }
-  }
-
   /// Returns all sources that match a given [RequestType]. Unmatches sources
   /// are also returned with that indicator, so they can still be stored in a
   /// list of empty sources for the purposes of caching.
@@ -76,6 +67,7 @@ class SourceList<T extends Model> extends DataContract<T> {
 
   @override
   Future<ReadResult<T>> getById(String id, RequestDetails<T> details) async {
+    details.assertEmpty('SourceList<$T>.getById');
     final emptySources = <Source<T>>[];
     for (final matchedSource in getSources(requestType: details.requestType)) {
       if (matchedSource.unmatched) {
@@ -86,18 +78,14 @@ class SourceList<T extends Model> extends DataContract<T> {
       final sourceResult = await source.getById(id, details);
 
       switch (sourceResult) {
-        case ReadFailure():
-          {
+        case ReadSuccess(:final item):
+          if (item != null) {
+            await _cacheItem(item, emptySources, details);
             return sourceResult;
           }
-        case ReadSuccess(:final item):
-          {
-            if (item != null) {
-              await _cacheItem(item, emptySources, details);
-              return sourceResult;
-            }
-            emptySources.add(source);
-          }
+          emptySources.add(source);
+        case ReadFailure<T>():
+          return sourceResult;
       }
     }
     return ReadSuccess<T>(null, details: details);
@@ -108,7 +96,7 @@ class SourceList<T extends Model> extends DataContract<T> {
     Set<String> ids,
     RequestDetails<T> details,
   ) async {
-    details.assertEmpty('getByIds');
+    details.assertEmpty('SourceList<$T>.getByIds');
     final items = <String, T>{};
     final pastSources = <Source>[];
     final backfillMap = <Source, Set<T>>{};
@@ -133,36 +121,39 @@ class SourceList<T extends Model> extends DataContract<T> {
 
       switch (sourceResult) {
         case ReadListFailure():
-          {
-            return sourceResult;
-          }
+          return sourceResult;
         case ReadListSuccess():
-          {
-            items.addAll(sourceResult.itemsMap);
-            // Mark which Source needs which items
-            for (final pastSource in pastSources) {
-              backfillMap.putIfAbsent(pastSource, () => <T>{});
-              backfillMap[pastSource]!.addAll(sourceResult.items);
-            }
-
-            // Remove any now-known Ids from `missingIds`
-            missingIds =
-                missingIds.where((id) => !items.containsKey(id)).toSet();
-
-            // Note that we've already processed this Source, so if future
-            // Sources produce any new items, we can backfill them to here.
-            pastSources.add(matchedSource.source);
+          items.addAll(sourceResult.itemsMap);
+          // Mark which Source needs which items
+          for (final pastSource in pastSources) {
+            backfillMap.putIfAbsent(pastSource, () => <T>{});
+            backfillMap[pastSource]!.addAll(sourceResult.items);
           }
+
+          // Remove any now-known Ids from `missingIds`
+          missingIds = missingIds.where((id) => !items.containsKey(id)).toSet();
+
+          // Note that we've already processed this Source, so if future
+          // Sources produce any new items, we can backfill them to here.
+          pastSources.add(matchedSource.source);
       }
     }
 
     // Persist any items we found to local stores
     for (final pastSource in backfillMap.keys) {
+      if (pastSource is! LocalSource) continue;
+
       if (backfillMap[pastSource]!.isNotEmpty) {
-        await pastSource.setItems(
-          backfillMap[pastSource]!.toList(),
-          RequestDetails<T>(requestType: details.requestType),
-        );
+        for (final item in backfillMap[pastSource]!) {
+          await pastSource.setItem(item, details);
+        }
+      }
+
+      if (!details.isLocal && missingIds.isNotEmpty) {
+        // Missing Ids at this point would mean that we tried to load data from
+        // the server and still failed to pull in certain Ids. That means they
+        // don't exist anymore, and thus we can delete them.
+        pastSource.deleteIds(missingIds);
       }
     }
 
@@ -181,20 +172,26 @@ class SourceList<T extends Model> extends DataContract<T> {
       final sourceResult = await matchedSource.source.getItems(details);
 
       switch (sourceResult) {
-        case ReadListFailure():
-          {
-            return sourceResult;
+        case ReadListSuccess<T>():
+          final items = sourceResult.items;
+          if (items.isNotEmpty) {
+            await _cacheItems(items, emptySources, details);
+            return ReadListResult<T>.fromList(items, details, {});
+          } else {
+            emptySources.add(matchedSource.source);
           }
-        case ReadListSuccess():
-          {
-            final items = sourceResult.items;
-            if (items.isNotEmpty) {
-              await _cacheItems(items, emptySources, details);
-              return ReadListResult<T>.fromList(items, details, {});
-            } else {
-              emptySources.add(matchedSource.source);
-            }
-          }
+        case ReadListFailure<T>():
+          return sourceResult;
+      }
+    }
+
+    // Lastly, help any local sources track their known empty sets.
+    if (details.requestType == RequestType.global ||
+        details.requestType == RequestType.refresh) {
+      for (final source in emptySources) {
+        if (source is LocalSource<T>) {
+          await source.setItems(<T>[], details);
+        }
       }
     }
     return ReadListResult<T>.fromList([], details, {});
@@ -213,22 +210,18 @@ class SourceList<T extends Model> extends DataContract<T> {
       final result = await ms.source.setItem(itemDup, details);
 
       switch (result) {
-        case WriteFailure():
-          {
-            return result;
-          }
-        case WriteSuccess():
-          {
-            if (item.id == null) {
-              if (result.item.id == null) {
-                return WriteFailure<T>(
-                  FailureReason.serverError,
-                  'Failed to generate Id for new $T',
-                );
-              }
-              itemDup = result.item;
+        case WriteSuccess<T>():
+          if (item.id == null) {
+            if (result.item.id == null) {
+              return WriteFailure<T>(
+                FailureReason.serverError,
+                'Failed to generate Id for new $T',
+              );
             }
+            itemDup = result.item;
           }
+        case WriteFailure<T>():
+          return result;
       }
     }
     return WriteSuccess<T>(itemDup, details: details);
@@ -251,6 +244,23 @@ class SourceList<T extends Model> extends DataContract<T> {
       }
     }
     return WriteListSuccess<T>(items, details: details);
+  }
+
+  /// Calls clear on all [LocalSource]s.
+  Future<void> clear() async {
+    for (final s in sources) {
+      if (s is LocalSource) {
+        await (s as LocalSource).clear();
+      }
+    }
+  }
+
+  /// Clears all local data cached against this request.
+  Future<void> clearForRequest(RequestDetails<T> details) async {
+    for (final source in sources) {
+      if (source is! LocalSource) continue;
+      await (source as LocalSource).clearForRequest(details);
+    }
   }
 }
 

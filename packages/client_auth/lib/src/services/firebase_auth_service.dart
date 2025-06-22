@@ -67,7 +67,7 @@ class FirebaseAuthService extends StreamAuthService
   bool _isAuthorizing = false;
 
   @override
-  Future<AuthUser?> initialize() async {
+  Future<AuthUser?> performInitialization() async {
     _log.finest('Initializing FirebaseAuthService');
     _firebaseStreamSubscription ??= _auth.authStateChanges().listen(
       (FirebaseUser? firebaseUser) async {

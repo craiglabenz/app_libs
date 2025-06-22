@@ -1,6 +1,7 @@
 export 'api_source.dart';
 export 'base_source.dart';
 export 'local_memory_source.dart';
+export 'local_source.dart';
 export 'read_filters.dart';
 export 'request_details.dart';
 export 'results.dart';

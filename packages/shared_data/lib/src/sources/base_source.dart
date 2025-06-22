@@ -1,4 +1,3 @@
-// import 'package:dartz/dartz.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// {@template Source}
@@ -14,15 +13,6 @@ abstract class Source<T extends Model> extends DataContract<T> {
 
   @override
   String toString() => '$runtimeType()';
-}
-
-/// Flavor of [Source] which is entirely on-device.
-abstract class LocalSource<T extends Model> extends Source<T> {
-  /// Clears all local data.
-  Future<void> clear();
-
-  @override
-  SourceType sourceType = SourceType.local;
 }
 
 /// Classifier for a given [Source] instance's primary data location.

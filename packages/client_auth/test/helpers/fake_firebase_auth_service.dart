@@ -25,7 +25,7 @@ class FakeFirebaseAuth extends StreamAuthService
   AuthUser? _lastEmittedUser;
 
   @override
-  Future<AuthUser?> initialize() {
+  Future<AuthUser?> performInitialization() {
     _emitUser();
     return Future<AuthUser?>.value(_lastEmittedUser);
   }
@@ -35,6 +35,7 @@ class FakeFirebaseAuth extends StreamAuthService
     _lastEmittedUser = _user;
     _user = null;
     _controller.sink.add(_lastEmittedUser);
+    markReady(_lastEmittedUser);
   }
 
   @override

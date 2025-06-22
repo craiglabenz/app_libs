@@ -58,6 +58,10 @@ class Repository<T extends Model> extends DataContract<T> {
   /// Clears all local data. Does not delete anything from any remote sources.
   Future<void> clear() => sourceList.clear();
 
+  /// Clears all local data cached against this request.
+  Future<void> clearForRequest(RequestDetails<T> details) =>
+      sourceList.clearForRequest(details);
+
   /// Releases any open resources like stream subscriptions.
   @mustCallSuper
   void close() {}

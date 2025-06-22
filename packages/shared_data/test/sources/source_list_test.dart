@@ -34,6 +34,10 @@ final refreshDetails = RequestDetails<TestModel>(
 final abcDetails = RequestDetails<TestModel>(
   filters: const [MsgStartsWithFilter('abc')],
 );
+final refreshAbcDetails = RequestDetails<TestModel>(
+  filters: const [MsgStartsWithFilter('abc')],
+  requestType: RequestType.refresh,
+);
 final localAbcDetails = RequestDetails<TestModel>(
   filters: const [MsgStartsWithFilter('abc')],
   requestType: RequestType.local,
@@ -98,7 +102,7 @@ final RequestDelegate delegate404x2 = getRequestDelegate(
   [errorBody, errorBody],
   statusCode: HttpStatus.notFound,
 );
-final RequestDelegate emptyDelegate = getRequestDelegate([emptyResponseBody]);
+RequestDelegate getEmptyDelegate() => getRequestDelegate([emptyResponseBody]);
 
 final RequestDelegate creatableDelegate =
     getRequestDelegate([listResponseBody], canCreate: true);
@@ -128,31 +132,34 @@ void main() {
     test('get and cache items', () async {
       final sl = getSourceList(delegate200);
       final readResult = await sl.getById(_id, details);
-      final obj = readResult.getOrRaise().item;
-      expect(readResult, isSuccess);
-      expect(
-        readResult.getOrRaise().item,
-        equals(
-          TestModel.fromJson(
-            jsonDecode(detailResponseBody) as Json,
-          ),
-        ),
+      final loadedObj = readResult.getOrRaise().item;
+      expect(loadedObj, equals(obj));
+      // Object will be asserted to exist, but it should not be cached.
+      // Only [setItems] can power [getItems].
+      await hasNotCached(
+        sl,
+        [loadedObj!],
+        [details, localDetails],
       );
-      expect((sl.sources[0] as LocalMemorySource).itemIds, contains('uuid'));
-      expect((sl.sources[1] as LocalMemorySource).itemIds, contains('uuid'));
-      expect((await sl.getById(_id, localDetails)).getOrRaise().item, obj);
     });
 
-    test('return Left when the item is not found', () async {
-      final sl = getSourceList(delegate404);
-      final readResult = await sl.getById(_id, details);
-      expect(readResult, isSuccess);
-      expect((sl.sources[0] as LocalMemorySource).itemIds, isEmpty);
-      expect((sl.sources[1] as LocalMemorySource).itemIds, isEmpty);
-      expect(readResult.getOrRaise().item, isNull);
-    });
+    test(
+      'return empty result when item is not found',
+      () async {
+        final sl = getSourceList(delegate404);
+        final readResult = await sl.getById(_id, details);
+        expect(readResult.getOrRaise().item, isNull);
+        await hasNotCached(
+          sl,
+          [obj, obj2],
+          [details, localDetails],
+          shouldExistAtAll: false,
+        );
+      },
+      timeout: const Timeout(Duration(seconds: 1)),
+    );
 
-    test('honor request types in getById', () async {
+    test('honor request types', () async {
       final sl = getSourceList(delegate404x2);
       await (sl.sources[0] as LocalMemorySource<TestModel>)
           .setItem(obj, localDetails);
@@ -164,6 +171,8 @@ void main() {
 
       final localReadResult = await sl.getById(obj.id!, localDetails);
       expect(localReadResult.getOrRaise().item, obj);
+      final localReadResult2 = await sl.getById(obj2.id!, localDetails);
+      expect(localReadResult2.getOrRaise().item, isNull);
 
       final remoteReadResult = await sl.getById(obj.id!, refreshDetails);
       expect(remoteReadResult.getOrRaise().item, isNull);
@@ -174,45 +183,28 @@ void main() {
     test('get and cache items', () async {
       final sl = getSourceList(getRequestDelegate([twoElementResponseBody]));
       final readResult = await sl.getByIds({_id, _id2}, details);
-      expect(readResult, isSuccess);
-      expect(
-        readResult.getOrRaise().items,
-        equals([
-          TestModel.fromJson(
-            jsonDecode(detailResponseBody) as Json,
-          ),
-          TestModel.fromJson(
-            jsonDecode(detailResponseBody2) as Json,
-          ),
-        ]),
-      );
-      expect(
-        (sl.sources[0] as LocalMemorySource).itemIds,
-        containsAll([_id, _id2]),
-      );
-      expect(
-        (sl.sources[1] as LocalMemorySource).itemIds,
-        containsAll([_id, _id2]),
-      );
+      expect(readResult.getOrRaise().items, containsAll([obj, obj2]));
+      await hasNotCached(sl, [obj, obj2], [details, localDetails]);
     });
 
-    test('get and cache items on partial returns', () async {
-      final sl = getSourceList(getRequestDelegate([listResponseBody]));
-      final readResult = await sl.getByIds({_id, _id2}, details);
-      expect(readResult, isSuccess);
-      expect(
-        readResult.getOrRaise().items,
-        equals([
-          TestModel.fromJson(
-            jsonDecode(detailResponseBody) as Json,
-          ),
-        ]),
-      );
-      expect((sl.sources[0] as LocalMemorySource).itemIds, contains(_id));
-      expect((sl.sources[0] as LocalMemorySource).items[_id2], isNull);
-      expect((sl.sources[1] as LocalMemorySource).itemIds, contains(_id));
-      expect((sl.sources[1] as LocalMemorySource).items[_id2], isNull);
-    });
+    test(
+      'get and cache items on partial returns',
+      () async {
+        final sl = getSourceList(getRequestDelegate([listResponseBody]));
+        final readResult = await sl.getByIds({_id, _id2}, details);
+        final loadedItems = readResult.getOrRaise().items;
+        expect(loadedItems, contains(obj));
+        expect(loadedItems, isNot(contains(obj2)));
+        await hasNotCached(sl, [obj], [details, localDetails]);
+        await hasNotCached(
+          sl,
+          [obj2],
+          [details, localDetails],
+          shouldExistAtAll: false,
+        );
+      },
+      timeout: const Timeout(Duration(seconds: 1)),
+    );
 
     test('complete partially filled local hits', () async {
       final sl = getSourceList(twoItemdelegate200);
@@ -223,16 +215,26 @@ void main() {
 
       final localReadResult =
           await sl.getByIds({obj.id!, obj2.id!}, localDetails);
-      expect(localReadResult.getOrRaise().items.length, 1);
+      final loadedItems = localReadResult.getOrRaise().items;
+      expect(loadedItems, equals({obj}));
       expect(localReadResult.getOrRaise().missingItemIds, {obj2.id!});
+      // Not cached because only [setItems] can populate the cache
+      await hasNotCached(sl, [obj], [details, localDetails]);
+      await hasNotCached(
+        sl,
+        [obj2],
+        [details, localDetails],
+        shouldExistAtAll: false,
+      );
 
       final remoteReadResult =
           await sl.getByIds({obj.id!, obj2.id!}, refreshDetails);
       expect(remoteReadResult.getOrRaise().items.length, 2);
+      await hasNotCached(sl, [obj, obj2], [details, localDetails]);
     });
 
     test('honor request types', () async {
-      final sl = getSourceList(emptyDelegate);
+      final sl = getSourceList(getEmptyDelegate());
       await (sl.sources[0] as LocalMemorySource<TestModel>)
           .setItems([obj, obj2], localDetails);
       await (sl.sources[1] as LocalMemorySource<TestModel>)
@@ -240,6 +242,7 @@ void main() {
 
       final readResult = await sl.getByIds({obj.id!, obj2.id!}, details);
       expect(readResult.getOrRaise().items.length, 2);
+      await hasCached(sl, [obj, obj2], [details, localDetails]);
 
       final localReadResult =
           await sl.getByIds({obj.id!, obj2.id!}, localDetails);
@@ -248,6 +251,141 @@ void main() {
       final remoteReadResult =
           await sl.getByIds({obj.id!, obj2.id!}, refreshDetails);
       expect(remoteReadResult.getOrRaise().items.length, 0);
+    });
+
+    test('honor request types with filters when both are removed', () async {
+      final sl = getSourceList(getRequestDelegate([listResponseBody]));
+
+      // Write obj1 and obj2 to both [details] and [abcDetails]
+      await (sl.sources[0] as LocalMemorySource<TestModel>)
+          .setItems([obj, obj2], localAbcDetails);
+      await (sl.sources[0] as LocalMemorySource<TestModel>)
+          .setItems([obj, obj2], details);
+      await (sl.sources[1] as LocalMemorySource<TestModel>)
+          .setItems([obj, obj2], localAbcDetails);
+      await (sl.sources[1] as LocalMemorySource<TestModel>)
+          .setItems([obj, obj2], details);
+
+      final readResult = await sl.getByIds({obj.id!, obj2.id!}, details);
+      expect(readResult.getOrRaise().items.length, 2);
+      await hasCached(
+        sl,
+        [obj, obj2],
+        [details, localDetails, localAbcDetails],
+      );
+
+      final localReadResult =
+          await sl.getByIds({obj.id!, obj2.id!}, localDetails);
+      expect(localReadResult.getOrRaise().items.length, 2);
+      await hasCached(sl, [obj, obj2], [details, localDetails]);
+
+      final remoteReadResult =
+          await sl.getByIds({obj.id!, obj2.id!}, refreshDetails);
+      expect(remoteReadResult.getOrRaise().items.length, 1);
+      await hasCached(
+        sl,
+        [obj],
+        [details, localDetails],
+      );
+      await hasNotCached(
+        sl,
+        [obj2],
+        [details, localDetails],
+        shouldExistAtAll: false,
+      );
+    });
+
+    test('honor request types with filters when both are removed', () async {
+      final sl = getSourceList(getEmptyDelegate());
+
+      // Write obj1 and obj2 to both [details] and [abcDetails]
+      await (sl.sources[0] as LocalMemorySource<TestModel>)
+          .setItems([obj, obj2], localAbcDetails);
+      await (sl.sources[0] as LocalMemorySource<TestModel>)
+          .setItems([obj, obj2], details);
+      await (sl.sources[1] as LocalMemorySource<TestModel>)
+          .setItems([obj, obj2], localAbcDetails);
+      await (sl.sources[1] as LocalMemorySource<TestModel>)
+          .setItems([obj, obj2], details);
+
+      final readResult = await sl.getByIds({obj.id!, obj2.id!}, details);
+      expect(readResult.getOrRaise().items.length, 2);
+      await hasCached(
+        sl,
+        [obj, obj2],
+        [details, localDetails, localAbcDetails],
+      );
+
+      final localReadResult =
+          await sl.getByIds({obj.id!, obj2.id!}, localDetails);
+      expect(localReadResult.getOrRaise().items.length, 2);
+      await hasCached(sl, [obj, obj2], [details, localDetails]);
+
+      final remoteReadResult =
+          await sl.getByIds({obj.id!, obj2.id!}, refreshDetails);
+      expect(remoteReadResult.getOrRaise().items.length, 0);
+      await hasNotCached(
+        sl,
+        [obj, obj2],
+        [details, localDetails],
+        shouldExistAtAll: false,
+      );
+    });
+
+    test('honor request types with filters when one is removed', () async {
+      final sl = getSourceList(getRequestDelegate([listResponseBody]));
+
+      final page1Details = RequestDetails<TestModel>(
+        pagination: Pagination.page(1),
+      );
+      final page2Details = RequestDetails<TestModel>(
+        pagination: Pagination.page(2),
+      );
+
+      // Write obj1 and obj2 to [page1Details] and [page2Details], respectively
+      await (sl.sources[0] as LocalMemorySource<TestModel>)
+          .setItems([obj], page1Details);
+      await (sl.sources[0] as LocalMemorySource<TestModel>)
+          .setItems([obj2], page2Details);
+      await (sl.sources[1] as LocalMemorySource<TestModel>)
+          .setItems([obj], page1Details);
+      await (sl.sources[1] as LocalMemorySource<TestModel>)
+          .setItems([obj2], page2Details);
+
+      final readResult = await sl.getByIds({obj.id!, obj2.id!}, localDetails);
+      expect(readResult.getOrRaise().items.length, 2);
+      await hasCached(sl, [obj], [page1Details]);
+      await hasCached(sl, [obj2], [page2Details]);
+      await hasNotCached(
+        sl,
+        [obj, obj2],
+        [details, localDetails, localAbcDetails],
+      );
+
+      final localReadResult =
+          await sl.getByIds({obj.id!, obj2.id!}, localDetails);
+      expect(localReadResult.getOrRaise().items.length, 2);
+
+      final localRead2Result = await sl.getItems(localDetails);
+      expect(localRead2Result.getOrRaise().items.length, 0);
+
+      // Only loads object 1, which removes object 2 from all local caches
+      final remoteReadResult =
+          await sl.getByIds({obj.id!, obj2.id!}, refreshDetails);
+      expect(remoteReadResult.getOrRaise().items.length, 1);
+      expect(remoteReadResult.getOrRaise().missingItemIds, {obj2.id!});
+      await hasCached(
+        sl,
+        [obj],
+        [page1Details],
+      );
+      await hasNotCached(sl, [obj], [details, page2Details]);
+      await hasNotCached(
+        sl,
+        [obj2],
+        [details, page1Details, page2Details],
+        shouldExistAtAll: false,
+      );
     });
 
     test('surface 404s', () async {
@@ -271,7 +409,33 @@ void main() {
   });
 
   group('SourceList.getItems should', () {
-    test('load items', () async {
+    test('return empty sets', () async {
+      final sl = getSourceList(getEmptyDelegate());
+      final result = await sl.getItems(details);
+
+      // Getting no results from the server saves the value as missing and logs
+      // the request as being known-empty.
+      expect(result.getOrRaise().items.length, 0);
+      await hasNotCached(sl, [obj, obj2], [details], shouldExistAtAll: false);
+    });
+
+    test('load items not yet locally cached', () async {
+      final sl = getSourceList(twoItemdelegate200x2);
+
+      final localReadResult = await sl.getItems(localDetails);
+      expect(localReadResult.getOrRaise().items.length, 0);
+      // `details` is fine to pass here in place of `localDetails` because
+      // `RequestType` is not factored into a RequestDetails' object's cache key
+      await hasNotCached(sl, [obj, obj2], [details], shouldExistAtAll: false);
+
+      final remoteReadResult = await sl.getItems(refreshDetails);
+      expect(remoteReadResult.getOrRaise().items.length, 2);
+      // `details` is fine to pass here in place of `localDetails` because
+      // `RequestType` is not factored into a RequestDetails' object's cache key
+      await hasCached(sl, [obj, obj2], [details]);
+    });
+
+    test('load items already available in source', () async {
       final sl = getSourceList(twoItemdelegate200x2);
       await (sl.sources[0] as LocalMemorySource<TestModel>)
           .setItems([obj, obj2], localDetails);
@@ -286,15 +450,13 @@ void main() {
     test('honor request types and cache items', () async {
       final sl = getSourceList(getRequestDelegate([twoElementResponseBody]));
 
-      final localReadResult = await sl.getItems(localDetails);
-      expect(localReadResult.getOrRaise().items.length, 0);
+      final initialReadResult = await sl.getItems(localDetails);
+      expect(initialReadResult.getOrRaise().items.length, 0);
+      await hasNotCached(sl, [obj, obj2], [details], shouldExistAtAll: false);
 
       final remoteReadResult = await sl.getItems(refreshDetails);
       expect(remoteReadResult.getOrRaise().items.length, 2);
-      expect((sl.sources[0] as LocalMemorySource<TestModel>).items.length, 2);
-
-      final localReadResult2 = await sl.getItems(localDetails);
-      expect(localReadResult2.getOrRaise().items.length, 2);
+      await hasCached(sl, [obj, obj2], [details]);
     });
 
     test('handle 404s', () async {
@@ -311,22 +473,30 @@ void main() {
       expect(localReadResult.getOrRaise().items.length, 2);
     });
 
-    test('honor setNames', () async {
+    test('honor filters not originally applied', () async {
       final sl = getSourceList(getRequestDelegate([twoElementResponseBody]));
 
       final remoteReadResult = await sl.getItems(details);
       expect(remoteReadResult.getOrRaise().items.length, 2);
+      await hasCached(sl, [obj, obj2], [details]);
 
-      final localReadResult = await sl.getItems(
-        RequestDetails<TestModel>(
-          filters: const [MsgStartsWithFilter('abc')],
-          requestType: RequestType.local,
-        ),
+      final filteredDetails = RequestDetails<TestModel>(
+        filters: const [MsgStartsWithFilter('abc')],
+        requestType: RequestType.local,
       );
-      expect(localReadResult.getOrRaise().items.length, 0);
+      await hasNotCached(sl, [obj, obj2], [filteredDetails]);
+    });
 
-      final localReadResult2 = await sl.getItems(localDetails);
-      expect(localReadResult2.getOrRaise().items.length, 2);
+    test('honor filters originally applied', () async {
+      final sl = getSourceList(getRequestDelegate([twoElementResponseBody]));
+
+      final filteredDetails = RequestDetails<TestModel>(
+        filters: const [MsgStartsWithFilter('abc')],
+      );
+      final remoteReadResult = await sl.getItems(filteredDetails);
+      expect(remoteReadResult.getOrRaise().items.length, 2);
+      await hasCached(sl, [obj, obj2], [filteredDetails]);
+      await hasNotCached(sl, [obj, obj2], [details]);
     });
 
     test('honor filters', () async {
@@ -340,35 +510,27 @@ void main() {
 
       final localReadResult = await sl.getItems(localDetails);
       expect(localReadResult.getOrRaise().items.length, 2);
+      await hasCached(sl, [obj, obj2], [details]);
 
       final localMsgFredDetails = RequestDetails<TestModel>(
         filters: const [FieldEquals<TestModel>('msg', 'Fred')],
         requestType: RequestType.local,
       );
+      await hasNotCached(sl, [obj, obj2], [localMsgFredDetails]);
 
-      final localReadResult2 = await sl.getItems(localMsgFredDetails);
-      expect(localReadResult2.getOrRaise().items.length, 1);
-      expect(localReadResult2.getOrRaise().items.first.msg, 'Fred');
-
+      // Filters' contents are irrelevant because our fake API does not evaulate
+      // its rules.
       final globalMsgFredDetails = RequestDetails<TestModel>(
         filters: const [FieldEquals<TestModel>('msg', 'Fred')],
       );
 
       final globalResults = await sl.getItems(globalMsgFredDetails);
-      expect(globalResults.getOrRaise().items.length, 1);
-      expect(globalResults.getOrRaise().items.first.msg, 'Fred');
-
-      // Because our fake API doesn't filter anything (which a real API would),
-      // this should still return both despite us requesting a filter. This is
-      // because the SourceList trusts that all sources would apply a filter
-      // identically, so it does not need to verify a real ApiSource's work by
-      // running the predicate locally.
-      final refreshMsgFredDetails = RequestDetails<TestModel>(
-        filters: const [FieldEquals<TestModel>('msg', 'Fred')],
-        requestType: RequestType.refresh,
+      expect(globalResults.getOrRaise().items.length, 2);
+      await hasCached(
+        sl,
+        [obj, obj2],
+        [details, localMsgFredDetails, globalMsgFredDetails],
       );
-      final refreshResults = await sl.getItems(refreshMsgFredDetails);
-      expect(refreshResults.getOrRaise().items.length, 2);
     });
   });
 
@@ -378,12 +540,11 @@ void main() {
       final sl = getSourceList(creatableDelegate);
       final writeResult = await sl.setItem(newObj, details);
       expect(writeResult.getOrRaise().item, obj);
-
-      final localReadResult = await sl.getItems(localDetails);
-      expect(localReadResult.getOrRaise().items.length, 1);
+      // Not cached because [setItem] cannot populate the cache
+      await hasNotCached(sl, [writeResult.getOrRaise().item], [details]);
     });
 
-    test('honor setNames', () async {
+    test('honor filters', () async {
       const newObj = TestModel(id: null, msg: 'new');
       final sl = getSourceList(
         getRequestDelegate([listResponseBody], canCreate: true),
@@ -392,11 +553,8 @@ void main() {
       final savedObj = writeResult.getOrRaise().item;
       expect(savedObj, obj);
 
-      final localReadResult = await sl.getById(
-        savedObj.id!,
-        localAbcDetails,
-      );
-      expect(localReadResult.getOrRaise().item, savedObj);
+      await hasNotCached(
+          sl, [savedObj], [details, abcDetails, localAbcDetails]);
     });
   });
 
@@ -415,9 +573,8 @@ void main() {
         localDetails,
       );
       expect(writeResult.getOrRaise().items.length, 2);
-
-      final localReadResult = await sl.getItems(localDetails);
-      expect(localReadResult.getOrRaise().items.length, 2);
+      await hasCached(sl, [newObj, newObj2], [details]);
+      await hasNotCached(sl, [newObj, newObj2], [abcDetails]);
     });
 
     test('throw for remote setItems', () async {
@@ -438,3 +595,107 @@ void main() {
 }
 
 final Matcher throwsAssertionError = throwsA(isA<AssertionError>());
+
+Future<void> hasCached(
+  SourceList<TestModel> sl,
+  List<TestModel> items,
+  List<RequestDetails<TestModel>> requests,
+) async {
+  for (final (itemIndex, item) in items.indexed) {
+    assert(item.id != null, '$item should all have Ids');
+
+    final byIdResult = await sl.getById(item.id!, localDetails);
+    expect(byIdResult.getOrRaise().item, equals(item));
+    for (final (requestIndex, request) in requests.indexed) {
+      final c = request.localCopy();
+      final forRequestResult = await sl.getItems(c);
+      final loadedItems = forRequestResult.getOrRaise().items;
+      expect(
+        loadedItems,
+        contains(item),
+        reason: 'Expected request $requestIndex $request [getItems] to contain '
+            'item $itemIndex: $item. Received: $loadedItems',
+      );
+    }
+
+    for (final (sourceIndex, source) in sl.sources.indexed) {
+      if (source is! LocalSource<TestModel>) continue;
+
+      final result = await source.getById(item.id!, details);
+      expect(
+        result.getOrRaise().item,
+        equals(item),
+        reason: 'Expected source $sourceIndex $source to load item $itemIndex '
+            '$item by Id',
+      );
+
+      for (final (requestIndex, request) in requests.indexed) {
+        final result2 = await source.getItems(request.localCopy());
+        expect(
+          result2.getOrRaise().items,
+          contains(item),
+          reason: 'Expected source $sourceIndex $source to find item '
+              '$itemIndex $item in RequestDetails $requestIndex $request',
+        );
+      }
+    }
+  }
+}
+
+Future<void> hasNotCached(
+  SourceList<TestModel> sl,
+  List<TestModel> items,
+  List<RequestDetails<TestModel>> requests, {
+  bool shouldExistAtAll = true,
+}) async {
+  for (final (itemIndex, item) in items.indexed) {
+    assert(item.id != null, 'Cached items should all have Ids');
+
+    final byIdResult = await sl.getById(item.id!, localDetails);
+    final loadedItem = byIdResult.getOrRaise().item;
+    if (shouldExistAtAll) {
+      expect(
+        loadedItem,
+        equals(item),
+        reason: 'Expected item $itemIndex $item to be loadable by its Id',
+      );
+    } else {
+      expect(
+        loadedItem,
+        isNull,
+        reason: 'Expected item $itemIndex $item to not exist',
+      );
+    }
+    for (final (requestIndex, request) in requests.indexed) {
+      final forRequestRersult = await sl.getItems(request.localCopy());
+      expect(
+        forRequestRersult.getOrRaise().items,
+        isNot(contains(item)),
+        reason: 'Expected request $requestIndex $request to not contain '
+            'item $itemIndex $item',
+      );
+    }
+
+    for (final (sourceIndex, source) in sl.sources.indexed) {
+      if (source is! LocalSource<TestModel>) continue;
+
+      final result = await source.getById(item.id!, details);
+      final loadedItem = result.getOrRaise().item;
+      if (shouldExistAtAll) {
+        expect(
+          loadedItem,
+          equals(item),
+          reason: 'Expected source $sourceIndex $source to load item '
+              '$itemIndex $item by its Id',
+        );
+      } else {
+        expect(
+          loadedItem,
+          isNull,
+          reason: 'Expected source $sourceIndex $source to NOT load item '
+              '$itemIndex $item by its Id',
+        );
+      }
+    }
+  }
+}

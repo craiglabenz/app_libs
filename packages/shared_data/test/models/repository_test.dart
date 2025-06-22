@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 import 'test_model.dart';
 
 void main() {
-  final sl = FakeSourceList<TestModel>()
+  final sl = FakeSourceList<TestModel>(TestModel.bindings)
     ..addObj(const TestModel(id: 'does not matter'));
   final repo = Repository<TestModel>(sl);
   const TestModel obj = TestModel(id: 'also does not matter');

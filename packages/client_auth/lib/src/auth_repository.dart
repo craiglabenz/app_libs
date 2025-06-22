@@ -74,7 +74,7 @@ class AuthRepository
   ///
   /// This method is idempotent and can safely be called by any other class.
   @override
-  Future<AuthUser?> initialize() async {
+  Future<AuthUser?> performInitialization() async {
     _log.finest('Initializing AuthRepository');
     if (_primaryAuth is StreamAuthService) {
       _primaryAuthSubscription ??= _primaryAuth.listen(
@@ -413,7 +413,7 @@ class FakeAuthRepository
       );
 
   @override
-  Future<AuthUser?> initialize() => Future.value(lastUser);
+  Future<AuthUser?> performInitialization() => Future.value(lastUser);
 
   @override
   StreamSubscription<AuthUser?> listen(void Function(AuthUser? p1) cb) {

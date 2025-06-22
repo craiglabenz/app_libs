@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:mockito/mockito.dart';
 import 'package:shared_data/shared_data.dart';
 
 class TestModel extends Model {
@@ -54,9 +53,20 @@ class MsgStartsWithFilter<T extends TestModel> extends ReadFilter<T> {
 
   @override
   List<Object?> get props => [value];
+
+  @override
+  // Note: Object.hash is unsafe for real [cacheKey] computation as it does not
+  // produce the same result across runs of the application. Instead, use the
+  // implementation from pkg:equatable.
+  int get cacheKey => Object.hash(value, value);
 }
 
-class FakeSourceList<T extends Model> extends Fake implements SourceList<T> {
+class FakeSourceList<T extends Model> extends SourceList<T> {
+  FakeSourceList(Bindings<T> bindings)
+      : super(
+          bindings: bindings,
+          sources: [],
+        );
   final objs = <T>[];
 
   void addObj(T obj) => objs.add(obj);
@@ -111,4 +121,10 @@ class FieldEquals<T extends Model> extends ReadFilter<T> {
 
   @override
   Map<String, String> toParams() => <String, String>{fieldName: value};
+
+  @override
+  // Note: Object.hash is unsafe for real [cacheKey] computation as it does not
+  // produce the same result across runs of the application. Instead, use the
+  // implementation from pkg:equatable.
+  int get cacheKey => Object.hash(fieldName, value);
 }

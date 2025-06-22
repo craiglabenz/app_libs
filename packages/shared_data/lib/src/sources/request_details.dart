@@ -3,6 +3,9 @@ import 'package:equatable/equatable.dart';
 import 'package:equatable/src/equatable_utils.dart';
 import 'package:shared_data/shared_data.dart';
 
+/// The product of [RequestDetails.cacheKey].
+typedef CacheKey = int;
+
 /// {@template RequestDetails}
 /// Container for meta-information a [Source] will use to return the desired
 /// data.
@@ -71,16 +74,23 @@ class RequestDetails<T extends Model> extends Equatable {
         pagination,
       ];
 
+  /// Cache-key without any pagination, used to group up paginated requests
+  /// together in a [LocalSource]'s cache.
+  late final int noPaginationCacheKey = _getNoPaginationCacheKey();
+
   /// Collapses this request into a key suitable for local memory caching.
   /// This key should incorporate everything about this request EXCEPT the
   /// requestType, as that would create false-positive variance.
   late final int cacheKey = _getCacheKey();
 
-  int _getCacheKey() =>
-      runtimeType.hashCode ^
-      mapPropsToHashCode([
-        ...filters.map<int>((filter) => filter.hashCode),
-        pagination,
+  int _getCacheKey() => mapPropsToHashCode([
+        ...filters.map<int>((filter) => filter.cacheKey),
+        pagination?.cacheKey,
+      ]);
+
+  int _getNoPaginationCacheKey() => mapPropsToHashCode([
+        ...filters.map<int>((filter) => filter.cacheKey),
+        null, // to represent `null` pagination
       ]);
 
   /// Indicates whether the filters AND pagination are empty.
@@ -94,6 +104,15 @@ class RequestDetails<T extends Model> extends Equatable {
   /// global list alongside any sliced / filtered lists.
   RequestDetails<T> get empty => RequestDetails<T>(requestType: requestType);
 
+  /// Equivalent [RequestDetails] but for the removal of a global or refresh
+  /// [RequestType].
+  RequestDetails<T> localCopy() => RequestDetails<T>(
+        requestType: RequestType.local,
+        pagination: pagination,
+        filters: filters,
+        shouldOverwrite: shouldOverwrite,
+      );
+
   @override
   String toString() => 'RequestDetails(requestType: $requestType, filters: '
       '${filters.map<String>((filter) => filter.toString()).toList()}, '
@@ -104,6 +123,13 @@ class RequestDetails<T extends Model> extends Equatable {
   void assertEmpty(String functionName) {
     assert(isEmpty, 'Must not supply filters or pagination to $functionName');
   }
+
+  /// True if this request would rather return empty data than go off-device.
+  bool get isLocal => switch (requestType) {
+        RequestType.local => true,
+        RequestType.refresh => false,
+        RequestType.global => false,
+      };
 }
 
 /// {@template Pagination}
@@ -132,6 +158,9 @@ class Pagination extends Equatable {
 
   @override
   List<Object?> get props => [pageSize, page];
+
+  /// Variant of [hashCode] with persistent Ids across application launches.
+  int get cacheKey => mapPropsToHashCode([pageSize, page]);
 
   @override
   String toString() => 'Pagination(pageSize: $pageSize, page: $page)';

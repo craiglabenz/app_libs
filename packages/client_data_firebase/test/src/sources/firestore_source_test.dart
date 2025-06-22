@@ -262,6 +262,9 @@ class _FirestoreFilterMock extends ReadFilter<_TestModel> with FirestoreFilter {
   List<Object?> get props => throw UnimplementedError();
 
   @override
+  int get cacheKey => throw UnimplementedError();
+
+  @override
   Map<String, String> toParams() => throw UnimplementedError();
 
   @override

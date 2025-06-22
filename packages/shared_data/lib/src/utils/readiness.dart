@@ -43,11 +43,30 @@ mixin ReadinessMixin<T> {
 
   /// Resolves when readiness is achieved, or immediately if it has already been
   /// achieved.
-  Future<T> get ready => _readinessCompleter.future;
+  Future<T> get ready {
+    assert(
+      _hasCalledInitialize,
+      'Warning: Awaiting $this.ready without first calling initialize() will '
+      'hang infinitely. Call initialize() first.',
+    );
+    return _readinessCompleter.future;
+  }
+
+  var _hasCalledInitialize = false;
+
+  /// Calls [performInitialization] with extra bookkeeping. Descendant classes
+  /// should implement [performInitialization] but then invoke [initialize].
+  Future<T> initialize() {
+    _hasCalledInitialize = true;
+    return performInitialization();
+  }
 
   /// Wires up all necessary resources for this object to be ready for general
   /// use.
-  Future<T> initialize();
+  ///
+  /// The job of [initialize] is to set up any necessary resources and then call
+  /// [markReady] or [markReadinessFailed].
+  Future<T> performInitialization();
 
   /// Removes any established readiness, if for example a dependency of this
   /// object has also lost readiness.
