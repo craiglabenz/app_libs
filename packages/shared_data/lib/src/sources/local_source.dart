@@ -112,7 +112,7 @@ class LocalSource<T extends Model> extends Source<T> {
     _log.finest('Deleting $ids');
     _itemsPersistence.deleteIds(ids);
 
-    final requestCacheCopy = <int, Set<String>>{};
+    final requestCacheCopy = <CacheKey, Set<String>>{};
     for (final cacheKey in _cachePersistence.getRequestCacheKeys()) {
       requestCacheCopy[cacheKey] = _cachePersistence.getCacheKey(cacheKey)!;
     }

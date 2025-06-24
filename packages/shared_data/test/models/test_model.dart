@@ -55,10 +55,7 @@ class MsgStartsWithFilter<T extends TestModel> extends ReadFilter<T> {
   List<Object?> get props => [value];
 
   @override
-  // Note: Object.hash is unsafe for real [cacheKey] computation as it does not
-  // produce the same result across runs of the application. Instead, use the
-  // implementation from pkg:equatable.
-  int get cacheKey => Object.hash(value, value);
+  CacheKey get cacheKey => value;
 }
 
 class FakeSourceList<T extends Model> extends SourceList<T> {
@@ -123,8 +120,5 @@ class FieldEquals<T extends Model> extends ReadFilter<T> {
   Map<String, String> toParams() => <String, String>{fieldName: value};
 
   @override
-  // Note: Object.hash is unsafe for real [cacheKey] computation as it does not
-  // produce the same result across runs of the application. Instead, use the
-  // implementation from pkg:equatable.
-  int get cacheKey => Object.hash(fieldName, value);
+  CacheKey get cacheKey => '$fieldName-equals-$value';
 }

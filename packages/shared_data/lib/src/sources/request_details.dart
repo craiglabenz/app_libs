@@ -1,10 +1,9 @@
+import 'package:crypt/crypt.dart';
 import 'package:equatable/equatable.dart';
-// ignore: implementation_imports
-import 'package:equatable/src/equatable_utils.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// The product of [RequestDetails.cacheKey].
-typedef CacheKey = int;
+typedef CacheKey = String;
 
 /// {@template RequestDetails}
 /// Container for meta-information a [Source] will use to return the desired
@@ -76,22 +75,28 @@ class RequestDetails<T extends Model> extends Equatable {
 
   /// Cache-key without any pagination, used to group up paginated requests
   /// together in a [LocalSource]'s cache.
-  late final int noPaginationCacheKey = _getNoPaginationCacheKey();
+  late final CacheKey noPaginationCacheKey = _getNoPaginationCacheKey();
 
   /// Collapses this request into a key suitable for local memory caching.
   /// This key should incorporate everything about this request EXCEPT the
   /// requestType, as that would create false-positive variance.
-  late final int cacheKey = _getCacheKey();
+  late final CacheKey cacheKey = _getCacheKey();
 
-  int _getCacheKey() => mapPropsToHashCode([
-        ...filters.map<int>((filter) => filter.cacheKey),
-        pagination?.cacheKey,
-      ]);
+  CacheKey _getCacheKey() =>
+      Crypt.sha256(getCacheKeyInputs(), rounds: 1, salt: '').hash;
 
-  int _getNoPaginationCacheKey() => mapPropsToHashCode([
-        ...filters.map<int>((filter) => filter.cacheKey),
-        null, // to represent `null` pagination
-      ]);
+  String getCacheKeyInputs() => <String>[
+        ...filters.map<CacheKey>((filter) => filter.cacheKey),
+        pagination?.cacheKey ?? '',
+      ].join('-');
+
+  CacheKey _getNoPaginationCacheKey() =>
+      Crypt.sha256(getNoPaginationCacheKeyInputs(), rounds: 1, salt: '').hash;
+
+  String getNoPaginationCacheKeyInputs() => [
+        ...filters.map<CacheKey>((filter) => filter.cacheKey),
+        // '', // to represent `null` pagination
+      ].join('-');
 
   /// Indicates whether the filters AND pagination are empty.
   bool get isEmpty => filters.isEmpty && pagination == null;
@@ -160,7 +165,7 @@ class Pagination extends Equatable {
   List<Object?> get props => [pageSize, page];
 
   /// Variant of [hashCode] with persistent Ids across application launches.
-  int get cacheKey => mapPropsToHashCode([pageSize, page]);
+  CacheKey get cacheKey => '$pageSize-$page';
 
   @override
   String toString() => 'Pagination(pageSize: $pageSize, page: $page)';

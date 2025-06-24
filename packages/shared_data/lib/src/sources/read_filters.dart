@@ -1,6 +1,4 @@
 import 'package:equatable/equatable.dart';
-// ignore: implementation_imports
-import 'package:equatable/src/equatable_utils.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// {@template ReadFilter}
@@ -22,7 +20,7 @@ abstract class ReadFilter<T extends Model> extends Equatable {
   Map<String, String> toParams();
 
   /// Variant of [hashCode] with persistent Ids across application launches.
-  int get cacheKey;
+  CacheKey get cacheKey;
 }
 
 /// Filter for objects created since a given [DateTime].
@@ -46,7 +44,5 @@ class CreatedSinceFilter<T extends CreatedAtModel> extends ReadFilter<T> {
   List<Object?> get props => [createdCutoff.toIso8601String()];
 
   @override
-  int get cacheKey => mapPropsToHashCode([
-        createdCutoff.toIso8601String(),
-      ]);
+  CacheKey get cacheKey => createdCutoff.toIso8601String();
 }

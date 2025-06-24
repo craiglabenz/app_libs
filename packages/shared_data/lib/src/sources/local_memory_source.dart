@@ -102,7 +102,7 @@ class InMemoryCachePersistence extends CachePersistence {
   /// Hopefully dead code to delete after LocalSource.deleteItems is more
   /// confidently trusted
   void deleteIds(Set<String> ids) {
-    final requestCacheCopy = Map<int, Set<String>>.from(_requestCache);
+    final requestCacheCopy = Map<CacheKey, Set<String>>.from(_requestCache);
     for (final cacheKey in _requestCache.keys) {
       requestCacheCopy[cacheKey]!.removeAll(ids);
       if (requestCacheCopy[cacheKey]!.isEmpty) {
