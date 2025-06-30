@@ -13,7 +13,7 @@ import 'package:shared_data/shared_data.dart';
 /// control which sources are asked, which is helpful when you want to force a
 /// cache read or cache miss.
 /// {@endtemplate}
-class SourceList<T extends Model> extends DataContract<T> {
+class SourceList<T> extends DataContract<T> {
   /// {@macro SourceList}
   SourceList({required this.sources, required this.bindings});
 
@@ -47,7 +47,7 @@ class SourceList<T extends Model> extends DataContract<T> {
 
   Future<void> _cacheItem(
     T item,
-    List<Source> emptySources,
+    List<Source<T>> emptySources,
     RequestDetails<T> details,
   ) async {
     for (final source in emptySources) {
@@ -57,7 +57,7 @@ class SourceList<T extends Model> extends DataContract<T> {
 
   Future<void> _cacheItems(
     Iterable<T> items,
-    List<Source> emptySources,
+    List<Source<T>> emptySources,
     RequestDetails<T> details,
   ) async {
     for (final source in emptySources) {
@@ -98,8 +98,8 @@ class SourceList<T extends Model> extends DataContract<T> {
   ) async {
     details.assertEmpty('SourceList<$T>.getByIds');
     final items = <String, T>{};
-    final pastSources = <Source>[];
-    final backfillMap = <Source, Set<T>>{};
+    final pastSources = <Source<T>>[];
+    final backfillMap = <Source<T>, Set<T>>{};
 
     // Copy the list of ids.
     // Called `missingIds` not because we've deemed these are all missing, but
@@ -153,7 +153,7 @@ class SourceList<T extends Model> extends DataContract<T> {
         // Missing Ids at this point would mean that we tried to load data from
         // the server and still failed to pull in certain Ids. That means they
         // don't exist anymore, and thus we can delete them.
-        pastSource.deleteIds(missingIds);
+        (pastSource as LocalSource<T>).deleteIds(missingIds);
       }
     }
 
@@ -162,7 +162,7 @@ class SourceList<T extends Model> extends DataContract<T> {
 
   @override
   Future<ReadListResult<T>> getItems(RequestDetails<T> details) async {
-    final emptySources = <Source>[];
+    final emptySources = <Source<T>>[];
     for (final matchedSource in getSources(requestType: details.requestType)) {
       if (matchedSource.unmatched) {
         emptySources.add(matchedSource.source);
@@ -176,7 +176,8 @@ class SourceList<T extends Model> extends DataContract<T> {
           final items = sourceResult.items;
           if (items.isNotEmpty) {
             await _cacheItems(items, emptySources, details);
-            return ReadListResult<T>.fromList(items, details, {});
+            return ReadListResult<T>.fromList(
+                items, details, {}, bindings.getId);
           } else {
             emptySources.add(matchedSource.source);
           }
@@ -194,7 +195,7 @@ class SourceList<T extends Model> extends DataContract<T> {
         }
       }
     }
-    return ReadListResult<T>.fromList([], details, {});
+    return ReadListResult<T>.fromList([], details, {}, bindings.getId);
   }
 
   @override
@@ -203,7 +204,7 @@ class SourceList<T extends Model> extends DataContract<T> {
     for (final ms in getSources(
       requestType: details.requestType,
       // Hit API first if item is new, so as to get an Id
-      reversed: item.id == null,
+      reversed: bindings.getId(item) == null,
     )) {
       if (ms.unmatched) continue;
 
@@ -211,8 +212,8 @@ class SourceList<T extends Model> extends DataContract<T> {
 
       switch (result) {
         case WriteSuccess<T>():
-          if (item.id == null) {
-            if (result.item.id == null) {
+          if (bindings.getId(item) == null) {
+            if (bindings.getId(result.item) == null) {
               return WriteFailure<T>(
                 FailureReason.serverError,
                 'Failed to generate Id for new $T',
@@ -250,7 +251,7 @@ class SourceList<T extends Model> extends DataContract<T> {
   Future<void> clear() async {
     for (final s in sources) {
       if (s is LocalSource) {
-        await (s as LocalSource).clear();
+        await (s as LocalSource<T>).clear();
       }
     }
   }
@@ -259,14 +260,26 @@ class SourceList<T extends Model> extends DataContract<T> {
   Future<void> clearForRequest(RequestDetails<T> details) async {
     for (final source in sources) {
       if (source is! LocalSource) continue;
-      await (source as LocalSource).clearForRequest(details);
+      await (source as LocalSource<T>).clearForRequest(details);
     }
+  }
+
+  @override
+  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details) async {
+    for (final ms in getSources(requestType: details.requestType)) {
+      if (ms.unmatched) continue;
+      final result = await ms.source.delete(id, details);
+      if (result is DeleteFailure<T>) {
+        return result;
+      }
+    }
+    return DeleteSuccess<T>(details);
   }
 }
 
 /// Indicates whether a given [Source] produced data, which is used when we turn
 /// around and locally cache objects fetched from the server.
-class MatchedSource<T extends Model> {
+class MatchedSource<T> {
   MatchedSource._({required this.source, required this.matched});
 
   /// Flavor of [Source] that matched the given [RequestType]. This [Source]

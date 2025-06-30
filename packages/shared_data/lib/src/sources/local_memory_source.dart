@@ -4,15 +4,24 @@ import 'package:shared_data/shared_data.dart';
 /// On-device, in-memory store which caches previously loaded data for
 /// instantaneous retrieval. Does not persist any data across sessions.
 /// {@endtemplate}
-class LocalMemorySource<T extends Model> extends LocalSource<T> {
+class LocalMemorySource<T> extends LocalSource<T> {
   /// {@macro LocalMemorySource}
   LocalMemorySource({required super.bindings, super.idBuilder})
-      : super(InMemorySourcePersistence(), InMemoryCachePersistence());
+      : super(InMemorySourcePersistence(bindings.getId),
+            InMemoryCachePersistence());
 }
 
+/// {@template InMemorySourcePersistence}
 /// In-memory storage for a [LocalSource]. This is a glorified [Map].
-class InMemorySourcePersistence<T extends Model>
-    extends LocalSourcePersistence<T> {
+/// {@endtemplate}
+class InMemorySourcePersistence<T> extends LocalSourcePersistence<T> {
+  /// {@macro InMemorySourcePersistence}
+  InMemorySourcePersistence(this.getId);
+
+  /// Extracts the primary key from this object if it has been saved to the.
+  /// database. Returns null if the object is unsaved.
+  final String? Function(T) getId;
+
   final _items = <String, T>{};
 
   @override
@@ -27,8 +36,8 @@ class InMemorySourcePersistence<T extends Model>
 
   @override
   void setItem(T item, {required bool shouldOverwrite}) =>
-      shouldOverwrite || !_items.containsKey(item.id)
-          ? _items[item.id!] = item
+      shouldOverwrite || !_items.containsKey(getId(item))
+          ? _items[getId(item)!] = item
           : null;
 
   @override

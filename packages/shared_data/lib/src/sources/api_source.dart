@@ -1,14 +1,15 @@
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// {@template ApiSource}
 /// Subtype of [Source] which knows how to make network requests to load data.
 /// {@endtemplate}
-class ApiSource<T extends Model> extends Source<T> {
+class ApiSource<T> extends Source<T> {
   /// {@macro ApiSource}
   ApiSource({
-    required this.bindings,
+    required super.bindings,
     required RestApi restApi,
     ITimer? timer,
   })  : api = restApi,
@@ -17,8 +18,7 @@ class ApiSource<T extends Model> extends Source<T> {
         timer = timer ?? BatchTimer(),
         queuedIds = <String>{};
 
-  /// Meta-data provider for [T].
-  final Bindings<T> bindings;
+  final _log = Logger('ApiSource<$T>');
 
   /// Utility able to send network requests.
   final RestApi api;
@@ -71,6 +71,7 @@ class ApiSource<T extends Model> extends Source<T> {
           hydrateListResponse(result),
           details,
           {},
+          bindings.getId,
         ),
       ApiError() => ReadListResult.fromApiError(result),
     };
@@ -84,7 +85,7 @@ class ApiSource<T extends Model> extends Source<T> {
     assert(details.filters.isEmpty, 'Must not supply filters to `getByIds`');
 
     if (ids.isEmpty) {
-      return ReadListResult<T>.fromList([], details, {});
+      return ReadListResult<T>.fromList([], details, {}, bindings.getId);
     }
     final Params params = <String, String>{
       'id__in': ids.join(','),
@@ -99,7 +100,7 @@ class ApiSource<T extends Model> extends Source<T> {
           final itemsById = <String, T>{};
           for (final item in items) {
             // Objects from the server must always have an Id set.
-            itemsById[item.id!] = item;
+            itemsById[bindings.getId(item)!] = item;
           }
 
           final missingItemIds = <String>{};
@@ -177,22 +178,30 @@ class ApiSource<T extends Model> extends Source<T> {
   @override
   Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) async {
     final request = WriteApiRequest(
-      url: item.id == null
+      url: bindings.getId(item) == null
           ? bindings.getCreateUrl()
-          : bindings.getDetailUrl(item.id!),
-      body: item.toJson(),
+          : bindings.getDetailUrl(bindings.getId(item)!),
+      body: bindings.toJson(item),
     );
 
-    final result = await (item.id == null //
+    final result = await (bindings.getId(item) == null //
             ? api.post(request)
             : api.update(request) //
         );
 
-    return switch (result) {
-      ApiSuccess() =>
-        WriteSuccess(hydrateItemResponse(result)!, details: details),
-      ApiError() => WriteResult.fromApiError(result),
-    };
+    switch (result) {
+      case ApiSuccess():
+        final responseItem = hydrateItemResponse(result);
+
+        final writtenItem = responseItem ?? item;
+        if (bindings.getId(writtenItem) == null) {
+          _log.shout('Did not get Id from written saved $T :: $item');
+          return WriteFailure<T>(FailureReason.serverError, 'Failed to set Id');
+        }
+        return WriteSuccess<T>(writtenItem, details: details);
+      case ApiError():
+        return WriteResult.fromApiError(result);
+    }
   }
 
   @override
@@ -206,30 +215,37 @@ class ApiSource<T extends Model> extends Source<T> {
   T? hydrateItemResponse(ApiSuccess success) {
     switch (success.body) {
       case HtmlApiResultBody():
-        {
-          return null;
-        }
+        return null;
       case JsonApiResultBody(:final data):
-        {
-          if (data.containsKey('results')) {
-            // TODO(craiglabenz): log that this is unexpected for [result.url]
-            if ((data['results']! as List).length != 1) {
-              // TODO(craiglabenz): log that this is even more unexpected
-            }
-            final items = (data['results']! as List)
-                .cast<Json>()
-                .map<T>(bindings.fromJson)
-                .toList();
-            return items.first;
-          } else {
-            return bindings.fromJson(data);
+        if (data.containsKey('results')) {
+          // TODO(craiglabenz): log that this is unexpected for [result.url]
+          if ((data['results']! as List).length != 1) {
+            // TODO(craiglabenz): log that this is even more unexpected
           }
+          final items = (data['results']! as List)
+              .cast<Json>()
+              .map<T>(bindings.fromJson)
+              .toList();
+          return items.first;
+        } else {
+          return bindings.fromJson(data);
         }
       case PlainTextApiResultBody():
-        {
-          return null;
-        }
+        return null;
     }
+  }
+
+  @override
+  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details) async {
+    final request = WriteApiRequest(
+      url: bindings.getDetailUrl(id),
+      body: null,
+    );
+    final result = await api.delete(request);
+    return switch (result) {
+      ApiSuccess() => DeleteSuccess(details),
+      ApiError() => DeleteResult.fromApiError(result),
+    };
   }
 
   /// Deserializes the results of a network request into the actual object(s).

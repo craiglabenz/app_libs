@@ -6,13 +6,20 @@ import 'package:shared_data/shared_data.dart';
 /// indicates whether that place is immediately accessible (and thus is a cache)
 /// or is remotely accessible and thus is the source of truth.
 /// {@endtemplate }
-abstract class Source<T extends Model> extends DataContract<T> {
+abstract class Source<T> extends DataContract<T> {
+  /// {@macro Source}
+  const Source({required this.bindings});
+
   /// Indicator for whether this [Source] loads data from a store on-device, or
   /// off-device.
   SourceType get sourceType;
 
   @override
   String toString() => '$runtimeType()';
+
+  /// All meta information about [T] necessary to plug arbitrary data types
+  /// into a [Repository].
+  final Bindings<T> bindings;
 }
 
 /// Classifier for a given [Source] instance's primary data location.

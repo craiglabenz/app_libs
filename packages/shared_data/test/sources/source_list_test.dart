@@ -513,7 +513,9 @@ void main() {
       await hasCached(sl, [obj, obj2], [details]);
 
       final localMsgFredDetails = RequestDetails<TestModel>(
-        filters: const [FieldEquals<TestModel>('msg', 'Fred')],
+        filters: [
+          FieldEquals<TestModel, String>('msg', 'Fred', (obj) => obj.msg)
+        ],
         requestType: RequestType.local,
       );
       await hasNotCached(sl, [obj, obj2], [localMsgFredDetails]);
@@ -521,7 +523,9 @@ void main() {
       // Filters' contents are irrelevant because our fake API does not evaulate
       // its rules.
       final globalMsgFredDetails = RequestDetails<TestModel>(
-        filters: const [FieldEquals<TestModel>('msg', 'Fred')],
+        filters: [
+          FieldEquals<TestModel, String>('msg', 'Fred', (obj) => obj.msg)
+        ],
       );
 
       final globalResults = await sl.getItems(globalMsgFredDetails);

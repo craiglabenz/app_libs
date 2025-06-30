@@ -8,6 +8,7 @@ analyzer:
   errors:
     todo: ignore
   exclude:
+    - "**.freezed.dart"
     - "**.g.dart"
 
 formatter:

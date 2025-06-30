@@ -1,4 +1,3 @@
-import 'package:get_it/get_it.dart';
 import 'package:meta/meta.dart';
 import 'package:shared_data/shared_data.dart';
 
@@ -6,24 +5,25 @@ import 'package:shared_data/shared_data.dart';
 /// Data abstraction most likely to be exposed to other layers of the
 /// application. Subclasses of this are where domain-specific logic should live.
 /// {@endtemplate}
-class Repository<T extends Model> extends DataContract<T> {
+class Repository<T> extends DataContract<T> {
   /// {@macro repo}
   Repository(this.sourceList);
 
   /// Generates a stock Repository with a typical [SourceList].
-  static Repository<T> create<T extends Model>(Bindings<T> bindings) =>
-      Repository(
-        SourceList<T>(
-          bindings: bindings,
-          sources: [
-            LocalMemorySource(bindings: bindings),
-            ApiSource(
-              bindings: bindings,
-              restApi: GetIt.I<RestApi>(),
-            )
-          ],
-        ),
-      );
+  static Repository<T> create<T>(Bindings<T> bindings, RestApi api) {
+    return Repository(
+      SourceList<T>(
+        bindings: bindings,
+        sources: [
+          LocalMemorySource(bindings: bindings),
+          ApiSource(
+            bindings: bindings,
+            restApi: api,
+          )
+        ],
+      ),
+    );
+  }
 
   /// Data loader within a [Repository] which can cascade through a list of data
   /// sources, treating each as a write-through cache.
@@ -65,4 +65,8 @@ class Repository<T extends Model> extends DataContract<T> {
   /// Releases any open resources like stream subscriptions.
   @mustCallSuper
   void close() {}
+
+  @override
+  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details) =>
+      sourceList.delete(id, details);
 }

@@ -42,15 +42,3 @@ class RegisterRequest extends WriteApiRequest {
     required String password,
   }) : super(body: {'email': email, 'password': password});
 }
-
-/// {@template UpdateProfileRequest}
-/// Submits a load profile request to a [RestApi].
-/// {@endtemplate}
-class UpdateProfileRequest extends AuthenticatedWriteApiRequest {
-  /// {@macro UpdateProfileRequest}
-  UpdateProfileRequest({
-    required super.url,
-    required super.user,
-    required BaseUser profile,
-  }) : super(body: profile.toJson());
-}

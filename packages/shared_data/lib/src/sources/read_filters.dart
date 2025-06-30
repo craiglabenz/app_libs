@@ -7,7 +7,7 @@ import 'package:shared_data/shared_data.dart';
 /// function they can run on each instance; whereas remote sources will use
 /// [toParams] to include these filters in the [ApiRequest].
 /// {@endtemplate}
-abstract class ReadFilter<T extends Model> extends Equatable {
+abstract class ReadFilter<T> extends Equatable {
   /// {@macro ReadFilter}
   const ReadFilter();
 
@@ -21,28 +21,4 @@ abstract class ReadFilter<T extends Model> extends Equatable {
 
   /// Variant of [hashCode] with persistent Ids across application launches.
   CacheKey get cacheKey;
-}
-
-/// Filter for objects created since a given [DateTime].
-class CreatedSinceFilter<T extends CreatedAtModel> extends ReadFilter<T> {
-  /// Filter for objects created since a given [DateTime].
-  const CreatedSinceFilter(this.createdCutoff);
-
-  /// Earliest possibe creation time of satisfying instances.
-  final DateTime createdCutoff;
-
-  @override
-  bool predicate(T obj) =>
-      obj.createdAt != null &&
-      obj.createdAt!.difference(createdCutoff) > Duration.zero;
-
-  @override
-  Map<String, String> toParams() =>
-      {'createdSince': createdCutoff.toIso8601String()};
-
-  @override
-  List<Object?> get props => [createdCutoff.toIso8601String()];
-
-  @override
-  CacheKey get cacheKey => createdCutoff.toIso8601String();
 }

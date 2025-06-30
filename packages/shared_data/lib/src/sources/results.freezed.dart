@@ -14,7 +14,7 @@ part of 'results.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$WriteResult<T extends Model> {
+mixin _$WriteResult<T> {
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -31,13 +31,13 @@ mixin _$WriteResult<T extends Model> {
 }
 
 /// @nodoc
-class $WriteResultCopyWith<T extends Model, $Res> {
+class $WriteResultCopyWith<T, $Res> {
   $WriteResultCopyWith(WriteResult<T> _, $Res Function(WriteResult<T>) __);
 }
 
 /// @nodoc
 
-class WriteSuccess<T extends Model> extends WriteResult<T> {
+class WriteSuccess<T> extends WriteResult<T> {
   const WriteSuccess(this.item, {required this.details}) : super._();
 
   final T item;
@@ -70,7 +70,7 @@ class WriteSuccess<T extends Model> extends WriteResult<T> {
 }
 
 /// @nodoc
-abstract mixin class $WriteSuccessCopyWith<T extends Model, $Res>
+abstract mixin class $WriteSuccessCopyWith<T, $Res>
     implements $WriteResultCopyWith<T, $Res> {
   factory $WriteSuccessCopyWith(
           WriteSuccess<T> value, $Res Function(WriteSuccess<T>) _then) =
@@ -80,7 +80,7 @@ abstract mixin class $WriteSuccessCopyWith<T extends Model, $Res>
 }
 
 /// @nodoc
-class _$WriteSuccessCopyWithImpl<T extends Model, $Res>
+class _$WriteSuccessCopyWithImpl<T, $Res>
     implements $WriteSuccessCopyWith<T, $Res> {
   _$WriteSuccessCopyWithImpl(this._self, this._then);
 
@@ -91,11 +91,11 @@ class _$WriteSuccessCopyWithImpl<T extends Model, $Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? item = null,
+    Object? item = freezed,
     Object? details = null,
   }) {
     return _then(WriteSuccess<T>(
-      null == item
+      freezed == item
           ? _self.item
           : item // ignore: cast_nullable_to_non_nullable
               as T,
@@ -109,7 +109,7 @@ class _$WriteSuccessCopyWithImpl<T extends Model, $Res>
 
 /// @nodoc
 
-class WriteFailure<T extends Model> extends WriteResult<T> {
+class WriteFailure<T> extends WriteResult<T> {
   const WriteFailure(this.reason, this.message) : super._();
 
   final FailureReason reason;
@@ -141,7 +141,7 @@ class WriteFailure<T extends Model> extends WriteResult<T> {
 }
 
 /// @nodoc
-abstract mixin class $WriteFailureCopyWith<T extends Model, $Res>
+abstract mixin class $WriteFailureCopyWith<T, $Res>
     implements $WriteResultCopyWith<T, $Res> {
   factory $WriteFailureCopyWith(
           WriteFailure<T> value, $Res Function(WriteFailure<T>) _then) =
@@ -151,7 +151,7 @@ abstract mixin class $WriteFailureCopyWith<T extends Model, $Res>
 }
 
 /// @nodoc
-class _$WriteFailureCopyWithImpl<T extends Model, $Res>
+class _$WriteFailureCopyWithImpl<T, $Res>
     implements $WriteFailureCopyWith<T, $Res> {
   _$WriteFailureCopyWithImpl(this._self, this._then);
 
@@ -179,7 +179,7 @@ class _$WriteFailureCopyWithImpl<T extends Model, $Res>
 }
 
 /// @nodoc
-mixin _$WriteListResult<T extends Model> {
+mixin _$WriteListResult<T> {
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -196,14 +196,14 @@ mixin _$WriteListResult<T extends Model> {
 }
 
 /// @nodoc
-class $WriteListResultCopyWith<T extends Model, $Res> {
+class $WriteListResultCopyWith<T, $Res> {
   $WriteListResultCopyWith(
       WriteListResult<T> _, $Res Function(WriteListResult<T>) __);
 }
 
 /// @nodoc
 
-class WriteListSuccess<T extends Model> extends WriteListResult<T> {
+class WriteListSuccess<T> extends WriteListResult<T> {
   const WriteListSuccess(this.items, {required this.details}) : super._();
 
   final Iterable<T> items;
@@ -236,7 +236,7 @@ class WriteListSuccess<T extends Model> extends WriteListResult<T> {
 }
 
 /// @nodoc
-abstract mixin class $WriteListSuccessCopyWith<T extends Model, $Res>
+abstract mixin class $WriteListSuccessCopyWith<T, $Res>
     implements $WriteListResultCopyWith<T, $Res> {
   factory $WriteListSuccessCopyWith(
           WriteListSuccess<T> value, $Res Function(WriteListSuccess<T>) _then) =
@@ -246,7 +246,7 @@ abstract mixin class $WriteListSuccessCopyWith<T extends Model, $Res>
 }
 
 /// @nodoc
-class _$WriteListSuccessCopyWithImpl<T extends Model, $Res>
+class _$WriteListSuccessCopyWithImpl<T, $Res>
     implements $WriteListSuccessCopyWith<T, $Res> {
   _$WriteListSuccessCopyWithImpl(this._self, this._then);
 
@@ -275,7 +275,7 @@ class _$WriteListSuccessCopyWithImpl<T extends Model, $Res>
 
 /// @nodoc
 
-class WriteListFailure<T extends Model> extends WriteListResult<T> {
+class WriteListFailure<T> extends WriteListResult<T> {
   const WriteListFailure(this.reason, this.message) : super._();
 
   final FailureReason reason;
@@ -307,7 +307,7 @@ class WriteListFailure<T extends Model> extends WriteListResult<T> {
 }
 
 /// @nodoc
-abstract mixin class $WriteListFailureCopyWith<T extends Model, $Res>
+abstract mixin class $WriteListFailureCopyWith<T, $Res>
     implements $WriteListResultCopyWith<T, $Res> {
   factory $WriteListFailureCopyWith(
           WriteListFailure<T> value, $Res Function(WriteListFailure<T>) _then) =
@@ -317,7 +317,7 @@ abstract mixin class $WriteListFailureCopyWith<T extends Model, $Res>
 }
 
 /// @nodoc
-class _$WriteListFailureCopyWithImpl<T extends Model, $Res>
+class _$WriteListFailureCopyWithImpl<T, $Res>
     implements $WriteListFailureCopyWith<T, $Res> {
   _$WriteListFailureCopyWithImpl(this._self, this._then);
 
@@ -345,7 +345,164 @@ class _$WriteListFailureCopyWithImpl<T extends Model, $Res>
 }
 
 /// @nodoc
-mixin _$ReadResult<T extends Model> {
+mixin _$DeleteResult<T> {
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is DeleteResult<T>);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'DeleteResult<$T>()';
+  }
+}
+
+/// @nodoc
+class $DeleteResultCopyWith<T, $Res> {
+  $DeleteResultCopyWith(DeleteResult<T> _, $Res Function(DeleteResult<T>) __);
+}
+
+/// @nodoc
+
+class DeleteSuccess<T> extends DeleteResult<T> {
+  const DeleteSuccess(this.details) : super._();
+
+  final RequestDetails<T> details;
+
+  /// Create a copy of DeleteResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $DeleteSuccessCopyWith<T, DeleteSuccess<T>> get copyWith =>
+      _$DeleteSuccessCopyWithImpl<T, DeleteSuccess<T>>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is DeleteSuccess<T> &&
+            (identical(other.details, details) || other.details == details));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, details);
+
+  @override
+  String toString() {
+    return 'DeleteResult<$T>.success(details: $details)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $DeleteSuccessCopyWith<T, $Res>
+    implements $DeleteResultCopyWith<T, $Res> {
+  factory $DeleteSuccessCopyWith(
+          DeleteSuccess<T> value, $Res Function(DeleteSuccess<T>) _then) =
+      _$DeleteSuccessCopyWithImpl;
+  @useResult
+  $Res call({RequestDetails<T> details});
+}
+
+/// @nodoc
+class _$DeleteSuccessCopyWithImpl<T, $Res>
+    implements $DeleteSuccessCopyWith<T, $Res> {
+  _$DeleteSuccessCopyWithImpl(this._self, this._then);
+
+  final DeleteSuccess<T> _self;
+  final $Res Function(DeleteSuccess<T>) _then;
+
+  /// Create a copy of DeleteResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? details = null,
+  }) {
+    return _then(DeleteSuccess<T>(
+      null == details
+          ? _self.details
+          : details // ignore: cast_nullable_to_non_nullable
+              as RequestDetails<T>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class DeleteFailure<T> extends DeleteResult<T> {
+  const DeleteFailure(this.reason, this.message) : super._();
+
+  final FailureReason reason;
+  final String message;
+
+  /// Create a copy of DeleteResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $DeleteFailureCopyWith<T, DeleteFailure<T>> get copyWith =>
+      _$DeleteFailureCopyWithImpl<T, DeleteFailure<T>>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is DeleteFailure<T> &&
+            (identical(other.reason, reason) || other.reason == reason) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, reason, message);
+
+  @override
+  String toString() {
+    return 'DeleteResult<$T>.failure(reason: $reason, message: $message)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $DeleteFailureCopyWith<T, $Res>
+    implements $DeleteResultCopyWith<T, $Res> {
+  factory $DeleteFailureCopyWith(
+          DeleteFailure<T> value, $Res Function(DeleteFailure<T>) _then) =
+      _$DeleteFailureCopyWithImpl;
+  @useResult
+  $Res call({FailureReason reason, String message});
+}
+
+/// @nodoc
+class _$DeleteFailureCopyWithImpl<T, $Res>
+    implements $DeleteFailureCopyWith<T, $Res> {
+  _$DeleteFailureCopyWithImpl(this._self, this._then);
+
+  final DeleteFailure<T> _self;
+  final $Res Function(DeleteFailure<T>) _then;
+
+  /// Create a copy of DeleteResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? reason = null,
+    Object? message = null,
+  }) {
+    return _then(DeleteFailure<T>(
+      null == reason
+          ? _self.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as FailureReason,
+      null == message
+          ? _self.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+mixin _$ReadResult<T> {
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -362,13 +519,13 @@ mixin _$ReadResult<T extends Model> {
 }
 
 /// @nodoc
-class $ReadResultCopyWith<T extends Model, $Res> {
+class $ReadResultCopyWith<T, $Res> {
   $ReadResultCopyWith(ReadResult<T> _, $Res Function(ReadResult<T>) __);
 }
 
 /// @nodoc
 
-class ReadSuccess<T extends Model> extends ReadResult<T> {
+class ReadSuccess<T> extends ReadResult<T> {
   const ReadSuccess(this.item, {required this.details}) : super._();
 
   final T? item;
@@ -401,7 +558,7 @@ class ReadSuccess<T extends Model> extends ReadResult<T> {
 }
 
 /// @nodoc
-abstract mixin class $ReadSuccessCopyWith<T extends Model, $Res>
+abstract mixin class $ReadSuccessCopyWith<T, $Res>
     implements $ReadResultCopyWith<T, $Res> {
   factory $ReadSuccessCopyWith(
           ReadSuccess<T> value, $Res Function(ReadSuccess<T>) _then) =
@@ -411,7 +568,7 @@ abstract mixin class $ReadSuccessCopyWith<T extends Model, $Res>
 }
 
 /// @nodoc
-class _$ReadSuccessCopyWithImpl<T extends Model, $Res>
+class _$ReadSuccessCopyWithImpl<T, $Res>
     implements $ReadSuccessCopyWith<T, $Res> {
   _$ReadSuccessCopyWithImpl(this._self, this._then);
 
@@ -440,7 +597,7 @@ class _$ReadSuccessCopyWithImpl<T extends Model, $Res>
 
 /// @nodoc
 
-class ReadFailure<T extends Model> extends ReadResult<T> {
+class ReadFailure<T> extends ReadResult<T> {
   const ReadFailure(this.reason, this.message) : super._();
 
   final FailureReason reason;
@@ -472,7 +629,7 @@ class ReadFailure<T extends Model> extends ReadResult<T> {
 }
 
 /// @nodoc
-abstract mixin class $ReadFailureCopyWith<T extends Model, $Res>
+abstract mixin class $ReadFailureCopyWith<T, $Res>
     implements $ReadResultCopyWith<T, $Res> {
   factory $ReadFailureCopyWith(
           ReadFailure<T> value, $Res Function(ReadFailure<T>) _then) =
@@ -482,7 +639,7 @@ abstract mixin class $ReadFailureCopyWith<T extends Model, $Res>
 }
 
 /// @nodoc
-class _$ReadFailureCopyWithImpl<T extends Model, $Res>
+class _$ReadFailureCopyWithImpl<T, $Res>
     implements $ReadFailureCopyWith<T, $Res> {
   _$ReadFailureCopyWithImpl(this._self, this._then);
 
@@ -510,7 +667,7 @@ class _$ReadFailureCopyWithImpl<T extends Model, $Res>
 }
 
 /// @nodoc
-mixin _$ReadListResult<T extends Model> {
+mixin _$ReadListResult<T> {
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -527,14 +684,14 @@ mixin _$ReadListResult<T extends Model> {
 }
 
 /// @nodoc
-class $ReadListResultCopyWith<T extends Model, $Res> {
+class $ReadListResultCopyWith<T, $Res> {
   $ReadListResultCopyWith(
       ReadListResult<T> _, $Res Function(ReadListResult<T>) __);
 }
 
 /// @nodoc
 
-class ReadListSuccess<T extends Model> extends ReadListResult<T> {
+class ReadListSuccess<T> extends ReadListResult<T> {
   const ReadListSuccess(
       {required this.items,
       required final Map<String, T> itemsMap,
@@ -595,7 +752,7 @@ class ReadListSuccess<T extends Model> extends ReadListResult<T> {
 }
 
 /// @nodoc
-abstract mixin class $ReadListSuccessCopyWith<T extends Model, $Res>
+abstract mixin class $ReadListSuccessCopyWith<T, $Res>
     implements $ReadListResultCopyWith<T, $Res> {
   factory $ReadListSuccessCopyWith(
           ReadListSuccess<T> value, $Res Function(ReadListSuccess<T>) _then) =
@@ -609,7 +766,7 @@ abstract mixin class $ReadListSuccessCopyWith<T extends Model, $Res>
 }
 
 /// @nodoc
-class _$ReadListSuccessCopyWithImpl<T extends Model, $Res>
+class _$ReadListSuccessCopyWithImpl<T, $Res>
     implements $ReadListSuccessCopyWith<T, $Res> {
   _$ReadListSuccessCopyWithImpl(this._self, this._then);
 
@@ -648,7 +805,7 @@ class _$ReadListSuccessCopyWithImpl<T extends Model, $Res>
 
 /// @nodoc
 
-class ReadListFailure<T extends Model> extends ReadListResult<T> {
+class ReadListFailure<T> extends ReadListResult<T> {
   const ReadListFailure(this.reason, this.message) : super._();
 
   final FailureReason reason;
@@ -680,7 +837,7 @@ class ReadListFailure<T extends Model> extends ReadListResult<T> {
 }
 
 /// @nodoc
-abstract mixin class $ReadListFailureCopyWith<T extends Model, $Res>
+abstract mixin class $ReadListFailureCopyWith<T, $Res>
     implements $ReadListResultCopyWith<T, $Res> {
   factory $ReadListFailureCopyWith(
           ReadListFailure<T> value, $Res Function(ReadListFailure<T>) _then) =
@@ -690,7 +847,7 @@ abstract mixin class $ReadListFailureCopyWith<T extends Model, $Res>
 }
 
 /// @nodoc
-class _$ReadListFailureCopyWithImpl<T extends Model, $Res>
+class _$ReadListFailureCopyWithImpl<T, $Res>
     implements $ReadListFailureCopyWith<T, $Res> {
   _$ReadListFailureCopyWithImpl(this._self, this._then);
 

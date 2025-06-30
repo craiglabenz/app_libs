@@ -1,16 +1,15 @@
 import 'package:shared_data/shared_data.dart';
 import 'package:test/test.dart';
 
-class Nested extends Model {
-  Nested({required super.id, required this.body});
+class Nested {
+  Nested({required this.id, required this.body});
 
+  final String? id;
   final String body;
 
-  // Doesn't matter
-  @override
-  Map<String, dynamic> toJson() => {};
-
   static Bindings<Nested> get bindings => Bindings<Nested>(
+        getId: (Nested obj) => obj.id,
+        toJson: (Nested obj) => Json(), // doesn't matter
         fromJson: (Json data) => Nested(
           id: data['id'] as String?,
           body: data['body']! as String,
@@ -20,30 +19,24 @@ class Nested extends Model {
       );
 }
 
-class WithNestedDetail extends Model {
+class WithNestedDetail {
   WithNestedDetail({
-    required super.id,
+    required this.id,
     required this.comment,
   });
 
+  final String? id;
   final RelatedModel<Nested> comment;
-
-  // Doesn't matter
-  @override
-  Map<String, dynamic> toJson() => {};
 }
 
-class WithNestedList extends Model {
+class WithNestedList {
   WithNestedList({
-    required super.id,
+    required this.id,
     required this.comments,
   });
 
+  final String? id;
   final RelatedModelList<Nested> comments;
-
-  // Doesn't matter
-  @override
-  Map<String, dynamic> toJson() => {};
 }
 
 void main() {
@@ -58,6 +51,8 @@ void main() {
         body: data['body'] as String,
       ),
       getListUrl: () => const ApiUrl(path: '/nested'),
+      toJson: (Nested obj) => {},
+      getId: (Nested obj) => obj.id,
     ),
   );
 

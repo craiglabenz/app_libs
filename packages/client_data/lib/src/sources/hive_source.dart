@@ -11,12 +11,15 @@ abstract class HiveInitializer with ReadinessMixin<bool> {
 
 /// {@template HiveSource}
 /// {@endtemplate}
-class HiveSource<T extends Model> extends LocalSource<T>
-    with ReadinessMixin<void> {
+class HiveSource<T> extends LocalSource<T> with ReadinessMixin<void> {
   /// {@macro HiveSource}
-  factory HiveSource({required Bindings<T> bindings, IdBuilder? idBuilder}) {
+  factory HiveSource({
+    required Bindings<T> bindings,
+    IdBuilder<T>? idBuilder,
+  }) {
     final hiveItemsPersistence = HiveItemsPersistence<T>(
       bindings.getListUrl().path,
+      bindings.getId,
     );
     final hiveCachePersistence = HiveCachePersistence(
       bindings.getListUrl().path,
@@ -24,13 +27,14 @@ class HiveSource<T extends Model> extends LocalSource<T>
     return HiveSource._(
         hiveItemsPersistence,
         hiveCachePersistence,
-        bindings: bindings,
         idBuilder: idBuilder,
+        bindings: bindings,
       )
       .._hiveItemsPersistence = hiveItemsPersistence
       .._hiveCachePersistence = hiveCachePersistence;
   }
 
+  // ignore: use_super_parameters
   HiveSource._(
     HiveItemsPersistence<T> itemsPersistence,
     HiveCachePersistence cachePersistence, {
@@ -51,11 +55,12 @@ class HiveSource<T extends Model> extends LocalSource<T>
   }
 }
 
-class HiveItemsPersistence<T extends Model> extends LocalSourcePersistence<T>
+class HiveItemsPersistence<T> extends LocalSourcePersistence<T>
     with ReadinessMixin<void> {
-  HiveItemsPersistence(this.name);
+  HiveItemsPersistence(this.name, this.getId);
 
   final String name;
+  String? Function(T) getId;
 
   late final Box<T> _itemsBox;
 
@@ -87,9 +92,12 @@ class HiveItemsPersistence<T extends Model> extends LocalSourcePersistence<T>
 
   @override
   void setItem(T item, {required bool shouldOverwrite}) {
-    assert(item.id != null, 'Checking for null Id in Hive box - unsafe!');
-    if (shouldOverwrite || _itemsBox.get(item.id) == null) {
-      _itemsBox.put(item.id, item);
+    assert(
+      getId(item) != null,
+      'Checking for null Id in Hive box - unsafe!',
+    );
+    if (shouldOverwrite || _itemsBox.get(getId(item)) == null) {
+      _itemsBox.put(getId(item), item);
     }
   }
 
@@ -210,7 +218,7 @@ class HiveCachePersistence extends CachePersistence with ReadinessMixin<void> {
 
 /// {@template HiveSource}
 /// {@endtemplate}
-// class HiveSource<T extends Model> extends LocalSource<T> {
+// class HiveSource<T> extends LocalSource<T> {
 //   /// {@macro HiveSource}
 //   // HiveSource({required this.bindings});
 
@@ -297,9 +305,9 @@ class HiveCachePersistence extends CachePersistence with ReadinessMixin<void> {
 //   @override
 //   Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) async {
 //     await _initialized.future;
-//     assert(item.id != null, 'Must only write objects with Ids to HiveSources');
+//     assert(bindings.getId(item) != null, 'Must only write objects with Ids to HiveSources');
 //     try {
-//       await _box.put(item.id, item);
+//       await _box.put(bindings.getId(item), item);
 //       return WriteSuccess<T>(item, details: details);
 //     } on Exception catch (e, st) {
 //       _log.severe('Failed to read $T list from Hive: $e\nStack Trace: $st');
@@ -316,10 +324,10 @@ class HiveCachePersistence extends CachePersistence with ReadinessMixin<void> {
 //       await _initialized.future;
 //       for (final item in items) {
 //         assert(
-//           item.id != null,
+//           bindings.getId(item) != null,
 //           'Must only write objects with Ids to HiveSources',
 //         );
-//         await _box.put(item.id, item);
+//         await _box.put(bindings.getId(item), item);
 //       }
 //       return WriteListSuccess<T>(items, details: details);
 //     } on Exception catch (e, st) {

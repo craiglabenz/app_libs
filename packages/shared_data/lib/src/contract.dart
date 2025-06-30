@@ -1,7 +1,7 @@
 import 'package:shared_data/shared_data.dart';
 
 /// Adds [getById] to a data contract.
-mixin ReadMixin<T extends Model> {
+mixin ReadMixin<T> {
   /// Loads the instance of [T] whose primary key is [id].
   Future<ReadResult<T>> getById(
     String id,
@@ -34,28 +34,30 @@ mixin ReadMixin<T extends Model> {
 }
 
 /// Introduces [setItem] to a data contract, but not [WriteMixin.setItems].
-mixin SingleWriteMixin<T extends Model> {
+mixin SingleWriteMixin<T> {
   /// Persists [item].
-  Future<WriteResult<T>> setItem(
-    T item,
-    RequestDetails<T> details,
-  );
+  Future<WriteResult<T>> setItem(T item, RequestDetails<T> details);
 }
 
 /// Introduces [setItem] and [setItems] to a data contract.
-mixin WriteMixin<T extends Model> {
+mixin WriteMixin<T> {
   /// Persists [item].
-  Future<WriteResult<T>> setItem(
-    T item,
-    RequestDetails<T> details,
-  );
+  Future<WriteResult<T>> setItem(T item, RequestDetails<T> details);
 
   /// Persists all [items].
   Future<WriteListResult<T>> setItems(
     Iterable<T> items,
     RequestDetails<T> details,
   );
+
+  /// Clears an item with the given [id] if one exists.
+  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details);
 }
 
+/// {@template DataContract}
 /// Outline of core methods to which all data loaders must adhere.
-abstract class DataContract<T extends Model> with ReadMixin<T>, WriteMixin<T> {}
+/// {@endtemplate}
+abstract class DataContract<T> with ReadMixin<T>, WriteMixin<T> {
+  /// {@macro DataContract}
+  const DataContract();
+}

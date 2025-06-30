@@ -38,12 +38,14 @@ void main() {
     setUp(() {
       cache = MockCachePersistence();
       mem = LocalSource<TestModel>(
-        InMemorySourcePersistence<TestModel>(),
+        InMemorySourcePersistence<TestModel>(
+          TestModel.bindings.getId,
+        ),
         InMemoryCachePersistence(),
         bindings: TestModel.bindings,
       );
       mockMem = LocalSource<TestModel>(
-        InMemorySourcePersistence<TestModel>(),
+        InMemorySourcePersistence<TestModel>(TestModel.bindings.getId),
         cache,
         bindings: TestModel.bindings,
       );
@@ -125,12 +127,12 @@ void main() {
     setUp(() {
       cache = MockCachePersistence();
       mem = LocalSource<TestModel>(
-        InMemorySourcePersistence<TestModel>(),
+        InMemorySourcePersistence<TestModel>(TestModel.bindings.getId),
         InMemoryCachePersistence(),
         bindings: TestModel.bindings,
       );
       mockMem = LocalSource<TestModel>(
-        InMemorySourcePersistence<TestModel>(),
+        InMemorySourcePersistence<TestModel>(TestModel.bindings.getId),
         cache,
         bindings: TestModel.bindings,
       );
@@ -406,11 +408,16 @@ void main() {
         {item.id!, item2.id!},
         details,
       );
-      expect(maybeResult, isA<ReadListSuccess>());
+      expect(maybeResult, isA<ReadListSuccess<TestModel>>());
       final result = maybeResult as ReadListSuccess<TestModel>;
       expect(
         result,
-        ReadListResult<TestModel>.fromList([item, item2], details, {}),
+        ReadListResult<TestModel>.fromList(
+          [item, item2],
+          details,
+          {},
+          TestModel.bindings.getId,
+        ),
       );
     });
 
@@ -420,7 +427,7 @@ void main() {
         {item.id!, item2.id!, item3.id!},
         details,
       );
-      expect(maybeResult, isA<ReadListSuccess>());
+      expect(maybeResult, isA<ReadListSuccess<TestModel>>());
       final result = maybeResult as ReadListSuccess<TestModel>;
       expect(
         result,
@@ -428,6 +435,7 @@ void main() {
           [item, item2],
           details,
           {item3.id!},
+          TestModel.bindings.getId,
         ),
       );
     });
@@ -450,7 +458,12 @@ void main() {
       );
       expect(
         maybeResult,
-        ReadListResult<TestModel>.fromList([item, item2], details, {}),
+        ReadListResult<TestModel>.fromList(
+          [item, item2],
+          details,
+          {},
+          TestModel.bindings.getId,
+        ),
       );
     });
 
@@ -474,7 +487,12 @@ void main() {
       final result = maybeResult as ReadListSuccess;
       expect(
         result,
-        ReadListResult<TestModel>.fromList([item, item2], details, {}),
+        ReadListResult<TestModel>.fromList(
+          [item, item2],
+          details,
+          {},
+          TestModel.bindings.getId,
+        ),
       );
     });
 
@@ -495,7 +513,7 @@ void main() {
   group('LocalMemorySource.requestCache should', () {
     setUp(() {
       mem = LocalSource<TestModel>(
-        InMemorySourcePersistence<TestModel>(),
+        InMemorySourcePersistence<TestModel>(TestModel.bindings.getId),
         InMemoryCachePersistence(),
         bindings: TestModel.bindings,
       );

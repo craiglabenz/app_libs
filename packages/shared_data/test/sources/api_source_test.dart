@@ -43,7 +43,7 @@ void main() {
         },
       );
       final result = await src.getById('abc', RequestDetails());
-      expect(result, isA<ReadSuccess>());
+      expect(result, isA<ReadSuccess<TestModel>>());
       expect(
         (result as ReadSuccess).item,
         const TestModel(id: 'abc', msg: 'amazing'),
@@ -62,7 +62,7 @@ void main() {
         timer: BatchTimer(),
       );
       final result = await src.getById('abc', RequestDetails());
-      expect(result, isA<ReadSuccess>());
+      expect(result, isA<ReadSuccess<TestModel>>());
       expect(
         (result as ReadSuccess).item,
         const TestModel(id: 'abc', msg: 'amazing'),
@@ -82,7 +82,7 @@ void main() {
           },
         );
         final result = await src.getById('abc', RequestDetails());
-        expect(result, isA<ReadSuccess>());
+        expect(result, isA<ReadSuccess<TestModel>>());
         expect((result as ReadSuccess).item, null);
       },
       timeout: const Timeout(Duration(milliseconds: 50)),
@@ -108,7 +108,7 @@ void main() {
         },
       );
       final result = await src.getByIds({'abc', 'xyz'}, RequestDetails());
-      expect(result, isA<ReadListSuccess>());
+      expect(result, isA<ReadListSuccess<TestModel>>());
       final items = (result as ReadListSuccess).items;
       expect(items.first, const TestModel(id: 'abc', msg: 'amazing'));
       expect(items.last, const TestModel(id: 'xyz', msg: 'pretty good'));
@@ -131,7 +131,7 @@ void main() {
         },
       );
       final result = await src.getByIds({'abc', 'xyz'}, RequestDetails());
-      expect(result, isA<ReadListSuccess>());
+      expect(result, isA<ReadListSuccess<TestModel>>());
       final success = result as ReadListSuccess;
       final items = success.items;
       expect(items.first, const TestModel(id: 'abc', msg: 'amazing'));
@@ -149,7 +149,7 @@ void main() {
         },
       );
       final result = await src.getByIds({'abc', 'xyz'}, RequestDetails());
-      expect(result, isA<ReadListSuccess>());
+      expect(result, isA<ReadListSuccess<TestModel>>());
       final success = result as ReadListSuccess;
       final items = success.items;
       expect(items, isEmpty);
@@ -168,7 +168,7 @@ void main() {
         },
       );
       final result = await src.getByIds({'abc', 'xyz'}, RequestDetails());
-      expect(result, isA<ReadListFailure>());
+      expect(result, isA<ReadListFailure<TestModel>>());
     });
   });
 }

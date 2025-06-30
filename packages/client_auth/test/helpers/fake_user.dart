@@ -10,14 +10,5 @@ class FakeUser extends BaseUser {
         username: json['username']! as String,
       );
 
-  @override
   Json toJson() => {'id': id, 'username': username};
-}
-
-class FakeUserBindings extends Bindings<FakeUser> {
-  FakeUserBindings({
-    required super.fromJson,
-    required super.getDetailUrl,
-    required super.getListUrl,
-  });
 }

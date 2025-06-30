@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'package:shared_data/shared_data.dart';
 
-class TestModel extends Model {
-  const TestModel({required super.id, this.msg = defaultMessage});
+class TestModel {
+  const TestModel({required this.id, this.msg = defaultMessage});
 
   factory TestModel.randomId([String msg = defaultMessage]) => TestModel(
         id: Random().nextDouble().toString(),
@@ -13,11 +13,12 @@ class TestModel extends Model {
         id: json['id'] as String?,
         msg: json['msg'] as String,
       );
+
+  final String? id;
   final String msg;
 
   static const defaultMessage = 'default';
 
-  @override
   Map<String, dynamic> toJson() => {'id': id, 'msg': msg};
 
   @override
@@ -40,6 +41,8 @@ class TestModel extends Model {
     fromJson: TestModel.fromJson,
     getDetailUrl: (id) => ApiUrl(path: 'test/$id'),
     getListUrl: () => const ApiUrl(path: 'test/'),
+    toJson: (TestModel obj) => obj.toJson(),
+    getId: (TestModel obj) => obj.id,
   );
 }
 
@@ -58,7 +61,7 @@ class MsgStartsWithFilter<T extends TestModel> extends ReadFilter<T> {
   CacheKey get cacheKey => value;
 }
 
-class FakeSourceList<T extends Model> extends SourceList<T> {
+class FakeSourceList<T> extends SourceList<T> {
   FakeSourceList(Bindings<T> bindings)
       : super(
           bindings: bindings,
@@ -82,11 +85,13 @@ class FakeSourceList<T extends Model> extends SourceList<T> {
     Set<String> ids,
     RequestDetails<T> details,
   ) =>
-      Future.value(ReadListResult<T>.fromList([objs.first], details, {}));
+      Future.value(
+        ReadListResult<T>.fromList([objs.first], details, {}, bindings.getId),
+      );
 
   @override
   Future<ReadListResult<T>> getItems(RequestDetails<T> details) => Future.value(
-        ReadListResult<T>.fromList([objs.first], details, {}),
+        ReadListResult<T>.fromList([objs.first], details, {}, bindings.getId),
       );
 
   @override
@@ -105,19 +110,21 @@ class FakeSourceList<T extends Model> extends SourceList<T> {
 ///
 /// Not the most performant class, as this re-serializes the model. Best used
 /// only for tests.
-class FieldEquals<T extends Model> extends ReadFilter<T> {
-  const FieldEquals(this.fieldName, this.value);
+class FieldEquals<T, F> extends ReadFilter<T> {
+  const FieldEquals(this.fieldName, this.value, this.getValue);
   final String fieldName;
-  final String value;
+  final F? value;
+  final F? Function(T) getValue;
 
   @override
-  bool predicate(T obj) => obj.toJson()[fieldName] == value;
+  bool predicate(T obj) => getValue(obj) == value;
 
   @override
   List<Object?> get props => [fieldName, value, T.runtimeType];
 
   @override
-  Map<String, String> toParams() => <String, String>{fieldName: value};
+  Map<String, String> toParams() =>
+      <String, String>{fieldName: value.toString()};
 
   @override
   CacheKey get cacheKey => '$fieldName-equals-$value';

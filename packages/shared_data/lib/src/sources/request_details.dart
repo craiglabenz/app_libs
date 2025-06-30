@@ -9,7 +9,7 @@ typedef CacheKey = String;
 /// Container for meta-information a [Source] will use to return the desired
 /// data.
 /// {@endtemplate}
-class RequestDetails<T extends Model> extends Equatable {
+class RequestDetails<T> extends Equatable {
   /// {@macro RequestDetails}
   RequestDetails({
     this.filters = const [],
@@ -85,6 +85,7 @@ class RequestDetails<T extends Model> extends Equatable {
   CacheKey _getCacheKey() =>
       Crypt.sha256(getCacheKeyInputs(), rounds: 1, salt: '').hash;
 
+  /// Used to assemble all the inputs to this object's full cache key.
   String getCacheKeyInputs() => <String>[
         ...filters.map<CacheKey>((filter) => filter.cacheKey),
         pagination?.cacheKey ?? '',
@@ -93,6 +94,7 @@ class RequestDetails<T extends Model> extends Equatable {
   CacheKey _getNoPaginationCacheKey() =>
       Crypt.sha256(getNoPaginationCacheKeyInputs(), rounds: 1, salt: '').hash;
 
+  /// Used to assemble all the inputs to this object's no-pagination cache key.
   String getNoPaginationCacheKeyInputs() => [
         ...filters.map<CacheKey>((filter) => filter.cacheKey),
         // '', // to represent `null` pagination

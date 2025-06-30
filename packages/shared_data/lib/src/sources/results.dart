@@ -22,7 +22,7 @@ enum FailureReason {
 /// {@template WriteResult}
 /// {@endtemplate}
 @Freezed()
-sealed class WriteResult<T extends Model> with _$WriteResult<T> {
+sealed class WriteResult<T> with _$WriteResult<T> {
   const WriteResult._();
 
   /// {@template WriteSuccess}
@@ -78,7 +78,7 @@ sealed class WriteResult<T extends Model> with _$WriteResult<T> {
 /// {@template WriteListResult}
 /// {@endtemplate}
 @Freezed()
-sealed class WriteListResult<T extends Model> with _$WriteListResult<T> {
+sealed class WriteListResult<T> with _$WriteListResult<T> {
   const WriteListResult._();
 
   /// {@template BulkWriteSuccess}
@@ -126,6 +126,43 @@ sealed class WriteListResult<T extends Model> with _$WriteListResult<T> {
   }
 }
 
+//////////??///////
+/// DELETE RESULTS
+////////////??/////
+
+/// {@template WriteResult}
+/// {@endtemplate}
+@Freezed()
+sealed class DeleteResult<T> with _$DeleteResult<T> {
+  const DeleteResult._();
+
+  /// {@template BulkWriteSuccess}
+  /// Container for a bulk write request which did not encounter any errors.
+  /// {@endtemplate}
+  const factory DeleteResult.success(RequestDetails<T> details) = DeleteSuccess;
+
+  /// {@macro RequestFailure}
+  const factory DeleteResult.failure(
+    FailureReason reason,
+    String message,
+  ) = DeleteFailure;
+
+  /// {@macro fromApiError}
+  factory DeleteResult.fromApiError(ApiError e) {
+    if (e.statusCode >= HttpStatus.badRequest &&
+        e.statusCode < HttpStatus.internalServerError) {
+      return DeleteFailure(FailureReason.badRequest, e.error.plain);
+    } else if (e.statusCode >= HttpStatus.internalServerError) {
+      return DeleteFailure(FailureReason.serverError, e.error.plain);
+    }
+    // TODO(craiglabenz): Log `e.errorString`
+    return DeleteFailure(
+      FailureReason.serverError,
+      'Unexpected error: ${e.statusCode} ${e.error.plain}',
+    );
+  }
+}
+
 /////////////////
 /// READ RESULTS
 /////////////////
@@ -133,7 +170,7 @@ sealed class WriteListResult<T extends Model> with _$WriteListResult<T> {
 /// {@template ReadResult}
 /// {@endtemplate}
 @Freezed()
-sealed class ReadResult<T extends Model> with _$ReadResult<T> {
+sealed class ReadResult<T> with _$ReadResult<T> {
   /// Container for the results of a single object read that did not encounter
   /// any errors. Note that the requested object may be null, which is not an
   /// error.
@@ -203,7 +240,7 @@ sealed class ReadResult<T extends Model> with _$ReadResult<T> {
 /// {@template ReadListResult}
 /// {@endtemplate}
 @Freezed()
-sealed class ReadListResult<T extends Model> with _$ReadListResult<T> {
+sealed class ReadListResult<T> with _$ReadListResult<T> {
   /// Container for the results of a list read that did not encounter any
   /// errors. Note that the list of results may be empty, which is not an error.
   const factory ReadListResult({
@@ -233,10 +270,11 @@ sealed class ReadListResult<T extends Model> with _$ReadListResult<T> {
     Iterable<T> items,
     RequestDetails<T> details,
     Set<String> missingItemIds,
+    String? Function(T) getId,
   ) {
     final map = <String, T>{};
     for (final item in items) {
-      map[item.id!] = item;
+      map[getId(item)!] = item;
     }
     return ReadListSuccess(
       items: items,
@@ -250,7 +288,14 @@ sealed class ReadListResult<T extends Model> with _$ReadListResult<T> {
     RequestDetails<T> details, {
     Set<String> missingItemIds = const <String>{},
   }) =>
-      ReadListResult.fromList(<T>[], details, missingItemIds);
+      ReadListResult.fromList(
+        <T>[],
+        details,
+        missingItemIds,
+        (_) => throw Exception(
+          'Unexpectedly called getId from ReadListResult.empty',
+        ),
+      );
 
   /// {@macro RequestFailure}
   const factory ReadListResult.failure(
@@ -278,13 +323,9 @@ sealed class ReadListResult<T extends Model> with _$ReadListResult<T> {
   ReadListSuccess<T> getOrRaise() {
     switch (this) {
       case ReadListSuccess():
-        {
-          return this as ReadListSuccess<T>;
-        }
+        return this as ReadListSuccess<T>;
       case ReadListFailure():
-        {
-          throw Exception('Unexpected $runtimeType');
-        }
+        throw Exception('Unexpected $runtimeType');
     }
   }
 }

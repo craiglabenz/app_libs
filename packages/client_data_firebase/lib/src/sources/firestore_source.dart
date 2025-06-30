@@ -7,19 +7,16 @@ final _log = Logger('FirestoreSource');
 
 /// {@template FirestoreSource}
 /// {@endtemplate}
-class FirestoreSource<T extends Model> extends Source<T> {
+class FirestoreSource<T> extends Source<T> {
   /// {@macro FirestoreSource}
   FirestoreSource({
-    required this.bindings,
+    required super.bindings,
     FirebaseFirestore? db,
     this.idFieldName = 'id',
   }) : db = db ?? FirebaseFirestore.instance;
 
   /// Live connection to the Firestore database.
   final FirebaseFirestore db;
-
-  /// Meta-data provider for [T].
-  final Bindings<T> bindings;
 
   /// Field to manage when serializing and deserializing records for Firestore.
   ///
@@ -58,14 +55,13 @@ class FirestoreSource<T extends Model> extends Source<T> {
           return ReadListResult.empty(details, missingItemIds: ids);
         }
         final objs = _hydrateQuery(snapshot);
-        final nonNullIds = objs
-            .map<String?>((obj) => obj.id)
-            .where((id) => id != null)
-            .toSet();
+        final nonNullIds =
+            objs.map<String?>(bindings.getId).where((id) => id != null).toSet();
         return ReadListResult.fromList(
           objs,
           details,
           ids.difference(nonNullIds),
+          bindings.getId,
         );
       },
     );
@@ -83,6 +79,7 @@ class FirestoreSource<T extends Model> extends Source<T> {
         _hydrateQuery(snapshot),
         details,
         {},
+        bindings.getId,
       );
     } on FirebaseException catch (e) {
       _log.shout('Failed to get $T items');
@@ -100,9 +97,9 @@ class FirestoreSource<T extends Model> extends Source<T> {
     T item,
     RequestDetails<T> details,
   ) async {
-    if (item.id != null) {
+    if (bindings.getId(item) != null) {
       try {
-        await collection.doc(item.id).set(_serializeItem(item));
+        await collection.doc(bindings.getId(item)).set(_serializeItem(item));
         return (WriteSuccess(item, details: details), item);
       } on FirebaseException catch (e) {
         _log.shout('Failed to update $item');
@@ -165,7 +162,7 @@ class FirestoreSource<T extends Model> extends Source<T> {
     Iterable<T> items,
     RequestDetails<T> details,
   ) async {
-    final writeFutures = <Future<(WriteResult, T)>>[];
+    final writeFutures = <Future<(WriteResult<T>, T)>>[];
     for (final item in items) {
       writeFutures.add(_setItem(item, details));
     }
@@ -211,13 +208,13 @@ class FirestoreSource<T extends Model> extends Source<T> {
   }
 
   Json _serializeItem(T item) {
-    final serialized = item.toJson();
+    final serialized = bindings.toJson(item);
     if (serialized.containsKey(idFieldName)) {
       serialized.remove(idFieldName);
     }
     if (serialized.containsKey('createdAt') &&
         serialized['createdAt'] == null &&
-        item.id == null) {
+        bindings.getId(item) == null) {
       serialized['createdAt'] = FieldValue.serverTimestamp();
     }
     return serialized;
@@ -236,4 +233,16 @@ class FirestoreSource<T extends Model> extends Source<T> {
 
   @override
   SourceType get sourceType => SourceType.remote;
+
+  @override
+  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details) async {
+    try {
+      final ref = collection.doc(id);
+      await ref.delete();
+      return DeleteResult<T>.success(details);
+    } on FirebaseException catch (e) {
+      _log.shout('Failed to delete $T Id $id');
+      return DeleteFailure<T>(FailureReason.badRequest, e.code);
+    }
+  }
 }

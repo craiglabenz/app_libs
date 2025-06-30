@@ -17,6 +17,8 @@ Future<void> setUpTestingDI({
       fromJson: AuthUser.fromJson,
       getDetailUrl: (String id) => ApiUrl(path: 'authUsers/$id'),
       getListUrl: () => const ApiUrl(path: 'authUsers'),
+      toJson: (AuthUser obj) => obj.toJson(),
+      getId: (AuthUser obj) => obj.id,
     ),
   );
   GetIt.I.registerSingleton<StreamAuthService>(FakeFirebaseAuth());

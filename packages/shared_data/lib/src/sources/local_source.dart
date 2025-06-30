@@ -2,7 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// Function which can assign a new Id to an unsaved item.
-typedef IdBuilder = String Function(Object);
+typedef IdBuilder<T> = String Function(T);
 
 /// Interface for how a [LocalSource] persists its request cache data.
 abstract class CachePersistence {
@@ -50,7 +50,7 @@ abstract class CachePersistence {
 
 /// Engine of [LocalSource] which gives it its juice. Typical options are
 /// in-memory and `pkg:hive_ce`.
-abstract class LocalSourcePersistence<T extends Model> {
+abstract class LocalSourcePersistence<T> {
   /// Deletes all objects.
   void clear();
 
@@ -76,23 +76,20 @@ abstract class LocalSourcePersistence<T extends Model> {
 /// Flavor of [Source] which is entirely on-device. Exists to coordinate its
 /// [LocalSourcePersistence] and optional [CachePersistence].
 /// {@endtemplate}
-class LocalSource<T extends Model> extends Source<T> {
+class LocalSource<T> extends Source<T> {
   /// {@macro LocalSource}
   LocalSource(
     this._itemsPersistence,
     this._cachePersistence, {
-    required this.bindings,
+    required super.bindings,
     this.idBuilder,
   });
 
   final _log = Logger('$LocalSource<$T>');
 
-  /// Metadata and functions for working with instances of [T].
-  final Bindings<T> bindings;
-
   /// Function to assign fresh Ids to new records. Risky - this task is best
   /// completed by a server.
-  final IdBuilder? idBuilder;
+  final IdBuilder<T>? idBuilder;
 
   /// Warehouse for all known instances of [T].
   final LocalSourcePersistence<T> _itemsPersistence;
@@ -212,9 +209,15 @@ class LocalSource<T extends Model> extends Source<T> {
   ) async {
     details.assertEmpty('LocalSource<$T>.getByIds');
     final items = _itemsPersistence.getByIds(ids);
-    final foundItemIds = items.map<String>((item) => item.id!).toSet();
+    final foundItemIds =
+        items.map<String>((item) => bindings.getId(item)!).toSet();
     final missingItemIds = ids.difference(foundItemIds);
-    return ReadListResult<T>.fromList(items, details, missingItemIds);
+    return ReadListResult<T>.fromList(
+      items,
+      details,
+      missingItemIds,
+      bindings.getId,
+    );
   }
 
   @override
@@ -241,16 +244,16 @@ class LocalSource<T extends Model> extends Source<T> {
 
     final items = ids != null ? _itemsPersistence.getByIds(ids) : <T>[];
 
-    return ReadListResult.fromList(items, details, <String>{});
+    return ReadListResult.fromList(items, details, <String>{}, bindings.getId);
   }
 
-  T _generateId(T item) => bindings
-      .fromJson(item.toJson()..update('id', (value) => idBuilder!.call(item)));
+  T _generateId(T item) => bindings.fromJson(
+      bindings.toJson(item)..update('id', (value) => idBuilder!.call(item)));
 
   @override
   Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) async {
     var itemCopy = item;
-    if (itemCopy.id == null) {
+    if (bindings.getId(itemCopy) == null) {
       if (idBuilder == null) {
         _log.shout(
           'Failed to set Id to unsaved $itemCopy because idBuilder was null',
@@ -277,7 +280,7 @@ class LocalSource<T extends Model> extends Source<T> {
       return WriteListSuccess<T>(items, details: details);
     }
 
-    final itemIds = items.map<String>((item) => item.id!).toSet();
+    final itemIds = items.map<String>((item) => bindings.getId(item)!).toSet();
     if (details.pagination == null) {
       _log.finest('Caching $itemIds to ${details.cacheKey}');
       _cachePersistence.setCacheKey(details.cacheKey, itemIds);
@@ -295,5 +298,15 @@ class LocalSource<T extends Model> extends Source<T> {
     _itemsPersistence.setItems(items, shouldOverwrite: details.shouldOverwrite);
 
     return WriteListSuccess<T>(items, details: details);
+  }
+
+  @override
+  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details) {
+    assert(
+      details.requestType.includes(sourceType),
+      'Should not route ${details.requestType} request to $this',
+    );
+    deleteIds({id});
+    return Future.value(DeleteSuccess<T>(details));
   }
 }

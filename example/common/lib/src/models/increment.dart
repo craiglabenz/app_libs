@@ -15,21 +15,13 @@ part 'increment.g.dart';
 /// Historical record of a change to the app's count.
 /// {@endtemplate}
 @Freezed()
-class Increment extends Model with _$Increment {
+class Increment with _$Increment {
   /// {@macro Increment}
   const factory Increment({
     required String id,
     required int delta,
     required DateTime createdAt,
   }) = _Increment;
-
-  /// {@macro Increment}
-  ///
-  /// Companion classed used to create new [Increment] instances.
-  const factory Increment.create({
-    required int delta,
-    required DateTime createdAt,
-  }) = IncrementCreate;
 
   /// {@macro Increment}
   const Increment._();
@@ -39,7 +31,9 @@ class Increment extends Model with _$Increment {
 
   /// Yields the data [Bindings] for the [Increment] type.
   static Bindings<Increment> get bindings => Bindings<Increment>(
+        getId: (Increment obj) => obj.id,
         fromJson: Increment.fromJson,
+        toJson: (obj) => obj.toJson(),
         getDetailUrl: (String id) => ApiUrl(path: 'increments/$id'),
         getListUrl: () => const ApiUrl(path: 'increments'),
       );

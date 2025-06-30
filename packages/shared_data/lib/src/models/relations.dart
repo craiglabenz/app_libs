@@ -6,7 +6,7 @@ import 'package:shared_data/shared_data.dart';
 /// {@template relatedModel}
 /// Connection for a model to a single related object.
 /// {@endtemplate}
-class RelatedModel<T extends Model> extends Equatable {
+class RelatedModel<T> extends Equatable {
   /// {@macro relatedModel}
   RelatedModel({
     required this.id,
@@ -24,8 +24,8 @@ class RelatedModel<T extends Model> extends Equatable {
   Future<T?> get obj async {
     if (id == null) return null;
     final result = await repository.getById(id!, RequestDetails.read());
-    if (result is ReadSuccess) {
-      return (result as ReadSuccess).item as T?;
+    if (result is ReadSuccess<T>) {
+      return result.item;
     }
     // TODO(craiglabenz): Log this? How did we point to a missing item?
     return null;
@@ -41,7 +41,7 @@ class RelatedModel<T extends Model> extends Equatable {
 /// {@template relatedModels}
 /// Connection for a model to a list of related objects.
 /// {@endtemplate}
-class RelatedModelList<T extends Model> extends Equatable {
+class RelatedModelList<T> extends Equatable {
   /// {@macro relatedModels}
   RelatedModelList({
     required this.ids,
@@ -58,11 +58,11 @@ class RelatedModelList<T extends Model> extends Equatable {
   Future<Iterable<T>> get objs async {
     if (ids.isEmpty) return <T>[];
     final result = await repository.getByIds(ids, RequestDetails.read());
-    if (result is ReadListSuccess) {
-      if ((result as ReadListSuccess).missingItemIds.isNotEmpty) {
+    if (result is ReadListSuccess<T>) {
+      if (result.missingItemIds.isNotEmpty) {
         // TODO(craiglabenz): Log this
       }
-      return (result as ReadListSuccess).items.cast<T>();
+      return result.items;
     }
     // TODO(craiglabenz): Log this
     return <T>[];

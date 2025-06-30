@@ -224,18 +224,13 @@ void main() {
   });
 }
 
-class _TestModel extends Equatable implements Model {
+class _TestModel extends Equatable {
   const _TestModel({required this.name, this.id});
 
-  @override
   final String? id;
   final String name;
 
-  @override
   Json toJson() => id != null ? {'id': id, 'name': name} : {'name': name};
-
-  @override
-  Json serializeId() => {'id': id};
 
   static Bindings<_TestModel> get bindings => Bindings<_TestModel>(
         fromJson: (Map<String, Object?> data) => _TestModel(
@@ -244,6 +239,8 @@ class _TestModel extends Equatable implements Model {
         ),
         getDetailUrl: (String id) => ApiUrl(path: 'tests/$id'),
         getListUrl: () => const ApiUrl(path: 'tests'),
+        toJson: (_TestModel obj) => obj.toJson(),
+        getId: (_TestModel obj) => obj.id,
       );
 
   @override
