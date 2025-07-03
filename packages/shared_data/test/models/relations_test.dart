@@ -41,19 +41,8 @@ class WithNestedList {
 
 void main() {
   final nestedSourceList = SourceList(
-    sources: [
-      LocalMemorySource<Nested>(bindings: Nested.bindings),
-    ],
-    bindings: Bindings<Nested>(
-      getDetailUrl: (String id) => ApiUrl(path: '/nested/$id'),
-      fromJson: (Map<String, dynamic> data) => Nested(
-        id: data['id'] as String?,
-        body: data['body'] as String,
-      ),
-      getListUrl: () => const ApiUrl(path: '/nested'),
-      toJson: (Nested obj) => {},
-      getId: (Nested obj) => obj.id,
-    ),
+    sources: [LocalMemorySource<Nested>(bindings: Nested.bindings)],
+    bindings: Nested.bindings,
   );
 
   group('RelatedModel should', () {
@@ -61,10 +50,7 @@ void main() {
 
     setUpAll(() {
       nestedRepository = Repository<Nested>(nestedSourceList)
-        ..setItem(
-          Nested(id: 'abc', body: 'message here'),
-          RequestDetails.write(),
-        );
+        ..setItem(Nested(id: 'abc', body: 'message here'));
     });
 
     test('seamlessly load obj', () async {

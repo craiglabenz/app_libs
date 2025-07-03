@@ -23,12 +23,7 @@ class RelatedModel<T> extends Equatable {
   /// The related object in question, loaded from the [Repository].
   Future<T?> get obj async {
     if (id == null) return null;
-    final result = await repository.getById(id!, RequestDetails.read());
-    if (result is ReadSuccess<T>) {
-      return result.item;
-    }
-    // TODO(craiglabenz): Log this? How did we point to a missing item?
-    return null;
+    return repository.getById(id!);
   }
 
   @override
@@ -57,15 +52,11 @@ class RelatedModelList<T> extends Equatable {
   /// The related objects in question, loaded from the [Repository].
   Future<Iterable<T>> get objs async {
     if (ids.isEmpty) return <T>[];
-    final result = await repository.getByIds(ids, RequestDetails.read());
-    if (result is ReadListSuccess<T>) {
-      if (result.missingItemIds.isNotEmpty) {
-        // TODO(craiglabenz): Log this
-      }
-      return result.items;
+    final (items, missingIds) = await repository.getByIds(ids);
+    if (missingIds.isNotEmpty) {
+      // TODO(craiglabenz): Log this
     }
-    // TODO(craiglabenz): Log this
-    return <T>[];
+    return items;
   }
 
   @override

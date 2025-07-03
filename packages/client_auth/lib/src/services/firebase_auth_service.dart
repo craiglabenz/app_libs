@@ -443,60 +443,29 @@ class FirebaseAuthService extends StreamAuthService
       }
     }
     if (shouldSave) {
-      final writeResult = await _authUserRepo.setItem(
+      final savedUser = await _authUserRepo.setItem(
         loadedUser,
         RequestDetails.write(),
       );
 
-      switch (writeResult) {
-        case WriteSuccess():
-          final authUser = writeResult.item;
-          if (credentialBuilder != null) {
-            final credential = credentialBuilder(authUser.id);
-            final credentialReadResult = await _credentialRepo.getById(
-              credential.id,
-              RequestDetails.read(),
-            );
-            switch (credentialReadResult) {
-              case ReadSuccess<SocialCredential>():
-                final existingCredential =
-                    credentialReadResult.getOrRaise().item;
-                if (existingCredential != null) {
-                  if (existingCredential.userId != authUser.id) {
-                    _log.shout(
-                      'Existing credential ${existingCredential.id} belongs to '
-                      'AuthUser ${existingCredential.userId}, not current '
-                      'AuthUser ${authUser.id}',
-                    );
-                  } else {
-                    _log.finest(
-                      'Not saving $provider credential for AuthUser '
-                      '${authUser.id} because one already exists',
-                    );
-                  }
-                } else {
-                  await _credentialRepo.setItem(
-                    credential,
-                    RequestDetails.write(),
-                  );
-                  _log.finest(
-                    'Saved $provider credential for AuthUser ${authUser.id}',
-                  );
-                }
-              case ReadFailure<SocialCredential>():
-                _log.shout(
-                  'Failed to save $provider credential for '
-                  'AuthUser ${authUser.id}',
-                );
-            }
-          }
-          return authUser;
-        case WriteFailure():
-          _log.shout(
-            'Failed to write $loadedUser to Firestore: $writeResult',
+      if (savedUser != null) {
+        if (credentialBuilder != null) {
+          final credential = credentialBuilder(savedUser.id);
+          final savedCredential = await _credentialRepo.setItem(
+            credential,
+            RequestDetails.write(shouldOverwrite: false),
           );
-          return null;
+          if (savedCredential != null &&
+              savedCredential.userId != savedUser.id) {
+            _log.shout(
+              'Credential ${savedCredential.id} belongs to '
+              'AuthUser ${savedCredential.userId}, not current '
+              'AuthUser ${savedUser.id}',
+            );
+          }
+        }
       }
+      return savedUser;
     } else {
       return loadedUser;
     }
@@ -512,43 +481,35 @@ class FirebaseAuthService extends StreamAuthService
     Set<AuthProvider> expectedProviders = const {},
     Set<AuthProvider> unexpectedProviders = const {},
   }) async {
-    final readResponse = await _authUserRepo.getById(
+    final loadedUser = await _authUserRepo.getById(
       id,
       RequestDetails.read(requestType: RequestType.refresh),
     );
 
-    switch (readResponse) {
-      case ReadSuccess<AuthUser>():
-        if (exists != null) {
-          if (readResponse.item != null && !exists) {
-            _log.shout(
-              'Found unexpected existing AuthUser in $originMethod with Id $id',
-            );
-          }
-          if (readResponse.item == null) {
-            if (exists) {
-              _log.shout(
-                'Did not find expected AuthUser in $originMethod with Id $id',
-              );
-            }
-            return null;
-          }
+    if (exists != null) {
+      if (!exists && loadedUser != null) {
+        _log.shout(
+          'Found unexpected existing AuthUser in $originMethod with Id $id',
+        );
+      }
+      if (exists && loadedUser == null) {
+        _log.shout(
+          'Did not find expected AuthUser in $originMethod with Id $id',
+        );
+      }
+    }
+    if (loadedUser != null) {
+      if (expectedProviders.isNotEmpty) {
+        final missingProviders =
+            loadedUser.allProviders.difference(expectedProviders);
+        if (missingProviders.isNotEmpty) {
+          _log.shout(
+            'Expected to find AuthUser in $originMethod with Id $id and at '
+            'least $expectedProviders. Instead, found AuthUser with '
+            '${loadedUser.allProviders}',
+          );
         }
-        final loadedUser = readResponse.item;
-
-        if (loadedUser != null && expectedProviders.isNotEmpty) {
-          final missingProviders =
-              loadedUser.allProviders.difference(expectedProviders);
-          if (missingProviders.isNotEmpty) {
-            _log.shout(
-              'Expected to find AuthUser in $originMethod with Id $id and at '
-              'least $expectedProviders. Instead, found AuthUser with '
-              '${loadedUser.allProviders}',
-            );
-          }
-        }
-
-        if (loadedUser != null && unexpectedProviders.isNotEmpty) {
+        if (unexpectedProviders.isNotEmpty) {
           final surprisingProviders =
               loadedUser.allProviders.intersection(unexpectedProviders);
           if (surprisingProviders.isNotEmpty) {
@@ -558,15 +519,9 @@ class FirebaseAuthService extends StreamAuthService
             );
           }
         }
-        return loadedUser;
-
-      case ReadFailure<AuthUser>():
-        _log.shout(
-          'Failed to read existing AuthUser with Id '
-          '${_auth.currentUser?.uid ?? "Unknown Id"} :: ${readResponse.reason}',
-        );
-        return null;
+      }
     }
+    return loadedUser;
   }
 
   /// Converts a [FirebaseUser] to an application [AuthUser].

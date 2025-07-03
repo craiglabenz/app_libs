@@ -97,9 +97,33 @@ class FirestoreSource<T> extends Source<T> {
     T item,
     RequestDetails<T> details,
   ) async {
-    if (bindings.getId(item) != null) {
+    final itemId = bindings.getId(item);
+    if (itemId != null && !details.shouldOverwrite) {
+      final existingItemResult = await getById(itemId, details);
+      switch (existingItemResult) {
+        case ReadSuccess<T>():
+          if (existingItemResult.item != null) {
+            final existingItem = existingItemResult.item as T;
+            return (
+              WriteSuccess<T>(existingItem, details: details),
+              existingItem
+            );
+          } else {
+            // Do nothing - the item did not exist so we would not overwrite
+            // anything, and so can continue on to the write.
+          }
+        case ReadFailure<T>():
+          // Uh oh. This does not bode well.
+          _log.shout(
+            'Failed to read $T $itemId in shouldOverwrite '
+            'check',
+          );
+      }
+    }
+
+    if (itemId != null) {
       try {
-        await collection.doc(bindings.getId(item)).set(_serializeItem(item));
+        await collection.doc(itemId).set(_serializeItem(item));
         return (WriteSuccess(item, details: details), item);
       } on FirebaseException catch (e) {
         _log.shout('Failed to update $item');

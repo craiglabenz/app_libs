@@ -61,18 +61,17 @@ sealed class WriteResult<T> with _$WriteResult<T> {
 
   /// Helper to extract expected [WriteSuccess] objects or throw in the case of
   /// an unexpected [WriteFailure].
-  WriteSuccess<T> getOrRaise() {
-    switch (this) {
-      case WriteSuccess():
-        {
-          return this as WriteSuccess<T>;
-        }
-      case WriteFailure():
-        {
-          throw Exception('Unexpected $runtimeType');
-        }
-    }
-  }
+  WriteSuccess<T> getOrRaise() => switch (this) {
+        WriteSuccess<T>() => this as WriteSuccess<T>,
+        WriteFailure<T>() => throw Exception('Unexpected $runtimeType'),
+      };
+
+  /// Helper to extract expected [WriteFailure] objects or throw in the case of
+  /// an unexpected [WriteSuccess].
+  WriteFailure<T> errorOrRaise() => switch (this) {
+        WriteSuccess<T>() => throw Exception('Unexpected $runtimeType'),
+        WriteFailure<T>() => this as WriteFailure<T>,
+      };
 }
 
 /// {@template WriteListResult}
@@ -112,18 +111,17 @@ sealed class WriteListResult<T> with _$WriteListResult<T> {
 
   /// Helper to extract expected [WriteListSuccess] objects or throw in the case
   /// of an unexpected [WriteListFailure].
-  WriteListSuccess<T> getOrRaise() {
-    switch (this) {
-      case WriteListSuccess():
-        {
-          return this as WriteListSuccess<T>;
-        }
-      case WriteListFailure():
-        {
-          throw Exception('Unexpected $runtimeType');
-        }
-    }
-  }
+  WriteListSuccess<T> getOrRaise() => switch (this) {
+        WriteListSuccess() => this as WriteListSuccess<T>,
+        WriteListFailure() => throw Exception('Unexpected $runtimeType'),
+      };
+
+  /// Helper to extract expected [WriteListFailure] objects or throw in the case
+  /// of an unexpected [WriteListSuccess].
+  WriteListFailure<T> errorOrRaise() => switch (this) {
+        WriteListSuccess() => throw Exception('Unexpected $runtimeType'),
+        WriteListFailure() => this as WriteListFailure<T>,
+      };
 }
 
 //////////??///////
@@ -161,6 +159,20 @@ sealed class DeleteResult<T> with _$DeleteResult<T> {
       'Unexpected error: ${e.statusCode} ${e.error.plain}',
     );
   }
+
+  /// Helper to extract expected [DeleteSuccess] objects or throw in the case
+  /// of an unexpected [DeleteFailure].
+  DeleteSuccess<T> getOrRaise() => switch (this) {
+        DeleteSuccess() => this as DeleteSuccess<T>,
+        DeleteFailure() => throw Exception('Unexpected $runtimeType'),
+      };
+
+  /// Helper to extract expected [DeleteFailure] objects or throw in the case
+  /// of an unexpected [DeleteSuccess].
+  DeleteFailure<T> errorOrRaise() => switch (this) {
+        DeleteSuccess() => throw Exception('Unexpected $runtimeType'),
+        DeleteFailure() => this as DeleteFailure<T>,
+      };
 }
 
 /////////////////
@@ -202,20 +214,19 @@ sealed class ReadResult<T> with _$ReadResult<T> {
     );
   }
 
-  /// Helper to extract expected [ReadSuccess] objects or throw in the case of
-  /// an unexpected [ReadFailure].
-  ReadSuccess<T> getOrRaise() {
-    switch (this) {
-      case ReadSuccess():
-        {
-          return this as ReadSuccess<T>;
-        }
-      case ReadFailure():
-        {
-          throw Exception('Unexpected $runtimeType');
-        }
-    }
-  }
+  /// Helper to extract expected [ReadSuccess] objects or throw in the case
+  /// of an unexpected [ReadFailure].
+  ReadSuccess<T> getOrRaise() => switch (this) {
+        ReadSuccess() => this as ReadSuccess<T>,
+        ReadFailure() => throw Exception('Unexpected $runtimeType'),
+      };
+
+  /// Helper to extract expected [ReadFailure] objects or throw in the case
+  /// of an unexpected [ReadSuccess].
+  ReadFailure<T> errorOrRaise() => switch (this) {
+        ReadSuccess() => throw Exception('Unexpected $runtimeType'),
+        ReadFailure() => this as ReadFailure<T>,
+      };
 
   /// Helper to extract expected [T?] objects or throw in the case of
   /// an unexpected [ReadFailure].
@@ -223,18 +234,10 @@ sealed class ReadResult<T> with _$ReadResult<T> {
   /// Note that this will return `null` without throwing, as that is part of the
   /// contract of a [ReadSuccess]. This merely unwraps the possible
   /// [ReadFailure] which should have already been ruled out.
-  T? itemOrRaise() {
-    switch (this) {
-      case ReadSuccess():
-        {
-          return (this as ReadSuccess<T>).item;
-        }
-      case ReadFailure():
-        {
-          throw Exception('Unexpected $runtimeType');
-        }
-    }
-  }
+  T? itemOrRaise() => switch (this) {
+        ReadSuccess<T>() => (this as ReadSuccess<T>).item,
+        ReadFailure<T>() => throw Exception('Unexpected $runtimeType'),
+      };
 }
 
 /// {@template ReadListResult}
@@ -320,14 +323,28 @@ sealed class ReadListResult<T> with _$ReadListResult<T> {
 
   /// Helper to extract expected [ReadListSuccess] objects or throw in the case
   /// of an unexpected [ReadListFailure].
-  ReadListSuccess<T> getOrRaise() {
-    switch (this) {
-      case ReadListSuccess():
-        return this as ReadListSuccess<T>;
-      case ReadListFailure():
-        throw Exception('Unexpected $runtimeType');
-    }
-  }
+  ReadListSuccess<T> getOrRaise() => switch (this) {
+        ReadListSuccess() => this as ReadListSuccess<T>,
+        ReadListFailure() => throw Exception('Unexpected $runtimeType'),
+      };
+
+  /// Helper to extract expected [ReadListFailure] objects or throw in the case
+  /// of an unexpected [ReadListSuccess].
+  ReadListFailure<T> errorOrRaise() => switch (this) {
+        ReadListSuccess() => throw Exception('Unexpected $runtimeType'),
+        ReadListFailure() => this as ReadListFailure<T>,
+      };
+
+  /// Helper to extract expected [List<T>] objects or throw in the case of
+  /// an unexpected [ReadListFailure].
+  ///
+  /// Note that this will return an empty list without throwing, as that is part
+  /// of the contract of a [ReadListSuccess]. This merely unwraps the possible
+  /// [ReadListFailure] which should have already been ruled out.
+  List<T> itemsOrRaise() => switch (this) {
+        ReadListSuccess<T>() => (this as ReadListSuccess<T>).items.toList(),
+        ReadListFailure<T>() => throw Exception('Unexpected $runtimeType'),
+      };
 }
 
 /// Testing matcher for whether this request was a failure.
