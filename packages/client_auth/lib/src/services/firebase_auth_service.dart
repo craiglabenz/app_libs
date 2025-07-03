@@ -232,7 +232,10 @@ class FirebaseAuthService extends StreamAuthService
       return const AuthFailure(AuthenticationError.unknownError());
     } on firebase_auth.FirebaseAuthException catch (e) {
       _log.severe('Firebase exception during logInWithEmailAndPassword: $e');
-      return AuthResponse.fromFirebaseException(e);
+      return AuthResponse.fromFirebaseException(
+        e,
+        const AuthenticationError.badEmailPassword(),
+      );
     } on Exception catch (e) {
       _log.warning('Unexpected logInWithEmailAndPassword Exception: $e');
       return const AuthFailure(AuthenticationError.unknownError());

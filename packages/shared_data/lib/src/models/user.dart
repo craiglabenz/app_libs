@@ -131,6 +131,9 @@ sealed class SocialCredential with _$SocialCredential {
   /// Mock social credential information representing an email login.
   /// The password is not stored here, as Firebase Auth's backend handles that.
   const factory SocialCredential.email({
+    /// Primary key.
+    String? id,
+
     /// Primary key of the associated [AuthUser].
     required String userId,
 
@@ -140,6 +143,9 @@ sealed class SocialCredential with _$SocialCredential {
 
   /// Social credential information supplied by Apple.
   const factory SocialCredential.apple({
+    /// Primary key.
+    String? id,
+
     /// Primary key of the associated [AuthUser].
     required String userId,
 
@@ -205,6 +211,9 @@ sealed class SocialCredential with _$SocialCredential {
 
   /// Social credential information supplied by Apple.
   const factory SocialCredential.google({
+    /// Primary key.
+    String? id,
+
     /// Primary key of the associated [AuthUser].
     required String userId,
 
@@ -263,11 +272,4 @@ sealed class SocialCredential with _$SocialCredential {
         ),
         getListUrl: () => const ApiUrl(path: 'credentials'),
       );
-
-  /// Synthetic primary key for a [SocialCredential].
-  String get id => switch (this) {
-        EmailCredential() => (this as EmailCredential).email,
-        AppleCredential() => (this as AppleCredential).userIdentifier,
-        GoogleCredential() => (this as GoogleCredential).uniqueId,
-      };
 }

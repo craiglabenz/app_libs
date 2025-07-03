@@ -11,7 +11,7 @@ final _log = Logger('client_auth.AuthResponse');
 /// Union type for authorization attempts, always appearing in the form of
 /// either an [AuthSuccess] or an [AuthFailure].
 @Freezed()
-abstract class AuthResponse with _$AuthResponse {
+sealed class AuthResponse with _$AuthResponse {
   /// Container for a successful authorization attempt.
   const factory AuthResponse.success(
     AuthUser user, {
@@ -23,8 +23,13 @@ abstract class AuthResponse with _$AuthResponse {
   const AuthResponse._();
 
   /// Builder for an AuthFailure from an [auth.FirebaseAuthException].
-  factory AuthResponse.fromFirebaseException(auth.FirebaseAuthException e) {
-    return AuthFailure(AuthenticationError.fromFirebaseException(e));
+  factory AuthResponse.fromFirebaseException(
+    auth.FirebaseAuthException e, [
+    AuthenticationError? invalidCredentialResult,
+  ]) {
+    return AuthFailure(
+      AuthenticationError.fromFirebaseException(e, invalidCredentialResult),
+    );
   }
 
   /// Builder for an AuthFailure from an [ApiError].
@@ -116,14 +121,17 @@ sealed class AuthenticationError with _$AuthenticationError {
 
   /// Builder for an AuthenticationError from an [auth.FirebaseAuthException].
   factory AuthenticationError.fromFirebaseException(
-    auth.FirebaseAuthException e,
-  ) {
-    if (e.code == 'account-exists-with-different-credential') {
+    auth.FirebaseAuthException e, [
+    AuthenticationError? invalidCredentialResult,
+  ]) {
+    if (e.code == 'account-exists-with-different-credential' ||
+        e.code == 'email-already-in-use') {
       return const AuthenticationError.emailTaken();
     } else if (e.code == 'invalid-credential') {
       // Very unfortunate malformed thingy error. Probably Firebase's fault.
       _log.warning('Firebase error: Invalid-credential from $e');
-      return const AuthenticationError.unknownError();
+      return invalidCredentialResult ??
+          const AuthenticationError.unknownError();
     } else if (e.code == 'operation-not-allowed') {
       _log.warning(
         'Attempted login with inactive social auth type. '
@@ -169,8 +177,7 @@ sealed class AuthenticationError with _$AuthenticationError {
   String toDisplay() => switch (this) {
         BadEmailPasswordError() => 'Unknown email and password',
         CancelledSocialAuthError() => 'Social login terminated',
-        EmailTakenError() => 'This email address is already associated with '
-            'an account',
+        EmailTakenError() => 'This email address is already in use',
         InvalidPasswordError() => 'This password is invalid',
         InvalidCodeError() => 'Failed 2-factor authentication',
         LogoutError() => 'Failed to logout user',

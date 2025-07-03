@@ -347,6 +347,9 @@ SocialCredential _$SocialCredentialFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SocialCredential {
+  /// Primary key.
+  String? get id;
+
   /// Primary key of the associated [AuthUser].
   String get userId;
 
@@ -369,17 +372,18 @@ mixin _$SocialCredential {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is SocialCredential &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.email, email) || other.email == email));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, userId, email);
+  int get hashCode => Object.hash(runtimeType, id, userId, email);
 
   @override
   String toString() {
-    return 'SocialCredential(userId: $userId, email: $email)';
+    return 'SocialCredential(id: $id, userId: $userId, email: $email)';
   }
 }
 
@@ -389,7 +393,7 @@ abstract mixin class $SocialCredentialCopyWith<$Res> {
           SocialCredential value, $Res Function(SocialCredential) _then) =
       _$SocialCredentialCopyWithImpl;
   @useResult
-  $Res call({String userId, String email});
+  $Res call({String? id, String userId, String email});
 }
 
 /// @nodoc
@@ -405,10 +409,15 @@ class _$SocialCredentialCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = freezed,
     Object? userId = null,
     Object? email = null,
   }) {
     return _then(_self.copyWith(
+      id: freezed == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
       userId: null == userId
           ? _self.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -425,11 +434,15 @@ class _$SocialCredentialCopyWithImpl<$Res>
 @JsonSerializable()
 class EmailCredential extends SocialCredential {
   const EmailCredential(
-      {required this.userId, required this.email, final String? $type})
+      {this.id, required this.userId, required this.email, final String? $type})
       : $type = $type ?? 'email',
         super._();
   factory EmailCredential.fromJson(Map<String, dynamic> json) =>
       _$EmailCredentialFromJson(json);
+
+  /// Primary key.
+  @override
+  final String? id;
 
   /// Primary key of the associated [AuthUser].
   @override
@@ -462,17 +475,18 @@ class EmailCredential extends SocialCredential {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is EmailCredential &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.email, email) || other.email == email));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, userId, email);
+  int get hashCode => Object.hash(runtimeType, id, userId, email);
 
   @override
   String toString() {
-    return 'SocialCredential.email(userId: $userId, email: $email)';
+    return 'SocialCredential.email(id: $id, userId: $userId, email: $email)';
   }
 }
 
@@ -484,7 +498,7 @@ abstract mixin class $EmailCredentialCopyWith<$Res>
       _$EmailCredentialCopyWithImpl;
   @override
   @useResult
-  $Res call({String userId, String email});
+  $Res call({String? id, String userId, String email});
 }
 
 /// @nodoc
@@ -500,10 +514,15 @@ class _$EmailCredentialCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? id = freezed,
     Object? userId = null,
     Object? email = null,
   }) {
     return _then(EmailCredential(
+      id: freezed == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
       userId: null == userId
           ? _self.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -520,7 +539,8 @@ class _$EmailCredentialCopyWithImpl<$Res>
 @JsonSerializable()
 class AppleCredential extends SocialCredential {
   const AppleCredential(
-      {required this.userId,
+      {this.id,
+      required this.userId,
       required this.userIdentifier,
       required this.givenName,
       required this.familyName,
@@ -533,6 +553,10 @@ class AppleCredential extends SocialCredential {
         super._();
   factory AppleCredential.fromJson(Map<String, dynamic> json) =>
       _$AppleCredentialFromJson(json);
+
+  /// Primary key.
+  @override
+  final String? id;
 
   /// Primary key of the associated [AuthUser].
   @override
@@ -621,6 +645,7 @@ class AppleCredential extends SocialCredential {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is AppleCredential &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.userIdentifier, userIdentifier) ||
                 other.userIdentifier == userIdentifier) &&
@@ -638,12 +663,12 @@ class AppleCredential extends SocialCredential {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, userId, userIdentifier,
+  int get hashCode => Object.hash(runtimeType, id, userId, userIdentifier,
       givenName, familyName, email, authorizationCode, identityToken, state);
 
   @override
   String toString() {
-    return 'SocialCredential.apple(userId: $userId, userIdentifier: $userIdentifier, givenName: $givenName, familyName: $familyName, email: $email, authorizationCode: $authorizationCode, identityToken: $identityToken, state: $state)';
+    return 'SocialCredential.apple(id: $id, userId: $userId, userIdentifier: $userIdentifier, givenName: $givenName, familyName: $familyName, email: $email, authorizationCode: $authorizationCode, identityToken: $identityToken, state: $state)';
   }
 }
 
@@ -656,7 +681,8 @@ abstract mixin class $AppleCredentialCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String userId,
+      {String? id,
+      String userId,
       String userIdentifier,
       String? givenName,
       String? familyName,
@@ -679,6 +705,7 @@ class _$AppleCredentialCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? id = freezed,
     Object? userId = null,
     Object? userIdentifier = null,
     Object? givenName = freezed,
@@ -689,6 +716,10 @@ class _$AppleCredentialCopyWithImpl<$Res>
     Object? state = freezed,
   }) {
     return _then(AppleCredential(
+      id: freezed == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
       userId: null == userId
           ? _self.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -729,7 +760,8 @@ class _$AppleCredentialCopyWithImpl<$Res>
 @JsonSerializable()
 class GoogleCredential extends SocialCredential {
   const GoogleCredential(
-      {required this.userId,
+      {this.id,
+      required this.userId,
       required this.displayName,
       required this.email,
       required this.uniqueId,
@@ -741,6 +773,10 @@ class GoogleCredential extends SocialCredential {
         super._();
   factory GoogleCredential.fromJson(Map<String, dynamic> json) =>
       _$GoogleCredentialFromJson(json);
+
+  /// Primary key.
+  @override
+  final String? id;
 
   /// Primary key of the associated [AuthUser].
   @override
@@ -806,6 +842,7 @@ class GoogleCredential extends SocialCredential {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is GoogleCredential &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
@@ -821,12 +858,12 @@ class GoogleCredential extends SocialCredential {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, userId, displayName, email,
+  int get hashCode => Object.hash(runtimeType, id, userId, displayName, email,
       uniqueId, photoUrl, idToken, serverAuthCode);
 
   @override
   String toString() {
-    return 'SocialCredential.google(userId: $userId, displayName: $displayName, email: $email, uniqueId: $uniqueId, photoUrl: $photoUrl, idToken: $idToken, serverAuthCode: $serverAuthCode)';
+    return 'SocialCredential.google(id: $id, userId: $userId, displayName: $displayName, email: $email, uniqueId: $uniqueId, photoUrl: $photoUrl, idToken: $idToken, serverAuthCode: $serverAuthCode)';
   }
 }
 
@@ -839,7 +876,8 @@ abstract mixin class $GoogleCredentialCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String userId,
+      {String? id,
+      String userId,
       String? displayName,
       String email,
       String uniqueId,
@@ -861,6 +899,7 @@ class _$GoogleCredentialCopyWithImpl<$Res>
   @override
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? id = freezed,
     Object? userId = null,
     Object? displayName = freezed,
     Object? email = null,
@@ -870,6 +909,10 @@ class _$GoogleCredentialCopyWithImpl<$Res>
     Object? serverAuthCode = freezed,
   }) {
     return _then(GoogleCredential(
+      id: freezed == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
       userId: null == userId
           ? _self.userId
           : userId // ignore: cast_nullable_to_non_nullable

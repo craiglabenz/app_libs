@@ -39,6 +39,7 @@ const _$AuthProviderEnumMap = {
 
 EmailCredential _$EmailCredentialFromJson(Map<String, dynamic> json) =>
     EmailCredential(
+      id: json['id'] as String?,
       userId: json['userId'] as String,
       email: json['email'] as String,
       $type: json['runtimeType'] as String?,
@@ -46,6 +47,7 @@ EmailCredential _$EmailCredentialFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$EmailCredentialToJson(EmailCredential instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'userId': instance.userId,
       'email': instance.email,
       'runtimeType': instance.$type,
@@ -53,6 +55,7 @@ Map<String, dynamic> _$EmailCredentialToJson(EmailCredential instance) =>
 
 AppleCredential _$AppleCredentialFromJson(Map<String, dynamic> json) =>
     AppleCredential(
+      id: json['id'] as String?,
       userId: json['userId'] as String,
       userIdentifier: json['userIdentifier'] as String,
       givenName: json['givenName'] as String?,
@@ -66,6 +69,7 @@ AppleCredential _$AppleCredentialFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$AppleCredentialToJson(AppleCredential instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'userId': instance.userId,
       'userIdentifier': instance.userIdentifier,
       'givenName': instance.givenName,
@@ -79,6 +83,7 @@ Map<String, dynamic> _$AppleCredentialToJson(AppleCredential instance) =>
 
 GoogleCredential _$GoogleCredentialFromJson(Map<String, dynamic> json) =>
     GoogleCredential(
+      id: json['id'] as String?,
       userId: json['userId'] as String,
       displayName: json['displayName'] as String?,
       email: json['email'] as String,
@@ -91,6 +96,7 @@ GoogleCredential _$GoogleCredentialFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$GoogleCredentialToJson(GoogleCredential instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'userId': instance.userId,
       'displayName': instance.displayName,
       'email': instance.email,
