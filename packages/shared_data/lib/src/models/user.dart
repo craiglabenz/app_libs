@@ -1,10 +1,14 @@
 // ignore_for_file: always_put_required_named_parameters_first
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
 
 part 'user.freezed.dart';
 part 'user.g.dart';
+
+// ignore: unused_element
+final _log = Logger('shared_data.models.User');
 
 /// {@template AuthUser}
 /// Container for the active user's information. Only used for authorization and
@@ -20,8 +24,7 @@ part 'user.g.dart';
 /// ```
 ///
 /// See also:
-///   [BaseUser] - The container for users of the app regardless of whether or
-///                not they are the active user.
+///   [BaseUser] - Public profile object for users.
 /// {@endtemplate}
 @Freezed()
 abstract class AuthUser with _$AuthUser {
@@ -31,9 +34,13 @@ abstract class AuthUser with _$AuthUser {
     /// for any relations.
     required String id,
 
-    /// Unique identifier used for private matters like session sharing and
-    /// unique game seed generation.
-    required String privateId,
+    /// Special information set by the server and used to verify this session
+    /// between multiple backends.
+    String? jwt,
+
+    /// Unique identifier prepended to all logging statements for this user.
+    /// Not sensitive.
+    required String loggingId,
 
     /// User's email address. Null for anonymous users and possibly some social
     /// auth situations.
@@ -42,10 +49,10 @@ abstract class AuthUser with _$AuthUser {
     /// Origin timestamp of the user.
     required DateTime createdAt,
 
-    /// Identity verifying provider for this session.
-    required AuthProvider provider,
+    /// Last verifying auth provider for this user.
+    required AuthProvider lastAuthProvider,
 
-    /// All providers the user has attached to their account.
+    /// All providers ever activated for this user.
     required Set<AuthProvider> allProviders,
   }) = _AuthUser;
 
@@ -57,12 +64,22 @@ abstract class AuthUser with _$AuthUser {
   /// True if the original source of this user's session was
   /// [AuthProvider.anonymous]. This means a user's session cannot be recovered
   /// if they lose access to their device.
-  bool get isAnonymous => provider == AuthProvider.anonymous;
+  bool get isAnonymous => lastAuthProvider == AuthProvider.anonymous;
 
   /// True if the original source of this user's session was something other
   /// than [AuthProvider.anonymous]. This means a user's session CAN be
   /// recovered if they lose access to their device.
-  bool get isNotAnonymous => provider != AuthProvider.anonymous;
+  bool get isNotAnonymous => lastAuthProvider != AuthProvider.anonymous;
+
+  /// Meta information to make [AuthUser] objects pluggable with the
+  /// rest of the data layer.
+  static Bindings<AuthUser> get bindings => Bindings<AuthUser>(
+        fromJson: AuthUser.fromJson,
+        getDetailUrl: (id) => ApiUrl(path: 'authUsers/$id'),
+        getListUrl: () => const ApiUrl(path: 'authUsers'),
+        toJson: (AuthUser obj) => obj.toJson(),
+        getId: (AuthUser obj) => obj.id,
+      );
 }
 
 /// Sources of user authentication.
@@ -106,4 +123,151 @@ abstract class BaseUser {
 
   /// Cloud location of this user's profile photo.
   final String? photo;
+}
+
+/// Sealed union class for credentials from all supported social platforms.
+@Freezed()
+sealed class SocialCredential with _$SocialCredential {
+  /// Mock social credential information representing an email login.
+  /// The password is not stored here, as Firebase Auth's backend handles that.
+  const factory SocialCredential.email({
+    /// Primary key of the associated [AuthUser].
+    required String userId,
+
+    /// Email used to sign in.
+    required String email,
+  }) = EmailCredential;
+
+  /// Social credential information supplied by Apple.
+  const factory SocialCredential.apple({
+    /// Primary key of the associated [AuthUser].
+    required String userId,
+
+    /// An identifier associated with the authenticated user.
+    ///
+    /// This will always be provided on iOS and macOS systems. On Android,
+    /// however, this will not be present.
+    /// This will stay the same between sign ins, until the user deauthorizes
+    /// your App.
+    ///
+    /// Not-null in our implementation because Apple Sign-In is not offered on
+    /// Android.
+    required String userIdentifier,
+
+    /// The users given name, in case it was requested.
+    /// You will need to provide the [AppleIDAuthorizationScopes.fullName] scope
+    /// to the [AppleIDAuthorizationRequest] for requesting this information.
+    ///
+    /// This information will only be provided on the first authorizations.
+    /// Upon further authorizations, you will only get the [userIdentifier],
+    /// meaning you will need to store this data securely on your servers.
+    /// For more information see:
+    /// https://forums.developer.apple.com/thread/121496
+    required String? givenName,
+
+    /// The users family name, in case it was requested.
+    /// You will need to provide the [AppleIDAuthorizationScopes.fullName] scope
+    /// to the [AppleIDAuthorizationRequest] for requesting this information.
+    ///
+    /// This information will only be provided on the first authorizations.
+    /// Upon further authorizations, you will only get the [userIdentifier],
+    /// meaning you will need to store this data securely on your servers.
+    /// For more information see:
+    /// https://forums.developer.apple.com/thread/121496
+    required String? familyName,
+
+    /// The users email in case it was requested.
+    /// You will need to provide the [AppleIDAuthorizationScopes.email] scope to
+    /// the [AppleIDAuthorizationRequest] for requesting this information.
+    ///
+    /// This information will only be provided on the first authorizations.
+    /// Upon further authorizations, you will only get the [userIdentifier],
+    /// meaning you will need to store this data securely on your servers.
+    /// For more information see:
+    /// https://forums.developer.apple.com/thread/121496
+    required String? email,
+
+    /// The verification code for the current authorization.
+    ///
+    /// This code should be used by your server component to validate the
+    /// authorization with Apple within 5 minutes upon receiving it.
+    required String authorizationCode,
+
+    /// A JSON Web Token (JWT) that securely communicates information about the
+    /// user to your app.
+    required String? identityToken,
+
+    /// The `state` parameter that was passed to the request.
+    ///
+    /// This data is not modified by Apple.
+    required String? state,
+  }) = AppleCredential;
+
+  /// Social credential information supplied by Apple.
+  const factory SocialCredential.google({
+    /// Primary key of the associated [AuthUser].
+    required String userId,
+
+    /// The display name of the signed in user.
+    ///
+    /// Not guaranteed to be present for all users, even when configured.
+    required String? displayName,
+
+    /// The email address of the signed in user.
+    ///
+    /// Applications should not key users by email address since a Google
+    /// account's email address can change. Use [id] as a key instead.
+    ///
+    /// _Important_: Do not use this returned email address to communicate the
+    /// currently signed in user to your backend server. Instead, send an ID
+    /// token which can be securely validated on the server. See [idToken].
+    required String email,
+
+    /// The unique ID for the Google account. Called [id] in the package.
+    ///
+    /// This is the preferred unique key to use for a user record.
+    ///
+    /// _Important_: Do not use this returned Google ID to communicate the
+    /// currently signed in user to your backend server. Instead, send an ID
+    /// token which can be securely validated on the server. See [idToken].
+    required String uniqueId,
+
+    /// The photo url of the signed in user if the user has a profile picture.
+    ///
+    /// Not guaranteed to be present for all users, even when configured.
+    required String? photoUrl,
+
+    /// A token that can be sent to your own server to verify the authentication
+    /// data.
+    required String? idToken,
+
+    /// Server auth code used to access Google Login
+    required String? serverAuthCode,
+  }) = GoogleCredential;
+
+  const SocialCredential._();
+
+  /// Deserializes a raw data into an [AuthUser] instance.
+  factory SocialCredential.fromJson(Json json) =>
+      _$SocialCredentialFromJson(json);
+
+  /// Meta information to make [SocialCredential] objects pluggable with the
+  /// rest of the data layer.
+  static Bindings<SocialCredential> get bindings => Bindings<SocialCredential>(
+        fromJson: SocialCredential.fromJson,
+        toJson: (SocialCredential obj) => obj.toJson(),
+        getId: (SocialCredential obj) => obj.id,
+        getDetailUrl: (String id) => ApiUrl(
+          path: 'credentials/{{id}}',
+          context: {'id': id},
+        ),
+        getListUrl: () => const ApiUrl(path: 'credentials'),
+      );
+
+  /// Synthetic primary key for a [SocialCredential].
+  String get id => switch (this) {
+        EmailCredential() => (this as EmailCredential).email,
+        AppleCredential() => (this as AppleCredential).userIdentifier,
+        GoogleCredential() => (this as GoogleCredential).uniqueId,
+      };
 }

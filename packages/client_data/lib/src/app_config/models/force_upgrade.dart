@@ -1,6 +1,5 @@
 import 'package:client_data/client_data.dart';
 import 'package:equatable/equatable.dart';
-import 'package:get_it/get_it.dart';
 
 /// {@template force_upgrade}
 /// Model used to encapsulate configuration information
@@ -20,12 +19,11 @@ class ForceUpgrade extends Equatable {
 
   factory ForceUpgrade.fromAppConfig(
     AppConfig config, {
-    AppDetails? appDetails,
+    required AppDetails appDetails,
   }) {
     // TODO(craiglabenz): Ensure this is tested.
     int minBuildNumber;
     String upgradeUrl;
-    appDetails ??= GetIt.I<AppDetails>();
     if (appDetails.isAndroid) {
       minBuildNumber = config.minAndroidBuildNumber;
       upgradeUrl = config.androidUpgradeUrl;

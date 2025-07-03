@@ -19,9 +19,13 @@ mixin _$AuthUser {
   /// for any relations.
   String get id;
 
-  /// Unique identifier used for private matters like session sharing and
-  /// unique game seed generation.
-  String get privateId;
+  /// Special information set by the server and used to verify this session
+  /// between multiple backends.
+  String? get jwt;
+
+  /// Unique identifier prepended to all logging statements for this user.
+  /// Not sensitive.
+  String get loggingId;
 
   /// User's email address. Null for anonymous users and possibly some social
   /// auth situations.
@@ -30,10 +34,10 @@ mixin _$AuthUser {
   /// Origin timestamp of the user.
   DateTime get createdAt;
 
-  /// Identity verifying provider for this session.
-  AuthProvider get provider;
+  /// Last verifying auth provider for this user.
+  AuthProvider get lastAuthProvider;
 
-  /// All providers the user has attached to their account.
+  /// All providers ever activated for this user.
   Set<AuthProvider> get allProviders;
 
   /// Create a copy of AuthUser
@@ -52,25 +56,33 @@ mixin _$AuthUser {
         (other.runtimeType == runtimeType &&
             other is AuthUser &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.privateId, privateId) ||
-                other.privateId == privateId) &&
+            (identical(other.jwt, jwt) || other.jwt == jwt) &&
+            (identical(other.loggingId, loggingId) ||
+                other.loggingId == loggingId) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
-            (identical(other.provider, provider) ||
-                other.provider == provider) &&
+            (identical(other.lastAuthProvider, lastAuthProvider) ||
+                other.lastAuthProvider == lastAuthProvider) &&
             const DeepCollectionEquality()
                 .equals(other.allProviders, allProviders));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, privateId, email, createdAt,
-      provider, const DeepCollectionEquality().hash(allProviders));
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      jwt,
+      loggingId,
+      email,
+      createdAt,
+      lastAuthProvider,
+      const DeepCollectionEquality().hash(allProviders));
 
   @override
   String toString() {
-    return 'AuthUser(id: $id, privateId: $privateId, email: $email, createdAt: $createdAt, provider: $provider, allProviders: $allProviders)';
+    return 'AuthUser(id: $id, jwt: $jwt, loggingId: $loggingId, email: $email, createdAt: $createdAt, lastAuthProvider: $lastAuthProvider, allProviders: $allProviders)';
   }
 }
 
@@ -81,10 +93,11 @@ abstract mixin class $AuthUserCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String privateId,
+      String? jwt,
+      String loggingId,
       String? email,
       DateTime createdAt,
-      AuthProvider provider,
+      AuthProvider lastAuthProvider,
       Set<AuthProvider> allProviders});
 }
 
@@ -101,10 +114,11 @@ class _$AuthUserCopyWithImpl<$Res> implements $AuthUserCopyWith<$Res> {
   @override
   $Res call({
     Object? id = null,
-    Object? privateId = null,
+    Object? jwt = freezed,
+    Object? loggingId = null,
     Object? email = freezed,
     Object? createdAt = null,
-    Object? provider = null,
+    Object? lastAuthProvider = null,
     Object? allProviders = null,
   }) {
     return _then(_self.copyWith(
@@ -112,9 +126,13 @@ class _$AuthUserCopyWithImpl<$Res> implements $AuthUserCopyWith<$Res> {
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      privateId: null == privateId
-          ? _self.privateId
-          : privateId // ignore: cast_nullable_to_non_nullable
+      jwt: freezed == jwt
+          ? _self.jwt
+          : jwt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      loggingId: null == loggingId
+          ? _self.loggingId
+          : loggingId // ignore: cast_nullable_to_non_nullable
               as String,
       email: freezed == email
           ? _self.email
@@ -124,9 +142,9 @@ class _$AuthUserCopyWithImpl<$Res> implements $AuthUserCopyWith<$Res> {
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      provider: null == provider
-          ? _self.provider
-          : provider // ignore: cast_nullable_to_non_nullable
+      lastAuthProvider: null == lastAuthProvider
+          ? _self.lastAuthProvider
+          : lastAuthProvider // ignore: cast_nullable_to_non_nullable
               as AuthProvider,
       allProviders: null == allProviders
           ? _self.allProviders
@@ -141,10 +159,11 @@ class _$AuthUserCopyWithImpl<$Res> implements $AuthUserCopyWith<$Res> {
 class _AuthUser extends AuthUser {
   const _AuthUser(
       {required this.id,
-      required this.privateId,
+      this.jwt,
+      required this.loggingId,
       this.email,
       required this.createdAt,
-      required this.provider,
+      required this.lastAuthProvider,
       required final Set<AuthProvider> allProviders})
       : _allProviders = allProviders,
         super._();
@@ -156,10 +175,15 @@ class _AuthUser extends AuthUser {
   @override
   final String id;
 
-  /// Unique identifier used for private matters like session sharing and
-  /// unique game seed generation.
+  /// Special information set by the server and used to verify this session
+  /// between multiple backends.
   @override
-  final String privateId;
+  final String? jwt;
+
+  /// Unique identifier prepended to all logging statements for this user.
+  /// Not sensitive.
+  @override
+  final String loggingId;
 
   /// User's email address. Null for anonymous users and possibly some social
   /// auth situations.
@@ -170,14 +194,14 @@ class _AuthUser extends AuthUser {
   @override
   final DateTime createdAt;
 
-  /// Identity verifying provider for this session.
+  /// Last verifying auth provider for this user.
   @override
-  final AuthProvider provider;
+  final AuthProvider lastAuthProvider;
 
-  /// All providers the user has attached to their account.
+  /// All providers ever activated for this user.
   final Set<AuthProvider> _allProviders;
 
-  /// All providers the user has attached to their account.
+  /// All providers ever activated for this user.
   @override
   Set<AuthProvider> get allProviders {
     if (_allProviders is EqualUnmodifiableSetView) return _allProviders;
@@ -206,25 +230,33 @@ class _AuthUser extends AuthUser {
         (other.runtimeType == runtimeType &&
             other is _AuthUser &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.privateId, privateId) ||
-                other.privateId == privateId) &&
+            (identical(other.jwt, jwt) || other.jwt == jwt) &&
+            (identical(other.loggingId, loggingId) ||
+                other.loggingId == loggingId) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
-            (identical(other.provider, provider) ||
-                other.provider == provider) &&
+            (identical(other.lastAuthProvider, lastAuthProvider) ||
+                other.lastAuthProvider == lastAuthProvider) &&
             const DeepCollectionEquality()
                 .equals(other._allProviders, _allProviders));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, privateId, email, createdAt,
-      provider, const DeepCollectionEquality().hash(_allProviders));
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      jwt,
+      loggingId,
+      email,
+      createdAt,
+      lastAuthProvider,
+      const DeepCollectionEquality().hash(_allProviders));
 
   @override
   String toString() {
-    return 'AuthUser(id: $id, privateId: $privateId, email: $email, createdAt: $createdAt, provider: $provider, allProviders: $allProviders)';
+    return 'AuthUser(id: $id, jwt: $jwt, loggingId: $loggingId, email: $email, createdAt: $createdAt, lastAuthProvider: $lastAuthProvider, allProviders: $allProviders)';
   }
 }
 
@@ -237,10 +269,11 @@ abstract mixin class _$AuthUserCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String privateId,
+      String? jwt,
+      String loggingId,
       String? email,
       DateTime createdAt,
-      AuthProvider provider,
+      AuthProvider lastAuthProvider,
       Set<AuthProvider> allProviders});
 }
 
@@ -257,10 +290,11 @@ class __$AuthUserCopyWithImpl<$Res> implements _$AuthUserCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? id = null,
-    Object? privateId = null,
+    Object? jwt = freezed,
+    Object? loggingId = null,
     Object? email = freezed,
     Object? createdAt = null,
-    Object? provider = null,
+    Object? lastAuthProvider = null,
     Object? allProviders = null,
   }) {
     return _then(_AuthUser(
@@ -268,9 +302,13 @@ class __$AuthUserCopyWithImpl<$Res> implements _$AuthUserCopyWith<$Res> {
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      privateId: null == privateId
-          ? _self.privateId
-          : privateId // ignore: cast_nullable_to_non_nullable
+      jwt: freezed == jwt
+          ? _self.jwt
+          : jwt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      loggingId: null == loggingId
+          ? _self.loggingId
+          : loggingId // ignore: cast_nullable_to_non_nullable
               as String,
       email: freezed == email
           ? _self.email
@@ -280,14 +318,586 @@ class __$AuthUserCopyWithImpl<$Res> implements _$AuthUserCopyWith<$Res> {
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
-      provider: null == provider
-          ? _self.provider
-          : provider // ignore: cast_nullable_to_non_nullable
+      lastAuthProvider: null == lastAuthProvider
+          ? _self.lastAuthProvider
+          : lastAuthProvider // ignore: cast_nullable_to_non_nullable
               as AuthProvider,
       allProviders: null == allProviders
           ? _self._allProviders
           : allProviders // ignore: cast_nullable_to_non_nullable
               as Set<AuthProvider>,
+    ));
+  }
+}
+
+SocialCredential _$SocialCredentialFromJson(Map<String, dynamic> json) {
+  switch (json['runtimeType']) {
+    case 'email':
+      return EmailCredential.fromJson(json);
+    case 'apple':
+      return AppleCredential.fromJson(json);
+    case 'google':
+      return GoogleCredential.fromJson(json);
+
+    default:
+      throw CheckedFromJsonException(json, 'runtimeType', 'SocialCredential',
+          'Invalid union type "${json['runtimeType']}"!');
+  }
+}
+
+/// @nodoc
+mixin _$SocialCredential {
+  /// Primary key of the associated [AuthUser].
+  String get userId;
+
+  /// Email used to sign in.
+  String? get email;
+
+  /// Create a copy of SocialCredential
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $SocialCredentialCopyWith<SocialCredential> get copyWith =>
+      _$SocialCredentialCopyWithImpl<SocialCredential>(
+          this as SocialCredential, _$identity);
+
+  /// Serializes this SocialCredential to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SocialCredential &&
+            (identical(other.userId, userId) || other.userId == userId) &&
+            (identical(other.email, email) || other.email == email));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, userId, email);
+
+  @override
+  String toString() {
+    return 'SocialCredential(userId: $userId, email: $email)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $SocialCredentialCopyWith<$Res> {
+  factory $SocialCredentialCopyWith(
+          SocialCredential value, $Res Function(SocialCredential) _then) =
+      _$SocialCredentialCopyWithImpl;
+  @useResult
+  $Res call({String userId, String email});
+}
+
+/// @nodoc
+class _$SocialCredentialCopyWithImpl<$Res>
+    implements $SocialCredentialCopyWith<$Res> {
+  _$SocialCredentialCopyWithImpl(this._self, this._then);
+
+  final SocialCredential _self;
+  final $Res Function(SocialCredential) _then;
+
+  /// Create a copy of SocialCredential
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? userId = null,
+    Object? email = null,
+  }) {
+    return _then(_self.copyWith(
+      userId: null == userId
+          ? _self.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
+      email: null == email
+          ? _self.email!
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class EmailCredential extends SocialCredential {
+  const EmailCredential(
+      {required this.userId, required this.email, final String? $type})
+      : $type = $type ?? 'email',
+        super._();
+  factory EmailCredential.fromJson(Map<String, dynamic> json) =>
+      _$EmailCredentialFromJson(json);
+
+  /// Primary key of the associated [AuthUser].
+  @override
+  final String userId;
+
+  /// Email used to sign in.
+  @override
+  final String email;
+
+  @JsonKey(name: 'runtimeType')
+  final String $type;
+
+  /// Create a copy of SocialCredential
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $EmailCredentialCopyWith<EmailCredential> get copyWith =>
+      _$EmailCredentialCopyWithImpl<EmailCredential>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$EmailCredentialToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is EmailCredential &&
+            (identical(other.userId, userId) || other.userId == userId) &&
+            (identical(other.email, email) || other.email == email));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, userId, email);
+
+  @override
+  String toString() {
+    return 'SocialCredential.email(userId: $userId, email: $email)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $EmailCredentialCopyWith<$Res>
+    implements $SocialCredentialCopyWith<$Res> {
+  factory $EmailCredentialCopyWith(
+          EmailCredential value, $Res Function(EmailCredential) _then) =
+      _$EmailCredentialCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String userId, String email});
+}
+
+/// @nodoc
+class _$EmailCredentialCopyWithImpl<$Res>
+    implements $EmailCredentialCopyWith<$Res> {
+  _$EmailCredentialCopyWithImpl(this._self, this._then);
+
+  final EmailCredential _self;
+  final $Res Function(EmailCredential) _then;
+
+  /// Create a copy of SocialCredential
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? userId = null,
+    Object? email = null,
+  }) {
+    return _then(EmailCredential(
+      userId: null == userId
+          ? _self.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
+      email: null == email
+          ? _self.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class AppleCredential extends SocialCredential {
+  const AppleCredential(
+      {required this.userId,
+      required this.userIdentifier,
+      required this.givenName,
+      required this.familyName,
+      required this.email,
+      required this.authorizationCode,
+      required this.identityToken,
+      required this.state,
+      final String? $type})
+      : $type = $type ?? 'apple',
+        super._();
+  factory AppleCredential.fromJson(Map<String, dynamic> json) =>
+      _$AppleCredentialFromJson(json);
+
+  /// Primary key of the associated [AuthUser].
+  @override
+  final String userId;
+
+  /// An identifier associated with the authenticated user.
+  ///
+  /// This will always be provided on iOS and macOS systems. On Android,
+  /// however, this will not be present.
+  /// This will stay the same between sign ins, until the user deauthorizes
+  /// your App.
+  ///
+  /// Not-null in our implementation because Apple Sign-In is not offered on
+  /// Android.
+  final String userIdentifier;
+
+  /// The users given name, in case it was requested.
+  /// You will need to provide the [AppleIDAuthorizationScopes.fullName] scope
+  /// to the [AppleIDAuthorizationRequest] for requesting this information.
+  ///
+  /// This information will only be provided on the first authorizations.
+  /// Upon further authorizations, you will only get the [userIdentifier],
+  /// meaning you will need to store this data securely on your servers.
+  /// For more information see:
+  /// https://forums.developer.apple.com/thread/121496
+  final String? givenName;
+
+  /// The users family name, in case it was requested.
+  /// You will need to provide the [AppleIDAuthorizationScopes.fullName] scope
+  /// to the [AppleIDAuthorizationRequest] for requesting this information.
+  ///
+  /// This information will only be provided on the first authorizations.
+  /// Upon further authorizations, you will only get the [userIdentifier],
+  /// meaning you will need to store this data securely on your servers.
+  /// For more information see:
+  /// https://forums.developer.apple.com/thread/121496
+  final String? familyName;
+
+  /// The users email in case it was requested.
+  /// You will need to provide the [AppleIDAuthorizationScopes.email] scope to
+  /// the [AppleIDAuthorizationRequest] for requesting this information.
+  ///
+  /// This information will only be provided on the first authorizations.
+  /// Upon further authorizations, you will only get the [userIdentifier],
+  /// meaning you will need to store this data securely on your servers.
+  /// For more information see:
+  /// https://forums.developer.apple.com/thread/121496
+  @override
+  final String? email;
+
+  /// The verification code for the current authorization.
+  ///
+  /// This code should be used by your server component to validate the
+  /// authorization with Apple within 5 minutes upon receiving it.
+  final String authorizationCode;
+
+  /// A JSON Web Token (JWT) that securely communicates information about the
+  /// user to your app.
+  final String? identityToken;
+
+  /// The `state` parameter that was passed to the request.
+  ///
+  /// This data is not modified by Apple.
+  final String? state;
+
+  @JsonKey(name: 'runtimeType')
+  final String $type;
+
+  /// Create a copy of SocialCredential
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $AppleCredentialCopyWith<AppleCredential> get copyWith =>
+      _$AppleCredentialCopyWithImpl<AppleCredential>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$AppleCredentialToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is AppleCredential &&
+            (identical(other.userId, userId) || other.userId == userId) &&
+            (identical(other.userIdentifier, userIdentifier) ||
+                other.userIdentifier == userIdentifier) &&
+            (identical(other.givenName, givenName) ||
+                other.givenName == givenName) &&
+            (identical(other.familyName, familyName) ||
+                other.familyName == familyName) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.authorizationCode, authorizationCode) ||
+                other.authorizationCode == authorizationCode) &&
+            (identical(other.identityToken, identityToken) ||
+                other.identityToken == identityToken) &&
+            (identical(other.state, state) || other.state == state));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, userId, userIdentifier,
+      givenName, familyName, email, authorizationCode, identityToken, state);
+
+  @override
+  String toString() {
+    return 'SocialCredential.apple(userId: $userId, userIdentifier: $userIdentifier, givenName: $givenName, familyName: $familyName, email: $email, authorizationCode: $authorizationCode, identityToken: $identityToken, state: $state)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $AppleCredentialCopyWith<$Res>
+    implements $SocialCredentialCopyWith<$Res> {
+  factory $AppleCredentialCopyWith(
+          AppleCredential value, $Res Function(AppleCredential) _then) =
+      _$AppleCredentialCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String userId,
+      String userIdentifier,
+      String? givenName,
+      String? familyName,
+      String? email,
+      String authorizationCode,
+      String? identityToken,
+      String? state});
+}
+
+/// @nodoc
+class _$AppleCredentialCopyWithImpl<$Res>
+    implements $AppleCredentialCopyWith<$Res> {
+  _$AppleCredentialCopyWithImpl(this._self, this._then);
+
+  final AppleCredential _self;
+  final $Res Function(AppleCredential) _then;
+
+  /// Create a copy of SocialCredential
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? userId = null,
+    Object? userIdentifier = null,
+    Object? givenName = freezed,
+    Object? familyName = freezed,
+    Object? email = freezed,
+    Object? authorizationCode = null,
+    Object? identityToken = freezed,
+    Object? state = freezed,
+  }) {
+    return _then(AppleCredential(
+      userId: null == userId
+          ? _self.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
+      userIdentifier: null == userIdentifier
+          ? _self.userIdentifier
+          : userIdentifier // ignore: cast_nullable_to_non_nullable
+              as String,
+      givenName: freezed == givenName
+          ? _self.givenName
+          : givenName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      familyName: freezed == familyName
+          ? _self.familyName
+          : familyName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _self.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      authorizationCode: null == authorizationCode
+          ? _self.authorizationCode
+          : authorizationCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      identityToken: freezed == identityToken
+          ? _self.identityToken
+          : identityToken // ignore: cast_nullable_to_non_nullable
+              as String?,
+      state: freezed == state
+          ? _self.state
+          : state // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class GoogleCredential extends SocialCredential {
+  const GoogleCredential(
+      {required this.userId,
+      required this.displayName,
+      required this.email,
+      required this.uniqueId,
+      required this.photoUrl,
+      required this.idToken,
+      required this.serverAuthCode,
+      final String? $type})
+      : $type = $type ?? 'google',
+        super._();
+  factory GoogleCredential.fromJson(Map<String, dynamic> json) =>
+      _$GoogleCredentialFromJson(json);
+
+  /// Primary key of the associated [AuthUser].
+  @override
+  final String userId;
+
+  /// The display name of the signed in user.
+  ///
+  /// Not guaranteed to be present for all users, even when configured.
+  final String? displayName;
+
+  /// The email address of the signed in user.
+  ///
+  /// Applications should not key users by email address since a Google
+  /// account's email address can change. Use [id] as a key instead.
+  ///
+  /// _Important_: Do not use this returned email address to communicate the
+  /// currently signed in user to your backend server. Instead, send an ID
+  /// token which can be securely validated on the server. See [idToken].
+  @override
+  final String email;
+
+  /// The unique ID for the Google account. Called [id] in the package.
+  ///
+  /// This is the preferred unique key to use for a user record.
+  ///
+  /// _Important_: Do not use this returned Google ID to communicate the
+  /// currently signed in user to your backend server. Instead, send an ID
+  /// token which can be securely validated on the server. See [idToken].
+  final String uniqueId;
+
+  /// The photo url of the signed in user if the user has a profile picture.
+  ///
+  /// Not guaranteed to be present for all users, even when configured.
+  final String? photoUrl;
+
+  /// A token that can be sent to your own server to verify the authentication
+  /// data.
+  final String? idToken;
+
+  /// Server auth code used to access Google Login
+  final String? serverAuthCode;
+
+  @JsonKey(name: 'runtimeType')
+  final String $type;
+
+  /// Create a copy of SocialCredential
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $GoogleCredentialCopyWith<GoogleCredential> get copyWith =>
+      _$GoogleCredentialCopyWithImpl<GoogleCredential>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$GoogleCredentialToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is GoogleCredential &&
+            (identical(other.userId, userId) || other.userId == userId) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.uniqueId, uniqueId) ||
+                other.uniqueId == uniqueId) &&
+            (identical(other.photoUrl, photoUrl) ||
+                other.photoUrl == photoUrl) &&
+            (identical(other.idToken, idToken) || other.idToken == idToken) &&
+            (identical(other.serverAuthCode, serverAuthCode) ||
+                other.serverAuthCode == serverAuthCode));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, userId, displayName, email,
+      uniqueId, photoUrl, idToken, serverAuthCode);
+
+  @override
+  String toString() {
+    return 'SocialCredential.google(userId: $userId, displayName: $displayName, email: $email, uniqueId: $uniqueId, photoUrl: $photoUrl, idToken: $idToken, serverAuthCode: $serverAuthCode)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $GoogleCredentialCopyWith<$Res>
+    implements $SocialCredentialCopyWith<$Res> {
+  factory $GoogleCredentialCopyWith(
+          GoogleCredential value, $Res Function(GoogleCredential) _then) =
+      _$GoogleCredentialCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String userId,
+      String? displayName,
+      String email,
+      String uniqueId,
+      String? photoUrl,
+      String? idToken,
+      String? serverAuthCode});
+}
+
+/// @nodoc
+class _$GoogleCredentialCopyWithImpl<$Res>
+    implements $GoogleCredentialCopyWith<$Res> {
+  _$GoogleCredentialCopyWithImpl(this._self, this._then);
+
+  final GoogleCredential _self;
+  final $Res Function(GoogleCredential) _then;
+
+  /// Create a copy of SocialCredential
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? userId = null,
+    Object? displayName = freezed,
+    Object? email = null,
+    Object? uniqueId = null,
+    Object? photoUrl = freezed,
+    Object? idToken = freezed,
+    Object? serverAuthCode = freezed,
+  }) {
+    return _then(GoogleCredential(
+      userId: null == userId
+          ? _self.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
+      displayName: freezed == displayName
+          ? _self.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: null == email
+          ? _self.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+      uniqueId: null == uniqueId
+          ? _self.uniqueId
+          : uniqueId // ignore: cast_nullable_to_non_nullable
+              as String,
+      photoUrl: freezed == photoUrl
+          ? _self.photoUrl
+          : photoUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      idToken: freezed == idToken
+          ? _self.idToken
+          : idToken // ignore: cast_nullable_to_non_nullable
+              as String?,
+      serverAuthCode: freezed == serverAuthCode
+          ? _self.serverAuthCode
+          : serverAuthCode // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }

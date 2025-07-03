@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:client_auth/client_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
@@ -32,7 +31,8 @@ class FirebaseAuthService extends StreamAuthService
     with SocialAuthService, AnonymousAuthService {
   /// Default constructor for [FirebaseAuthService].
   FirebaseAuthService({
-    Repository<AuthUser>? authUserRepo,
+    required Repository<AuthUser> authUserRepo,
+    required Repository<SocialCredential> credentialRepo,
     GetAppleCredentials? getAppleCredentials,
     GoogleSignIn? googleSignIn,
     firebase_auth.FirebaseAuth? firebaseAuth,
@@ -42,7 +42,8 @@ class FirebaseAuthService extends StreamAuthService
         _googleSignIn = googleSignIn ?? GoogleSignIn.standard(),
         _auth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
         _userUpdatesController = StreamController<AuthUser?>(),
-        _authUserRepo = authUserRepo ?? GetIt.I<Repository<AuthUser>>(),
+        _authUserRepo = authUserRepo,
+        _credentialRepo = credentialRepo,
         _privateIdBuilder = privateIdBuilder ?? _uuidV7;
 
   final firebase_auth.FirebaseAuth _auth;
@@ -50,6 +51,7 @@ class FirebaseAuthService extends StreamAuthService
   final GetAppleCredentials _getAppleCredentials;
   final PrivateIdBuilder _privateIdBuilder;
   late final Repository<AuthUser> _authUserRepo;
+  late final Repository<SocialCredential> _credentialRepo;
 
   StreamSubscription<FirebaseUser?>? _firebaseStreamSubscription;
 
@@ -143,6 +145,7 @@ class FirebaseAuthService extends StreamAuthService
           AppleIDAuthorizationScopes.fullName,
         ],
       );
+
       final oAuthProvider = firebase_auth.OAuthProvider('apple.com');
       final credential = oAuthProvider.credential(
         idToken: appleIdCredential.identityToken,
@@ -157,6 +160,18 @@ class FirebaseAuthService extends StreamAuthService
       if (userCred.user != null) {
         final authUser = await _syncFirebaseUserWithDatabase(
           userCred.user!,
+          credentialBuilder: (String userId) => AppleCredential(
+            userId: userId,
+            userIdentifier: appleIdCredential.userIdentifier ?? userId,
+            email: appleIdCredential.email ??
+                userCred.additionalUserInfo?.profile?['email'] as String?,
+            givenName: appleIdCredential.givenName ??
+                userCred.additionalUserInfo?.username,
+            familyName: appleIdCredential.familyName,
+            identityToken: appleIdCredential.identityToken,
+            authorizationCode: appleIdCredential.authorizationCode,
+            state: appleIdCredential.state,
+          ),
           provider: AuthProvider.apple,
         );
         if (authUser != null) {
@@ -184,6 +199,7 @@ class FirebaseAuthService extends StreamAuthService
   }) async {
     try {
       _isAuthorizing = true;
+      final cleanEmail = email.toLowerCase().trim();
 
       if (_auth.currentUser != null && _auth.currentUser!.isAnonymous) {
         throw Exception(
@@ -192,13 +208,15 @@ class FirebaseAuthService extends StreamAuthService
       }
 
       final userCred = await _auth.signInWithEmailAndPassword(
-        email: email.toLowerCase().trim(),
+        email: cleanEmail,
         password: password,
       );
       if (userCred.user != null) {
         final authUser = await _syncFirebaseUserWithDatabase(
           userCred.user!,
           provider: AuthProvider.email,
+          // Don't provide a [credentialBuilder] here, since it should
+          // have been saved during [signUp]
         );
         _isAuthorizing = false;
         if (authUser != null) {
@@ -226,10 +244,15 @@ class FirebaseAuthService extends StreamAuthService
     try {
       _isAuthorizing = true;
       final googleUser = await _googleSignIn.signIn();
-      final googleAuth = await googleUser?.authentication;
+
+      if (googleUser == null) {
+        return const AuthFailure(AuthenticationError.cancelledSocialAuth());
+      }
+
+      final googleAuth = await googleUser.authentication;
       final credential = firebase_auth.GoogleAuthProvider.credential(
-        accessToken: googleAuth?.accessToken,
-        idToken: googleAuth?.idToken,
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
       );
 
       final userCred = await ((_auth.currentUser != null)
@@ -241,6 +264,15 @@ class FirebaseAuthService extends StreamAuthService
         final authUser = await _syncFirebaseUserWithDatabase(
           userCred.user!,
           provider: AuthProvider.google,
+          credentialBuilder: (String userId) => GoogleCredential(
+            userId: userId,
+            displayName: googleUser.displayName,
+            email: googleUser.email,
+            uniqueId: googleUser.id,
+            photoUrl: googleUser.photoUrl,
+            idToken: googleAuth.idToken,
+            serverAuthCode: googleUser.serverAuthCode,
+          ),
         );
         if (authUser != null) {
           _emitUser(authUser);
@@ -311,6 +343,10 @@ class FirebaseAuthService extends StreamAuthService
           provider: AuthProvider.email,
           user: preloadedUser,
           mustSave: mustSave,
+          credentialBuilder: (String userId) => EmailCredential(
+            email: email,
+            userId: userId,
+          ),
         );
         if (authUser != null) {
           _emitUser(authUser);
@@ -349,18 +385,23 @@ class FirebaseAuthService extends StreamAuthService
     FirebaseUser firebaseUser, {
     AuthProvider? provider,
 
+    /// If the user authenticated from an [AuthProvider] which is associated
+    /// with a [SocialCredential], that should be passed here to be saved
+    SocialCredential Function(String userId)? credentialBuilder,
+
     /// If the user was preloaded for account state checks, provide the object
-    /// here to prevent duplicate read
+    /// here to prevent a duplicate read
     AuthUser? user,
 
     /// If the user was both preloaded and had modifications made to it (because
     /// a new auth method yielded new information, for example), then this can
-    /// be passed in to guarantee a save.
+    /// be passed in to guarantee a save
     bool mustSave = false,
   }) async {
-    if (mustSave) {
-      assert(user != null, 'Can only pass mustSave=true when user is not null');
-    }
+    assert(
+      !mustSave || user != null,
+      'Can only pass mustSave=true when user is not null',
+    );
 
     AuthUser? loadedUser = user ??
         await _loadUserWithExpectations(
@@ -385,15 +426,14 @@ class FirebaseAuthService extends StreamAuthService
       loadedUser = toAuthUser(
         firebaseUser,
         provider,
-        {provider},
         _privateIdBuilder(),
       );
       shouldSave = true;
     } else {
       if (provider != null) {
-        if (loadedUser.provider != provider ||
+        if (loadedUser.lastAuthProvider != provider ||
             !loadedUser.allProviders.contains(provider)) {
-          loadedUser = loadedUser.copyWith(provider: provider);
+          loadedUser = loadedUser.copyWith(lastAuthProvider: provider);
           loadedUser = loadedUser.copyWith(
             allProviders: Set<AuthProvider>.from(loadedUser.allProviders)
               ..add(provider),
@@ -410,7 +450,47 @@ class FirebaseAuthService extends StreamAuthService
 
       switch (writeResult) {
         case WriteSuccess():
-          return writeResult.item;
+          final authUser = writeResult.item;
+          if (credentialBuilder != null) {
+            final credential = credentialBuilder(authUser.id);
+            final credentialReadResult = await _credentialRepo.getById(
+              credential.id,
+              RequestDetails.read(),
+            );
+            switch (credentialReadResult) {
+              case ReadSuccess<SocialCredential>():
+                final existingCredential =
+                    credentialReadResult.getOrRaise().item;
+                if (existingCredential != null) {
+                  if (existingCredential.userId != authUser.id) {
+                    _log.shout(
+                      'Existing credential ${existingCredential.id} belongs to '
+                      'AuthUser ${existingCredential.userId}, not current '
+                      'AuthUser ${authUser.id}',
+                    );
+                  } else {
+                    _log.finest(
+                      'Not saving $provider credential for AuthUser '
+                      '${authUser.id} because one already exists',
+                    );
+                  }
+                } else {
+                  await _credentialRepo.setItem(
+                    credential,
+                    RequestDetails.write(),
+                  );
+                  _log.finest(
+                    'Saved $provider credential for AuthUser ${authUser.id}',
+                  );
+                }
+              case ReadFailure<SocialCredential>():
+                _log.shout(
+                  'Failed to save $provider credential for '
+                  'AuthUser ${authUser.id}',
+                );
+            }
+          }
+          return authUser;
         case WriteFailure():
           _log.shout(
             'Failed to write $loadedUser to Firestore: $writeResult',
@@ -483,7 +563,7 @@ class FirebaseAuthService extends StreamAuthService
       case ReadFailure<AuthUser>():
         _log.shout(
           'Failed to read existing AuthUser with Id '
-          '${_auth.currentUser!.uid} :: ${readResponse.reason}',
+          '${_auth.currentUser?.uid ?? "Unknown Id"} :: ${readResponse.reason}',
         );
         return null;
     }
@@ -493,16 +573,15 @@ class FirebaseAuthService extends StreamAuthService
   AuthUser toAuthUser(
     FirebaseUser user,
     AuthProvider thisSession,
-    Set<AuthProvider> allProviders,
     String uuid,
   ) =>
       AuthUser(
         id: user.uid,
-        privateId: uuid,
+        loggingId: uuid,
         email: user.email,
         createdAt: user.metadata.creationTime!,
-        provider: thisSession,
-        allProviders: allProviders,
+        lastAuthProvider: thisSession,
+        allProviders: {thisSession},
       );
 
   @override

@@ -8,7 +8,7 @@ import '../helpers/helpers.dart';
 const userPayload =
 //
 // ignore: lines_longer_than_80_chars
-    '{"id": "abc", "privateId": "private", "apiKey": "123xyz", "provider": "google", "allProviders": ["google"], "createdAt": "2025-01-01T12:00:00Z"}';
+    '{"id": "abc", "privateId": "private", "apiKey": "123xyz", "lastAuthProvider": "google", "allProviders": ["google"], "loggingId": "_log_", "createdAt": "2025-01-01T12:00:00Z"}';
 
 Future<http.Response> login200Handler(
   Uri url, {

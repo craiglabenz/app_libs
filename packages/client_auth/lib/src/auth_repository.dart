@@ -64,8 +64,6 @@ class AuthRepository
     }
   }
 
-  // final _initializationCompleter = Completer<AuthUser?>();
-
   /// Wires up all listeners and resolves when [_primaryAuth] has yielded some
   /// data, even if that is just to say that definitively no user is logged in.
   ///

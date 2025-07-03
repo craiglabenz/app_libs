@@ -85,8 +85,8 @@ class AppConfigRepository {
   /// Returns a [Stream<ForceUpgrade>] which indicates whether the current
   /// application requires a force upgrade.
   ///
-  /// By default, [isForceUpgradeRequired] will emit `false` if unable to connect
-  /// to the backend.
+  /// By default, [isForceUpgradeRequired] will emit `false` if unable to
+  /// connect to the backend.
   Stream<ForceUpgrade> get isForceUpgradeRequired => _upgradeController.stream
       .transform<ForceUpgrade>(
         StreamTransformer.fromHandlers(

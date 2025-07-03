@@ -91,8 +91,8 @@ void main() {
     );
   });
   test(
-      'Paginated details have same noPaginationCacheKey but different cacheKeys',
-      () {
+      'Paginated details have same noPaginationCacheKey but '
+      'different cacheKeys', () {
     expect(
       paginationDetails.noPaginationCacheKey,
       equals(page2Details.noPaginationCacheKey),
@@ -100,8 +100,8 @@ void main() {
     expect(paginationDetails.cacheKey, isNot(equals(page2Details.cacheKey)));
   });
   test(
-      'Paginated details with same filters have same noPaginationCacheKey but different cacheKeys',
-      () {
+      'Paginated details with same filters have same noPaginationCacheKey but '
+      'different cacheKeys', () {
     expect(
       paginationDetailsWithFilter.noPaginationCacheKey,
       equals(page2DetailsWithFilter.noPaginationCacheKey),

@@ -10,10 +10,10 @@ void main() {
 
   final AuthUser user = AuthUser(
     id: 'asdf',
-    privateId: 'abc',
+    loggingId: 'abc',
     email: 'user@email.com',
     createdAt: DateTime(2025, 1, 1, 12),
-    provider: AuthProvider.anonymous,
+    lastAuthProvider: AuthProvider.anonymous,
     allProviders: {AuthProvider.anonymous},
   );
   const String pw = 'pw';
@@ -27,7 +27,7 @@ void main() {
     });
 
     setUp(() async {
-      await setUpTestingDI();
+      // await setUpTestingDI();
       firebaseAuthService = FakeFirebaseAuth();
       authRepository = AuthRepository(firebaseAuthService);
     });
@@ -173,10 +173,10 @@ void main() {
       setUp(() {
         user = AuthUser(
           id: userId,
-          privateId: 'abc',
+          loggingId: 'abc',
           email: email,
-          provider: AuthProvider.email,
           createdAt: DateTime(2020),
+          lastAuthProvider: AuthProvider.email,
           allProviders: {AuthProvider.email},
         );
       });

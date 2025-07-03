@@ -2,7 +2,6 @@
 import 'package:client_auth/client_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_data/shared_data.dart';
@@ -12,6 +11,10 @@ import '../helpers/helpers.dart';
 
 const email = 'homer@simpson.com';
 const password = 't0ps3cret42';
+
+class MockAppleCredential extends Mock implements AppleCredential {}
+
+class MockGoogleCredential extends Mock implements GoogleCredential {}
 
 FirebaseUser authUserToFirebaseUser(AuthUser authUser,
     {DateTime? lastSignInTime}) {
@@ -30,32 +33,19 @@ void main() {
   group('FirebaseAuthService', () {
     late AuthorizationCredentialAppleID authorizationCredentialAppleID;
     late Repository<AuthUser> authUserRepo;
+    late Repository<SocialCredential> credentialRepo;
     late GetAppleCredentials getAppleCredentials;
     late List<List<AppleIDAuthorizationScopes>> getAppleCredentialsCalls;
     late GoogleSignIn googleSignIn;
     late firebase_auth.FirebaseAuth firebaseAuth;
-    // late StreamController<firebase_auth.User?> usersController;
     late FirebaseAuthService firebaseAuthService;
 
     setUpAll(() {
       registerFallbackValue(FakeAuthCredential());
     });
 
-    // Stream<firebase_auth.User?> getCallback(
-    //   StreamController<firebase_auth.User?> controller,
-    // ) =>
-    //     controller.stream;
-
     setUp(() async {
-      await setUpTestingDI();
       firebaseAuth = MockFirebaseAuth();
-
-      // usersController = StreamController<firebase_auth.User?>();
-      // firebaseAuth = MockFirebaseAuth();
-      // when(firebaseAuth.authStateChanges).thenAnswer(
-      //   (_) => getCallback(usersController),
-      // );
-
       googleSignIn = MockGoogleSignIn();
       authorizationCredentialAppleID = MockAuthorizationCredentialAppleID();
       getAppleCredentialsCalls = <List<AppleIDAuthorizationScopes>>[];
@@ -69,12 +59,23 @@ void main() {
         return authorizationCredentialAppleID;
       };
 
+      credentialRepo = Repository<SocialCredential>(
+        SourceList(
+          bindings: SocialCredential.bindings,
+          sources: <Source<SocialCredential>>[
+            LocalMemorySource<SocialCredential>(
+              bindings: SocialCredential.bindings,
+            ),
+          ],
+        ),
+      );
+
       authUserRepo = Repository<AuthUser>(
         SourceList(
-          bindings: GetIt.I<Bindings<AuthUser>>(),
+          bindings: AuthUser.bindings,
           sources: <Source<AuthUser>>[
             LocalMemorySource<AuthUser>(
-              bindings: GetIt.I<Bindings<AuthUser>>(),
+              bindings: AuthUser.bindings,
             ),
           ],
         ),
@@ -85,6 +86,7 @@ void main() {
         getAppleCredentials: getAppleCredentials,
         googleSignIn: googleSignIn,
         authUserRepo: authUserRepo,
+        credentialRepo: credentialRepo,
         privateIdBuilder: () => 'private-eye',
       );
     });
@@ -112,7 +114,7 @@ void main() {
         expect(authUser.id, 'abc');
         expect(authUser.email, '');
         expect(authUser.createdAt, DateTime(2021));
-        expect(authUser.provider, AuthProvider.anonymous);
+        expect(authUser.lastAuthProvider, AuthProvider.anonymous);
         expect(authUser.allProviders, {AuthProvider.anonymous});
       });
     });
@@ -120,10 +122,10 @@ void main() {
     group('logInWithApple', () {
       final homerSimpson = AuthUser(
         id: 'abc',
-        privateId: 'private-eye',
+        loggingId: 'private-eye',
         email: 'homer@simpson.com',
         createdAt: DateTime(2021).toUtc(),
-        provider: AuthProvider.apple,
+        lastAuthProvider: AuthProvider.apple,
         allProviders: {AuthProvider.apple},
       );
 
@@ -176,10 +178,10 @@ void main() {
     group('signUp', () {
       final homerSimpson = AuthUser(
         id: 'abc',
-        privateId: 'private-eye',
+        loggingId: 'private-eye',
         email: 'homer@simpson.com',
         createdAt: DateTime(2021).toUtc(),
-        provider: AuthProvider.email,
+        lastAuthProvider: AuthProvider.email,
         allProviders: {AuthProvider.email},
       );
 
@@ -242,10 +244,10 @@ void main() {
 
       final homerSimpson = AuthUser(
         id: 'abc',
-        privateId: 'private-eye',
+        loggingId: 'private-eye',
         email: 'homer@simpson.com',
         createdAt: DateTime(2021).toUtc(),
-        provider: AuthProvider.google,
+        lastAuthProvider: AuthProvider.google,
         allProviders: {AuthProvider.google},
       );
 
@@ -263,6 +265,11 @@ void main() {
             .thenAnswer((_) async => googleSignInAuthentication);
         when(() => googleSignIn.signIn())
             .thenAnswer((_) async => googleSignInAccount);
+        when(() => googleSignInAccount.email).thenReturn(homerSimpson.email!);
+        when(() => googleSignInAccount.id).thenReturn(homerSimpson.id);
+        when(() => googleSignInAccount.photoUrl).thenReturn('');
+        when(() => googleSignInAccount.serverAuthCode).thenReturn('_code_');
+        when(() => googleSignInAuthentication.idToken).thenReturn('_token_');
         when(() => firebaseAuth.signInWithCredential(any()))
             .thenAnswer((_) => Future.value(credential));
       });
@@ -293,10 +300,10 @@ void main() {
     group('logInWithEmailAndPassword', () {
       final homerSimpson = AuthUser(
         id: 'abc',
-        privateId: 'private-eye',
+        loggingId: 'private-eye',
         email: 'homer@simpson.com',
         createdAt: DateTime(2021).toUtc(),
-        provider: AuthProvider.email,
+        lastAuthProvider: AuthProvider.email,
         allProviders: {AuthProvider.email},
       );
 

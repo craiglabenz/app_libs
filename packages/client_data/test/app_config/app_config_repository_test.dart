@@ -1,7 +1,6 @@
 // import 'package:firebase_core/firebase_core.dart';
 import 'package:client_data/client_data.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get_it/get_it.dart';
 import 'package:platform/platform.dart';
 
 void main() {
@@ -38,12 +37,6 @@ void main() {
         ),
         throwsAssertionError,
       );
-    });
-
-    test('does not require an injected Firestore instance', () {
-      expect(() {
-        GetIt.I.get<AppConfigRepository>();
-      }, isNot(throwsException));
     });
 
     group('streams', () {

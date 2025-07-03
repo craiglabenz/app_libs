@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:get_it/get_it.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
@@ -15,14 +14,17 @@ class HiveSource<T> extends LocalSource<T> with ReadinessMixin<void> {
   /// {@macro HiveSource}
   factory HiveSource({
     required Bindings<T> bindings,
+    required Future<bool> hiveInit,
     IdBuilder<T>? idBuilder,
   }) {
     final hiveItemsPersistence = HiveItemsPersistence<T>(
       bindings.getListUrl().path,
       bindings.getId,
+      hiveInit,
     );
     final hiveCachePersistence = HiveCachePersistence(
       bindings.getListUrl().path,
+      hiveInit,
     );
     return HiveSource._(
         hiveItemsPersistence,
@@ -57,17 +59,19 @@ class HiveSource<T> extends LocalSource<T> with ReadinessMixin<void> {
 
 class HiveItemsPersistence<T> extends LocalSourcePersistence<T>
     with ReadinessMixin<void> {
-  HiveItemsPersistence(this.name, this.getId);
+  HiveItemsPersistence(this.name, this.getId, this.hiveInit);
 
   final String name;
   String? Function(T) getId;
+
+  final Future<bool> hiveInit;
 
   late final Box<T> _itemsBox;
 
   @override
   Future<void> performInitialization() async {
-    final hiveInit = await GetIt.I<HiveInitializer>().ready;
-    if (!hiveInit) {
+    final hiveInitialized = await hiveInit;
+    if (!hiveInitialized) {
       throw Exception('Failed to initialize Hive');
     }
     _itemsBox = await Hive.openBox<T>('${name}_items');
@@ -110,12 +114,14 @@ class HiveItemsPersistence<T> extends LocalSourcePersistence<T>
 }
 
 class HiveCachePersistence extends CachePersistence with ReadinessMixin<void> {
-  HiveCachePersistence(this.name) {
+  HiveCachePersistence(this.name, this.hiveInit) {
     _log = Logger('HiveCachePersistence($name)');
   }
 
   /// Namespace for Hive box name prefixes.
   final String name;
+
+  final Future<bool> hiveInit;
 
   late final Box<Set<String>> _requestCacheBox;
 
@@ -127,8 +133,8 @@ class HiveCachePersistence extends CachePersistence with ReadinessMixin<void> {
 
   @override
   Future<void> performInitialization() async {
-    final hiveInit = await GetIt.I<HiveInitializer>().ready;
-    if (!hiveInit) {
+    final hiveInitialized = await hiveInit;
+    if (!hiveInitialized) {
       throw Exception('Failed to initialize Hive');
     }
     _requestCacheBox = await Hive.openBox<Set<String>>('${name}_requestCache');
@@ -215,130 +221,3 @@ class HiveCachePersistence extends CachePersistence with ReadinessMixin<void> {
     return innerMap.keys.cast<CacheKey>();
   }
 }
-
-/// {@template HiveSource}
-/// {@endtemplate}
-// class HiveSource<T> extends LocalSource<T> {
-//   /// {@macro HiveSource}
-//   // HiveSource({required this.bindings});
-
-//   final Bindings<T> bindings;
-
-//   final _log = Logger('HiveSource<$T>');
-
-//   final _initialized = Completer<bool>();
-
-//   late final Box<T> _box;
-
-//   Future<void> initialize() async {
-//     final hiveInit = await GetIt.I<HiveInitializer>().initialized;
-
-//     if (!hiveInit) {
-//       throw Exception('Failed to initialize Hive');
-//     }
-
-//     _box = await Hive.openBox<T>(bindings.getListUrl().path);
-//     return _initialized.complete(true);
-//   }
-
-//   @override
-//   Future<ReadResult<T>> getById(String id, RequestDetails<T> details) async {
-//     await _initialized.future;
-//     try {
-//       return ReadSuccess<T>(_box.get(id), details: details);
-//     } on Exception catch (e, st) {
-//       _log.severe(
-//         'Failed to read $T with id $id from Hive: $e\nStack Trace: $st',
-//       );
-//       return ReadFailure<T>(FailureReason.badRequest, 'Problem reading data');
-//     }
-//   }
-
-//   @override
-//   Future<ReadListResult<T>> getByIds(
-//     Set<String> ids,
-//     RequestDetails<T> details,
-//   ) async {
-//     await _initialized.future;
-//     final foundItems = <T>[];
-//     final foundIds = <String>{};
-//     try {
-//       for (final id in ids) {
-//         final object = _box.get(id);
-//         if (object != null) {
-//           foundItems.add(object);
-//           foundIds.add(id);
-//         }
-//       }
-
-//       final missingIds = ids.difference(foundIds);
-//       return ReadListResult<T>.fromList(foundItems, details, missingIds);
-//     } on Exception catch (e, st) {
-//       _log.severe(
-//         'Failed to read $T with ids $ids from Hive: $e\nStack Trace: $st',
-//       );
-//       return ReadListFailure<T>(
-//         FailureReason.badRequest,
-//         'Problem reading data',
-//       );
-//     }
-//   }
-
-//   @override
-//   Future<ReadListResult<T>> getItems(RequestDetails<T> details) async {
-//     await _initialized.future;
-//     try {
-//       Iterable<T> values = _box.values;
-//       for (final filter in details.filters) {
-//         values = values.where(filter.predicate);
-//       }
-//       return ReadListResult<T>.fromList(values.toList(), details, {});
-//     } on Exception catch (e, st) {
-//       _log.severe('Failed to read $T list from Hive: $e\nStack Trace: $st');
-//       return ReadListFailure<T>(
-//         FailureReason.badRequest,
-//         'Problem reading data',
-//       );
-//     }
-//   }
-
-//   @override
-//   Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) async {
-//     await _initialized.future;
-//     assert(bindings.getId(item) != null, 'Must only write objects with Ids to HiveSources');
-//     try {
-//       await _box.put(bindings.getId(item), item);
-//       return WriteSuccess<T>(item, details: details);
-//     } on Exception catch (e, st) {
-//       _log.severe('Failed to read $T list from Hive: $e\nStack Trace: $st');
-//       return WriteFailure<T>(FailureReason.badRequest, 'Problem writing data');
-//     }
-//   }
-
-//   @override
-//   Future<WriteListResult<T>> setItems(
-//     Iterable<T> items,
-//     RequestDetails<T> details,
-//   ) async {
-//     try {
-//       await _initialized.future;
-//       for (final item in items) {
-//         assert(
-//           bindings.getId(item) != null,
-//           'Must only write objects with Ids to HiveSources',
-//         );
-//         await _box.put(bindings.getId(item), item);
-//       }
-//       return WriteListSuccess<T>(items, details: details);
-//     } on Exception catch (e, st) {
-//       _log.severe('Failed to read $T list from Hive: $e\nStack Trace: $st');
-//       return WriteListFailure<T>(
-//         FailureReason.badRequest,
-//         'Problem writing data',
-//       );
-//     }
-//   }
-
-//   @override
-//   Future<void> clear() => _box.clear();
-// }
