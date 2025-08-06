@@ -16,7 +16,7 @@ class MockAppleCredential extends Mock implements AppleCredential {}
 
 class MockGoogleCredential extends Mock implements GoogleCredential {}
 
-FirebaseUser authUserToFirebaseUser(AuthUser authUser,
+FirebaseUser authUserToFirebaseUser(SocialUser authUser,
     {DateTime? lastSignInTime}) {
   return FakeFirebaseUser(
     isAnonymous: authUser.isAnonymous,
@@ -32,8 +32,8 @@ FirebaseUser authUserToFirebaseUser(AuthUser authUser,
 void main() {
   group('FirebaseAuthService', () {
     late AuthorizationCredentialAppleID authorizationCredentialAppleID;
-    late Repository<AuthUser> authUserRepo;
-    late Repository<SocialCredential> credentialRepo;
+    // late Repository<AuthUser> authUserRepo;
+    // late Repository<SocialCredential> credentialRepo;
     late GetAppleCredentials getAppleCredentials;
     late List<List<AppleIDAuthorizationScopes>> getAppleCredentialsCalls;
     late GoogleSignIn googleSignIn;
@@ -59,35 +59,34 @@ void main() {
         return authorizationCredentialAppleID;
       };
 
-      credentialRepo = Repository<SocialCredential>(
-        SourceList(
-          bindings: SocialCredential.bindings,
-          sources: <Source<SocialCredential>>[
-            LocalMemorySource<SocialCredential>(
-              bindings: SocialCredential.bindings,
-            ),
-          ],
-        ),
-      );
+      // credentialRepo = Repository<SocialCredential>(
+      //   SourceList(
+      //     bindings: SocialCredential.bindings,
+      //     sources: <Source<SocialCredential>>[
+      //       LocalMemorySource<SocialCredential>(
+      //         bindings: SocialCredential.bindings,
+      //       ),
+      //     ],
+      //   ),
+      // );
 
-      authUserRepo = Repository<AuthUser>(
-        SourceList(
-          bindings: AuthUser.bindings,
-          sources: <Source<AuthUser>>[
-            LocalMemorySource<AuthUser>(
-              bindings: AuthUser.bindings,
-            ),
-          ],
-        ),
-      );
+      // authUserRepo = Repository<AuthUser>(
+      //   SourceList(
+      //     bindings: BaseUser.authUserBindings,
+      //     sources: <Source<AuthUser>>[
+      //       LocalMemorySource<AuthUser>(
+      //         bindings: BaseUser.authUserBindings,
+      //       ),
+      //     ],
+      //   ),
+      // );
 
       firebaseAuthService = FirebaseAuthService(
         firebaseAuth: firebaseAuth,
         getAppleCredentials: getAppleCredentials,
         googleSignIn: googleSignIn,
-        authUserRepo: authUserRepo,
-        credentialRepo: credentialRepo,
-        privateIdBuilder: () => 'private-eye',
+        // authUserRepo: authUserRepo,
+        // credentialRepo: credentialRepo,
       );
     });
 
@@ -109,24 +108,21 @@ void main() {
 
       test('should return a user', () async {
         final authResponse = await firebaseAuthService.createAnonymousAccount();
-        expect(authResponse, isA<AuthSuccess>());
-        final authUser = authResponse.getOrRaise();
-        expect(authUser.id, 'abc');
-        expect(authUser.email, '');
-        expect(authUser.createdAt, DateTime(2021));
-        expect(authUser.lastAuthProvider, AuthProvider.anonymous);
-        expect(authUser.allProviders, {AuthProvider.anonymous});
+        expect(authResponse, isA<SocialAuthSuccess>());
+        final socialAuthUser = authResponse.getOrRaise();
+        expect(socialAuthUser.id, 'abc');
+        expect(socialAuthUser.email, '');
+        expect(socialAuthUser.createdAt, DateTime(2021));
+        expect(socialAuthUser.provider, AuthProvider.anonymous);
       });
     });
 
     group('logInWithApple', () {
-      final homerSimpson = AuthUser(
+      final homerSimpson = SocialUser(
         id: 'abc',
-        loggingId: 'private-eye',
         email: 'homer@simpson.com',
+        provider: AuthProvider.apple,
         createdAt: DateTime(2021).toUtc(),
-        lastAuthProvider: AuthProvider.apple,
-        allProviders: {AuthProvider.apple},
       );
 
       setUp(() async {
@@ -165,24 +161,22 @@ void main() {
       test('throws LogInWithAppleFailure when exception occurs', () async {
         when(() => firebaseAuth.signInWithCredential(any()))
             .thenThrow(Exception());
-        expect(await firebaseAuthService.logInWithApple(), isAuthFailure);
+        expect(await firebaseAuthService.logInWithApple(), isSocialAuthFailure);
       });
 
       test('returns a user', () async {
         final response = await firebaseAuthService.logInWithApple();
-        expect(response, isAuthSuccess);
+        expect(response, isSocialAuthSuccess);
         expect(response.getOrRaise(), equals(homerSimpson));
       });
     });
 
     group('signUp', () {
-      final homerSimpson = AuthUser(
+      final homerSimpson = SocialUser(
         id: 'abc',
-        loggingId: 'private-eye',
         email: 'homer@simpson.com',
+        provider: AuthProvider.email,
         createdAt: DateTime(2021).toUtc(),
-        lastAuthProvider: AuthProvider.email,
-        allProviders: {AuthProvider.email},
       );
 
       setUp(() {
@@ -212,7 +206,7 @@ void main() {
           email: email,
           password: password,
         );
-        expect(response, isAuthSuccess);
+        expect(response, isSocialAuthSuccess);
         expect(response.getOrRaise(), equals(homerSimpson));
       });
 
@@ -234,7 +228,7 @@ void main() {
         ).thenThrow(Exception());
         expect(
           await firebaseAuthService.signUp(email: email, password: password),
-          isAuthFailure,
+          isSocialAuthFailure,
         );
       });
     });
@@ -242,13 +236,11 @@ void main() {
       const accessToken = 'access-token';
       const idToken = 'id-token';
 
-      final homerSimpson = AuthUser(
+      final homerSimpson = SocialUser(
         id: 'abc',
-        loggingId: 'private-eye',
         email: 'homer@simpson.com',
+        provider: AuthProvider.google,
         createdAt: DateTime(2021).toUtc(),
-        lastAuthProvider: AuthProvider.google,
-        allProviders: {AuthProvider.google},
       );
 
       setUp(() {
@@ -282,7 +274,7 @@ void main() {
 
       test('returns a user', () async {
         final response = await firebaseAuthService.logInWithGoogle();
-        expect(response, isAuthSuccess);
+        expect(response, isSocialAuthSuccess);
         expect(response.getOrRaise(), equals(homerSimpson));
       });
 
@@ -293,18 +285,17 @@ void main() {
       test('returns an AuthenticationError when exception occurs', () async {
         when(() => firebaseAuth.signInWithCredential(any()))
             .thenThrow(Exception());
-        expect(await firebaseAuthService.logInWithGoogle(), isAuthFailure);
+        expect(
+            await firebaseAuthService.logInWithGoogle(), isSocialAuthFailure);
       });
     });
 
     group('logInWithEmailAndPassword', () {
-      final homerSimpson = AuthUser(
+      final homerSimpson = SocialUser(
         id: 'abc',
-        loggingId: 'private-eye',
         email: 'homer@simpson.com',
+        provider: AuthProvider.email,
         createdAt: DateTime(2021).toUtc(),
-        lastAuthProvider: AuthProvider.email,
-        allProviders: {AuthProvider.email},
       );
 
       setUp(() {
@@ -347,7 +338,7 @@ void main() {
           email: email,
           password: password,
         );
-        expect(response, isAuthSuccess);
+        expect(response, isSocialAuthSuccess);
         expect(response.getOrRaise(), equals(homerSimpson));
       });
 
@@ -365,7 +356,7 @@ void main() {
             email: email,
             password: password,
           ),
-          isAuthFailure,
+          isSocialAuthFailure,
         );
       });
     });
@@ -384,7 +375,7 @@ void main() {
         when(() => firebaseAuth.signOut()).thenThrow(Exception());
         expect(
           await firebaseAuthService.logOut(),
-          isAuthFailure,
+          isSocialAuthFailure,
         );
       });
     });

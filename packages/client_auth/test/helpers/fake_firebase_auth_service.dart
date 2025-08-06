@@ -1,96 +1,92 @@
 import 'dart:async';
 import 'package:client_auth/client_auth.dart';
-import 'package:shared_data/shared_data.dart' show AuthProvider, AuthUser;
+import 'package:shared_data/shared_data.dart';
 
 /// Pass-thru implementation of [AuthService] with scriptable results.
-class FakeFirebaseAuth extends StreamAuthService
-    with SocialAuthService, AnonymousAuthService {
+class FakeFirebaseAuth extends StreamSocialAuthService {
   /// The user to be added to the stream during the next login attempt
   /// IFF [error] is null.
-  AuthUser? _user;
+  SocialUser? _stagedUser;
 
   /// If not null, the exception to be thrown during the next login attempt.
   /// This value is reset to `null` after each being thrown.
-  AuthFailure? error;
-  final StreamController<AuthUser?> _controller = StreamController<AuthUser?>();
+  SocialAuthFailure? error;
+  final StreamController<SocialUser?> _controller =
+      StreamController<SocialUser?>();
 
   /// Sets the user to be yielded by the next login/sign up attempt.
   // ignore: use_setters_to_change_properties
-  void prepareLogin(AuthUser? user) => _user = user;
+  void prepareLogin(SocialUser? user) => _stagedUser = user;
 
   /// Sets the error to be thrown by the next login/sign up attempt.
   // ignore: use_setters_to_change_properties
-  void prepareLoginError(AuthFailure e) => error = e;
+  void prepareLoginError(SocialAuthFailure e) => error = e;
 
-  AuthUser? _lastEmittedUser;
+  SocialUser? _lastEmittedUser;
 
   @override
-  Future<AuthUser?> performInitialization() {
+  Future<SocialUser?> performInitialization() {
     _emitUser();
-    return Future<AuthUser?>.value(_lastEmittedUser);
+    return Future<SocialUser?>.value(_lastEmittedUser);
   }
 
   // Centralized place to emit users to the stream.
   void _emitUser() {
-    _lastEmittedUser = _user;
-    _user = null;
+    _lastEmittedUser = _stagedUser;
+    _stagedUser = null;
     _controller.sink.add(_lastEmittedUser);
     markReady(_lastEmittedUser);
   }
 
   @override
-  Future<Set<AuthProvider>> getAvailableMethods(String email) =>
-      Future.value(<AuthProvider>{});
+  Future<SocialAuthResponse> logInWithApple() async => _doLogin();
 
   @override
-  Future<AuthResponse> logInWithApple() async => _doLogin();
-
-  @override
-  Future<AuthResponse> logInWithEmailAndPassword({
+  Future<SocialAuthResponse> logInWithEmailAndPassword({
     required String email,
     required String password,
   }) async =>
       _doLogin();
 
   @override
-  Future<AuthResponse> logInWithGoogle() async => _doLogin();
+  Future<SocialAuthResponse> logInWithGoogle() async => _doLogin();
 
   @override
-  Future<AuthFailure?> logOut() async {
+  Future<SocialAuthFailure?> logOut() async {
     if (error != null) {
       final errorPtr = error!.copyWith();
       error = null;
       return errorPtr;
     }
 
-    _user = null;
+    _stagedUser = null;
     _emitUser();
     return null;
   }
 
-  AuthUser? getStoredUser() => _user;
+  SocialUser? getStoredUser() => _stagedUser;
 
   @override
-  Future<AuthResponse> signUp({
+  Future<SocialAuthResponse> signUp({
     required String email,
     required String password,
   }) async =>
       _doLogin();
 
-  AuthResponse _doLogin() {
+  SocialAuthResponse _doLogin() {
     if (error != null) {
       final errorPtr = error!.copyWith();
       error = null;
       return errorPtr;
     }
 
-    final userCopy = _user!.copyWith();
+    final userCopy = _stagedUser!.copyWith();
     _emitUser();
-    return AuthSuccess(userCopy);
+    return SocialAuthSuccess(userCopy);
   }
 
   @override
-  StreamSubscription<AuthUser?> listen(void Function(AuthUser? user) cb) {
+  StreamSubscription<SocialUser?> listen(void Function(SocialUser? user) cb) {
     final sub = _controller.stream.listen(cb);
     if (_lastEmittedUser != null) {
       // This is the only place it is safe to call _controller.sink.add outside
@@ -102,13 +98,8 @@ class FakeFirebaseAuth extends StreamAuthService
   }
 
   @override
-  Future<AuthResponse> createAnonymousAccount() async => _doLogin();
+  Future<SocialAuthResponse> createAnonymousAccount() async => _doLogin();
 
   @override
   void dispose() {}
-
-  @override
-  Future<AuthResponse> syncAnonymousAccount(AuthSuccess authSuccess) {
-    throw UnimplementedError('This is not supported for FirebaseAuth');
-  }
 }

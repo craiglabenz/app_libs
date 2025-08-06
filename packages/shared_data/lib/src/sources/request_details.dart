@@ -9,10 +9,10 @@ typedef CacheKey = String;
 /// Container for meta-information a [Source] will use to return the desired
 /// data.
 /// {@endtemplate}
-class RequestDetails<T> extends Equatable {
+class RequestDetails extends Equatable {
   /// {@macro RequestDetails}
   RequestDetails({
-    this.filters = const [],
+    this.filter,
     this.requestType = defaultRequestType,
     this.pagination,
     this.shouldOverwrite = defaultShouldOverwrite,
@@ -21,12 +21,12 @@ class RequestDetails<T> extends Equatable {
   /// Read-friendly constructor for [RequestDetails].
   factory RequestDetails.read({
     RequestType requestType = defaultRequestType,
-    List<ReadFilter<T>> filters = const [],
+    Filter? filter,
     Pagination? pagination,
   }) =>
       RequestDetails(
         requestType: requestType,
-        filters: filters,
+        filter: filter,
         pagination: pagination,
       );
 
@@ -44,11 +44,33 @@ class RequestDetails<T> extends Equatable {
         pagination: pagination,
       );
 
+  /// Serializes this request information to send to the server.
+  factory RequestDetails.fromJson(Json data) => RequestDetails(
+        // filters: (data['filters']! as List<Json>)
+        //     .map<Filter<T>>(Filter.fromJson)
+        //     .toList(),
+        filter: data['filter'] != null
+            ? Filter.fromJson(data['filter']! as Json)
+            : null,
+        shouldOverwrite: data['shouldOverwrite']! as bool,
+        pagination: Pagination.fromJson(data['pagination']! as Json),
+        requestType: RequestType.values.byName(data['requestType']! as String),
+      );
+
+  /// Serializes this request information to send to the server.
+  Json toJson() => <String, Object?>{
+        // 'filters': filters.map<Json>((f) => f.toJson()),
+        'filter': filter?.toJson(),
+        'requestType': requestType.name,
+        'shouldOverwrite': shouldOverwrite,
+        'pagination': pagination?.toJson(),
+      };
+
   /// {@macro RequestType}
   final RequestType requestType;
 
-  /// List of filters for this request.
-  final List<ReadFilter<T>> filters;
+  /// Optional [Filter] for this request.
+  final Filter? filter;
 
   /// Whether this request should overwrite existing data.
   final bool shouldOverwrite;
@@ -69,7 +91,8 @@ class RequestDetails<T> extends Equatable {
   List<Object?> get props => [
         requestType,
         shouldOverwrite,
-        ...filters.map<int>((filter) => filter.hashCode),
+        // ...filters.map<int>((filter) => filter.hashCode),
+        filter?.hashCode,
         pagination,
       ];
 
@@ -87,8 +110,8 @@ class RequestDetails<T> extends Equatable {
 
   /// Used to assemble all the inputs to this object's full cache key.
   String getCacheKeyInputs() => <String>[
-        ...filters.map<CacheKey>((filter) => filter.cacheKey),
-        pagination?.cacheKey ?? '',
+        filter?.cacheKey ?? '-cache-',
+        pagination?.cacheKey ?? '-page-',
       ].join('-');
 
   CacheKey _getNoPaginationCacheKey() =>
@@ -96,12 +119,12 @@ class RequestDetails<T> extends Equatable {
 
   /// Used to assemble all the inputs to this object's no-pagination cache key.
   String getNoPaginationCacheKeyInputs() => [
-        ...filters.map<CacheKey>((filter) => filter.cacheKey),
-        // '', // to represent `null` pagination
+        filter?.cacheKey ?? '-cache-',
+        '-page-', // to represent `null` pagination
       ].join('-');
 
   /// Indicates whether the filters AND pagination are empty.
-  bool get isEmpty => filters.isEmpty && pagination == null;
+  bool get isEmpty => filter == null && pagination == null;
 
   /// Indicates whether the filters OR pagination are not empty.
   bool get isNotEmpty => !isEmpty;
@@ -109,21 +132,21 @@ class RequestDetails<T> extends Equatable {
   /// Copy of this RequestDetails without any filters, pagination, or other
   /// do-dads which would segment up a data set. This is used for saving the
   /// global list alongside any sliced / filtered lists.
-  RequestDetails<T> get empty => RequestDetails<T>(requestType: requestType);
+  RequestDetails get empty => RequestDetails(requestType: requestType);
 
   /// Equivalent [RequestDetails] but for the removal of a global or refresh
   /// [RequestType].
-  RequestDetails<T> localCopy() => RequestDetails<T>(
+  RequestDetails localCopy() => RequestDetails(
         requestType: RequestType.local,
         pagination: pagination,
-        filters: filters,
+        filter: filter,
         shouldOverwrite: shouldOverwrite,
       );
 
   @override
-  String toString() => 'RequestDetails(requestType: $requestType, filters: '
-      '${filters.map<String>((filter) => filter.toString()).toList()}, '
-      'pagination: $pagination)';
+  String toString() => 'RequestDetails(requestType: $requestType, filter: '
+      // '${filters.map<String>((filter) => filter.toString()).toList()}, '
+      '$filter, pagination: $pagination)';
 
   /// Asserts that this instane [isEmpty]. The lone string parameter is useful
   /// for easily seeing where this assertion was called.
@@ -153,6 +176,12 @@ class Pagination extends Equatable {
   factory Pagination.page(int page, {int pageSize = defaultPageSize}) =>
       Pagination(pageSize: pageSize, page: page);
 
+  /// Deserializes a [Pagination] object.
+  factory Pagination.fromJson(Json data) => Pagination(
+        page: data['page']! as int,
+        pageSize: data['pageSize']! as int,
+      );
+
   /// Maximum number of records this data request should contain.
   final int pageSize;
 
@@ -171,4 +200,10 @@ class Pagination extends Equatable {
 
   @override
   String toString() => 'Pagination(pageSize: $pageSize, page: $page)';
+
+  /// Serializes this pagination.
+  Json toJson() => <String, Object?>{
+        'page': page,
+        'pageSize': pageSize,
+      };
 }

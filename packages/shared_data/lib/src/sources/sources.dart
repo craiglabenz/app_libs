@@ -1,8 +1,9 @@
 export 'api_source.dart';
 export 'base_source.dart';
+export 'filters.dart';
 export 'local_memory_source.dart';
 export 'local_source.dart';
-export 'read_filters.dart';
+export 'proxy_source.dart';
 export 'request_details.dart';
 export 'results.dart';
 export 'source_list.dart';

@@ -6,17 +6,11 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:uuid/uuid.dart';
 
 final _log = Logger('client_auth.FirebaseAuthService');
 
 /// Alias for Firebase's [firebase_auth.User] class.
 typedef FirebaseUser = firebase_auth.User;
-
-/// Yields `privateId` values for new [AuthUser] records.
-typedef PrivateIdBuilder = String Function();
-
-const _uuid = Uuid();
 
 /// Signature for [SignInWithApple.getAppleIDCredential].
 typedef GetAppleCredentials = Future<AuthorizationCredentialAppleID> Function({
@@ -27,39 +21,29 @@ typedef GetAppleCredentials = Future<AuthorizationCredentialAppleID> Function({
 });
 
 /// Executes real session actions with Firebase.
-class FirebaseAuthService extends StreamAuthService
-    with SocialAuthService, AnonymousAuthService {
+class FirebaseAuthService extends StreamSocialAuthService {
   /// Default constructor for [FirebaseAuthService].
   FirebaseAuthService({
-    required Repository<AuthUser> authUserRepo,
-    required Repository<SocialCredential> credentialRepo,
     GetAppleCredentials? getAppleCredentials,
     GoogleSignIn? googleSignIn,
     firebase_auth.FirebaseAuth? firebaseAuth,
-    PrivateIdBuilder? privateIdBuilder,
   })  : _getAppleCredentials =
             getAppleCredentials ?? SignInWithApple.getAppleIDCredential,
         _googleSignIn = googleSignIn ?? GoogleSignIn.standard(),
         _auth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
-        _userUpdatesController = StreamController<AuthUser?>(),
-        _authUserRepo = authUserRepo,
-        _credentialRepo = credentialRepo,
-        _privateIdBuilder = privateIdBuilder ?? _uuidV7;
+        _userUpdatesController = StreamController<SocialUser?>();
 
   final firebase_auth.FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
   final GetAppleCredentials _getAppleCredentials;
-  final PrivateIdBuilder _privateIdBuilder;
-  late final Repository<AuthUser> _authUserRepo;
-  late final Repository<SocialCredential> _credentialRepo;
 
   StreamSubscription<FirebaseUser?>? _firebaseStreamSubscription;
 
   // Not currently .broadcast() - is that okay? In theory only the outermost
   // auth repository will listen to this.
-  final StreamController<AuthUser?> _userUpdatesController;
+  final StreamController<SocialUser?> _userUpdatesController;
 
-  AuthUser? _lastUserEmitted;
+  SocialUser? _lastUserEmitted;
 
   /// Set to true before calling a Firebase auth function and set back to false
   /// after completing _syncFirebaseUserWithDatabase.
@@ -69,25 +53,23 @@ class FirebaseAuthService extends StreamAuthService
   bool _isAuthorizing = false;
 
   @override
-  Future<AuthUser?> performInitialization() async {
+  Future<SocialUser?> performInitialization() async {
     _log.finest('Initializing FirebaseAuthService');
     _firebaseStreamSubscription ??= _auth.authStateChanges().listen(
       (FirebaseUser? firebaseUser) async {
         if (_isAuthorizing) return;
-        _log.finest('New FirebaseUser from Firebase: $firebaseUser');
-        final AuthUser? newUser = firebaseUser != null
-            ? await _syncFirebaseUserWithDatabase(firebaseUser)
-            : null;
-        if (firebaseUser != null || newUser != null) {
-          _log.finest('New AuthUser from database: $newUser');
-        }
+        final SocialUser? newUser =
+            firebaseUser != null ? toSocialUser(firebaseUser) : null;
+        _log.finest(
+          'New FirebaseUser from Firebase: $firebaseUser :: $newUser',
+        );
         _emitUser(newUser);
       },
     );
     return ready;
   }
 
-  void _emitUser(AuthUser? user) {
+  void _emitUser(SocialUser? user) {
     if (isNotResolved || user?.id != _lastUserEmitted?.id) {
       _lastUserEmitted = user;
       _userUpdatesController.sink.add(user);
@@ -98,7 +80,7 @@ class FirebaseAuthService extends StreamAuthService
   }
 
   @override
-  StreamSubscription<AuthUser?> listen(void Function(AuthUser?) cb) {
+  StreamSubscription<SocialUser?> listen(void Function(SocialUser?) cb) {
     final sub = _userUpdatesController.stream.listen(cb);
     if (_lastUserEmitted != null) {
       cb(_lastUserEmitted);
@@ -107,36 +89,28 @@ class FirebaseAuthService extends StreamAuthService
   }
 
   @override
-  Future<Set<AuthProvider>> getAvailableMethods(String email) async =>
-      throw UnimplementedError('Need to pull this info from _authUserRepo');
-
-  @override
-  Future<AuthResponse> createAnonymousAccount() async {
+  Future<SocialAuthResponse> createAnonymousAccount() async {
     try {
       _isAuthorizing = true;
       final userCred = await _auth.signInAnonymously();
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithDatabase(
+        final authUser = toSocialUser(
           userCred.user!,
-          provider: AuthProvider.anonymous,
+          AuthProvider.anonymous,
         );
         _isAuthorizing = false;
-        if (authUser != null) {
-          _emitUser(authUser);
-          return AuthSuccess(authUser);
-        } else {
-          return const AuthFailure(AuthenticationError.unknownError());
-        }
+        _emitUser(authUser);
+        return SocialAuthSuccess(authUser);
       }
       _log.shout('No error, but null user from createAnonymousAccount');
-      return const AuthFailure(AuthenticationError.unknownError());
+      return const SocialAuthFailure(AuthenticationError.unknownError());
     } on firebase_auth.FirebaseAuthException catch (e) {
-      return AuthResponse.fromFirebaseException(e);
+      return SocialAuthResponse.fromFirebaseException(e);
     }
   }
 
   @override
-  Future<AuthResponse> logInWithApple() async {
+  Future<SocialAuthResponse> logInWithApple() async {
     try {
       _isAuthorizing = true;
       final appleIdCredential = await _getAppleCredentials(
@@ -158,11 +132,15 @@ class FirebaseAuthService extends StreamAuthService
 
       _isAuthorizing = false;
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithDatabase(
+        final socialUser = toSocialUser(
           userCred.user!,
-          credentialBuilder: (String userId) => AppleCredential(
-            userId: userId,
-            userIdentifier: appleIdCredential.userIdentifier ?? userId,
+          AuthProvider.apple,
+        );
+        _emitUser(socialUser);
+        return SocialAuthSuccess(
+          socialUser,
+          credential: AppleCredential(
+            userIdentifier: appleIdCredential.userIdentifier,
             email: appleIdCredential.email ??
                 userCred.additionalUserInfo?.profile?['email'] as String?,
             givenName: appleIdCredential.givenName ??
@@ -172,28 +150,21 @@ class FirebaseAuthService extends StreamAuthService
             authorizationCode: appleIdCredential.authorizationCode,
             state: appleIdCredential.state,
           ),
-          provider: AuthProvider.apple,
         );
-        if (authUser != null) {
-          _emitUser(authUser);
-          return AuthSuccess(authUser);
-        } else {
-          return const AuthFailure(AuthenticationError.unknownError());
-        }
       }
       _log.severe('loginWithApple failed without throwing exception');
-      return const AuthFailure(AuthenticationError.unknownError());
+      return const SocialAuthFailure(AuthenticationError.unknownError());
     } on firebase_auth.FirebaseAuthException catch (e) {
       _log.severe('Firebase exception during logInWithApple: $e');
-      return AuthResponse.fromFirebaseException(e);
+      return SocialAuthResponse.fromFirebaseException(e);
     } on Exception catch (e) {
       _log.severe('Unexpected logInWithApple Exception: $e');
-      return const AuthFailure(AuthenticationError.unknownError());
+      return const SocialAuthFailure(AuthenticationError.unknownError());
     }
   }
 
   @override
-  Future<AuthResponse> logInWithEmailAndPassword({
+  Future<SocialAuthResponse> logInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
@@ -212,44 +183,43 @@ class FirebaseAuthService extends StreamAuthService
         password: password,
       );
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithDatabase(
+        final authUser = toSocialUser(
           userCred.user!,
-          provider: AuthProvider.email,
-          // Don't provide a [credentialBuilder] here, since it should
-          // have been saved during [signUp]
+          AuthProvider.email,
         );
         _isAuthorizing = false;
-        if (authUser != null) {
-          _emitUser(authUser);
-          return AuthSuccess(authUser);
-        } else {
-          return const AuthFailure(AuthenticationError.unknownError());
-        }
+        _emitUser(authUser);
+        return SocialAuthSuccess(
+          authUser,
+          credential: EmailCredential(email: cleanEmail, password: password),
+        );
       }
       _log.severe(
         'logInWithEmailAndPassword failed without throwing exception',
       );
-      return const AuthFailure(AuthenticationError.unknownError());
+      return const SocialAuthFailure(AuthenticationError.unknownError());
     } on firebase_auth.FirebaseAuthException catch (e) {
       _log.severe('Firebase exception during logInWithEmailAndPassword: $e');
-      return AuthResponse.fromFirebaseException(
+      return SocialAuthResponse.fromFirebaseException(
         e,
         const AuthenticationError.badEmailPassword(),
       );
     } on Exception catch (e) {
       _log.warning('Unexpected logInWithEmailAndPassword Exception: $e');
-      return const AuthFailure(AuthenticationError.unknownError());
+      return const SocialAuthFailure(AuthenticationError.unknownError());
     }
   }
 
   @override
-  Future<AuthResponse> logInWithGoogle() async {
+  Future<SocialAuthResponse> logInWithGoogle() async {
     try {
       _isAuthorizing = true;
       final googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        return const AuthFailure(AuthenticationError.cancelledSocialAuth());
+        return const SocialAuthFailure(
+          AuthenticationError.cancelledSocialAuth(),
+        );
       }
 
       final googleAuth = await googleUser.authentication;
@@ -264,11 +234,14 @@ class FirebaseAuthService extends StreamAuthService
 
       _isAuthorizing = false;
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithDatabase(
+        final socialUser = toSocialUser(
           userCred.user!,
-          provider: AuthProvider.google,
-          credentialBuilder: (String userId) => GoogleCredential(
-            userId: userId,
+          AuthProvider.google,
+        );
+        _emitUser(socialUser);
+        return SocialAuthSuccess(
+          socialUser,
+          credential: GoogleCredential(
             displayName: googleUser.displayName,
             email: googleUser.email,
             uniqueId: googleUser.id,
@@ -277,26 +250,20 @@ class FirebaseAuthService extends StreamAuthService
             serverAuthCode: googleUser.serverAuthCode,
           ),
         );
-        if (authUser != null) {
-          _emitUser(authUser);
-          return AuthSuccess(authUser);
-        } else {
-          return const AuthFailure(AuthenticationError.unknownError());
-        }
       }
       _log.severe('logInWithGoogle failed without throwing exception');
-      return const AuthFailure(AuthenticationError.unknownError());
+      return const SocialAuthFailure(AuthenticationError.unknownError());
     } on firebase_auth.FirebaseAuthException catch (e) {
       _log.severe('Firebase exception during logInWithGoogle: $e');
-      return AuthResponse.fromFirebaseException(e);
+      return SocialAuthResponse.fromFirebaseException(e);
     } on Exception catch (e) {
       _log.warning('Unexpected logInWithGoogle Exception: $e');
-      return const AuthFailure(AuthenticationError.unknownError());
+      return const SocialAuthFailure(AuthenticationError.unknownError());
     }
   }
 
   @override
-  Future<AuthResponse> signUp({
+  Future<SocialAuthResponse> signUp({
     required String email,
     required String password,
   }) async =>
@@ -305,7 +272,7 @@ class FirebaseAuthService extends StreamAuthService
         password: password,
       );
 
-  Future<AuthResponse> _signUpWithCleanEmail({
+  Future<SocialAuthResponse> _signUpWithCleanEmail({
     required String email,
     required String password,
   }) async {
@@ -313,15 +280,8 @@ class FirebaseAuthService extends StreamAuthService
       _isAuthorizing = true;
 
       late final firebase_auth.UserCredential userCred;
-      AuthUser? preloadedUser;
-      bool mustSave = false;
 
       if (_auth.currentUser != null) {
-        preloadedUser = await _loadUserWithExpectations(
-          _auth.currentUser!.uid,
-          'signUp',
-          unexpectedProviders: {AuthProvider.email},
-        );
         final authCred = firebase_auth.EmailAuthProvider.credential(
           email: email,
           password: password,
@@ -334,43 +294,31 @@ class FirebaseAuthService extends StreamAuthService
         );
       }
 
-      if (preloadedUser != null && preloadedUser.email != email) {
-        preloadedUser = preloadedUser.copyWith(email: email);
-        mustSave = true;
-      }
-
       _isAuthorizing = false;
       if (userCred.user != null) {
-        final authUser = await _syncFirebaseUserWithDatabase(
+        final authUser = toSocialUser(
           userCred.user!,
-          provider: AuthProvider.email,
-          user: preloadedUser,
-          mustSave: mustSave,
-          credentialBuilder: (String userId) => EmailCredential(
-            email: email,
-            userId: userId,
-          ),
+          AuthProvider.email,
         );
-        if (authUser != null) {
-          _emitUser(authUser);
-          return AuthSuccess(authUser);
-        } else {
-          return const AuthFailure(AuthenticationError.unknownError());
-        }
+        _emitUser(authUser);
+        return SocialAuthSuccess(
+          authUser,
+          credential: EmailCredential(email: email, password: password),
+        );
       }
       _log.severe('signUp failed without throwing exception');
-      return const AuthFailure(AuthenticationError.unknownError());
+      return const SocialAuthFailure(AuthenticationError.unknownError());
     } on firebase_auth.FirebaseAuthException catch (e) {
       _log.severe('Firebase exception during signUp: $e');
-      return AuthResponse.fromFirebaseException(e);
+      return SocialAuthResponse.fromFirebaseException(e);
     } on Exception catch (e) {
       _log.severe('Unexpected signUp Exception: $e');
-      return const AuthFailure(AuthenticationError.unknownError());
+      return const SocialAuthFailure(AuthenticationError.unknownError());
     }
   }
 
   @override
-  Future<AuthFailure?> logOut() async {
+  Future<SocialAuthFailure?> logOut() async {
     try {
       await Future.wait([
         _auth.signOut(),
@@ -380,179 +328,98 @@ class FirebaseAuthService extends StreamAuthService
       return null;
     } on Exception catch (e) {
       _log.severe('Logout exception: $e');
-      return const AuthFailure(AuthenticationError.logoutError());
+      return const SocialAuthFailure(AuthenticationError.logoutError());
     }
   }
 
-  Future<AuthUser?> _syncFirebaseUserWithDatabase(
-    FirebaseUser firebaseUser, {
+  // Future<AuthUser?> _syncFirebaseUserWithDatabase(
+  //   FirebaseUser firebaseUser, {
+  //   AuthProvider? provider,
+
+  //   /// If the user authenticated from an [AuthProvider] which is associated
+  //   /// with a [SocialCredential], that should be passed here to be saved
+  //   SocialCredential? credential,
+
+  //   /// If the user was preloaded for account state checks, provide the object
+  //   /// here to prevent a duplicate read
+  //   AuthUser? user,
+
+  //   /// If the user was both preloaded and had modifications made to it (because
+  //   /// a new auth method yielded new information, for example), then this can
+  //   /// be passed in to guarantee a save
+  //   bool mustSave = false,
+  // }) async {
+  //   assert(
+  //     !mustSave || user != null,
+  //     'Can only pass mustSave=true when user is not null',
+  //   );
+
+  //   AuthUser? loadedUser = user ??
+  //       await _loadUserWithExpectations(
+  //         firebaseUser.uid,
+  //         '_syncFirebaseUserWithDatabase',
+  //         exists: null,
+  //       );
+
+  //   bool shouldSave = false;
+  //   if (loadedUser == null) {
+  //     if (provider == null) {
+  //       _log.shout(
+  //         'Reached invalid state with no AuthUser in Firestore '
+  //         'and a null authProvider value passed to '
+  //         '_syncFirebaseUserWithDatabase. An AuthUser should have been '
+  //         'created in Firestore when this account was first created.',
+  //       );
+  //       await logOut();
+  //       return null;
+  //     }
+  //     // Write the new AuthUser record to Firestore
+  //     loadedUser = toAuthUser(firebaseUser, provider);
+  //     shouldSave = true;
+  //   } else {
+  //     if (provider != null) {
+  //       if (loadedUser.lastAuthProvider != provider ||
+  //           !loadedUser.allProviders.contains(provider)) {
+  //         loadedUser = loadedUser.copyWith(lastAuthProvider: provider);
+  //         loadedUser = loadedUser.copyWith(
+  //           allProviders: Set<AuthProvider>.from(loadedUser.allProviders)
+  //             ..add(provider),
+  //         );
+  //         shouldSave = true;
+  //       }
+  //     }
+  //   }
+  //   if (shouldSave) {
+  //     final savedUser = await _authUserRepo.setItem(
+  //       loadedUser,
+  //       RequestDetails.write(),
+  //     );
+
+  //     if (savedUser != null && credential != null) {
+  //       await _credentialRepo.setItem(credential);
+  //     }
+  //     return savedUser;
+  //   } else {
+  //     return loadedUser;
+  //   }
+  // }
+
+  /// Converts a [FirebaseUser] to an application [SocialUser].
+  SocialUser toSocialUser(
+    FirebaseUser user, [
     AuthProvider? provider,
-
-    /// If the user authenticated from an [AuthProvider] which is associated
-    /// with a [SocialCredential], that should be passed here to be saved
-    SocialCredential Function(String userId)? credentialBuilder,
-
-    /// If the user was preloaded for account state checks, provide the object
-    /// here to prevent a duplicate read
-    AuthUser? user,
-
-    /// If the user was both preloaded and had modifications made to it (because
-    /// a new auth method yielded new information, for example), then this can
-    /// be passed in to guarantee a save
-    bool mustSave = false,
-  }) async {
-    assert(
-      !mustSave || user != null,
-      'Can only pass mustSave=true when user is not null',
-    );
-
-    AuthUser? loadedUser = user ??
-        await _loadUserWithExpectations(
-          firebaseUser.uid,
-          '_syncFirebaseUserWithDatabase',
-          exists: null,
-        );
-
-    bool shouldSave = false;
-    if (loadedUser == null) {
-      if (provider == null) {
-        _log.shout(
-          'Reached invalid state with no AuthUser in Firestore '
-          'and a null authProvider value passed to '
-          '_syncFirebaseUserWithDatabase. An AuthUser should have been '
-          'created in Firestore when this account was first created.',
-        );
-        await logOut();
-        return null;
-      }
-      // Write the new AuthUser record to Firestore
-      loadedUser = toAuthUser(
-        firebaseUser,
-        provider,
-        _privateIdBuilder(),
-      );
-      shouldSave = true;
-    } else {
-      if (provider != null) {
-        if (loadedUser.lastAuthProvider != provider ||
-            !loadedUser.allProviders.contains(provider)) {
-          loadedUser = loadedUser.copyWith(lastAuthProvider: provider);
-          loadedUser = loadedUser.copyWith(
-            allProviders: Set<AuthProvider>.from(loadedUser.allProviders)
-              ..add(provider),
-          );
-          shouldSave = true;
-        }
-      }
-    }
-    if (shouldSave) {
-      final savedUser = await _authUserRepo.setItem(
-        loadedUser,
-        RequestDetails.write(),
-      );
-
-      if (savedUser != null) {
-        if (credentialBuilder != null) {
-          final credential = credentialBuilder(savedUser.id);
-          final savedCredential = await _credentialRepo.setItem(
-            credential,
-            RequestDetails.write(shouldOverwrite: false),
-          );
-          if (savedCredential != null &&
-              savedCredential.userId != savedUser.id) {
-            _log.shout(
-              'Credential ${savedCredential.id} belongs to '
-              'AuthUser ${savedCredential.userId}, not current '
-              'AuthUser ${savedUser.id}',
-            );
-          }
-        }
-      }
-      return savedUser;
-    } else {
-      return loadedUser;
-    }
-  }
-
-  Future<AuthUser?> _loadUserWithExpectations(
-    String id,
-    String originMethod, {
-    /// If true, the user is expected to exist.
-    /// If false, the user is expected to not exist (it is being created).
-    /// If null, no assumption is made.
-    bool? exists = true,
-    Set<AuthProvider> expectedProviders = const {},
-    Set<AuthProvider> unexpectedProviders = const {},
-  }) async {
-    final loadedUser = await _authUserRepo.getById(
-      id,
-      RequestDetails.read(requestType: RequestType.refresh),
-    );
-
-    if (exists != null) {
-      if (!exists && loadedUser != null) {
-        _log.shout(
-          'Found unexpected existing AuthUser in $originMethod with Id $id',
-        );
-      }
-      if (exists && loadedUser == null) {
-        _log.shout(
-          'Did not find expected AuthUser in $originMethod with Id $id',
-        );
-      }
-    }
-    if (loadedUser != null) {
-      if (expectedProviders.isNotEmpty) {
-        final missingProviders =
-            loadedUser.allProviders.difference(expectedProviders);
-        if (missingProviders.isNotEmpty) {
-          _log.shout(
-            'Expected to find AuthUser in $originMethod with Id $id and at '
-            'least $expectedProviders. Instead, found AuthUser with '
-            '${loadedUser.allProviders}',
-          );
-        }
-        if (unexpectedProviders.isNotEmpty) {
-          final surprisingProviders =
-              loadedUser.allProviders.intersection(unexpectedProviders);
-          if (surprisingProviders.isNotEmpty) {
-            _log.shout(
-              'Found AuthUser in $originMethod with Id $id which unexpectedly '
-              'already had $surprisingProviders.',
-            );
-          }
-        }
-      }
-    }
-    return loadedUser;
-  }
-
-  /// Converts a [FirebaseUser] to an application [AuthUser].
-  AuthUser toAuthUser(
-    FirebaseUser user,
-    AuthProvider thisSession,
-    String uuid,
-  ) =>
-      AuthUser(
+  ]) =>
+      SocialUser(
         id: user.uid,
-        loggingId: uuid,
         email: user.email,
         createdAt: user.metadata.creationTime!,
-        lastAuthProvider: thisSession,
-        allProviders: {thisSession},
+        provider: provider,
       );
 
   @override
   void dispose() {
     _firebaseStreamSubscription?.cancel();
     _userUpdatesController.close();
-  }
-
-  @override
-  Future<AuthResponse> syncAnonymousAccount(AuthSuccess authSuccess) {
-    throw UnimplementedError(
-      'FirebaseAuthService is not designed to be a secondaryAuth',
-    );
   }
 
   @override
@@ -584,5 +451,3 @@ extension NewAwareFirebaseUser on FirebaseUser {
       (metadata.lastSignInTime!.difference(metadata.creationTime!)) <
           const Duration(seconds: 5);
 }
-
-String _uuidV7() => _uuid.v7();

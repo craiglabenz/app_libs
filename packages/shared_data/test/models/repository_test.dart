@@ -10,7 +10,7 @@ void main() {
   const TestModel obj = TestModel(id: 'also does not matter');
 
   group('Repository methods should pass through to SourceList', () {
-    final emptyDetails = RequestDetails<TestModel>();
+    final emptyDetails = RequestDetails();
     test('including getById', () async {
       expect(
         await repo.getById('also does not matter', emptyDetails),

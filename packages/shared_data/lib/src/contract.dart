@@ -5,7 +5,7 @@ mixin ReadMixin<T> {
   /// Loads the instance of [T] whose primary key is [id].
   Future<ReadResult<T>> getById(
     String id,
-    RequestDetails<T> details,
+    RequestDetails details,
   );
 
   /// Loads all instances of [T] whose primary key is in the set [ids].
@@ -25,33 +25,33 @@ mixin ReadMixin<T> {
   /// method was rolled into calling [getItems] with an equivalent filter.
   Future<ReadListResult<T>> getByIds(
     Set<String> ids,
-    RequestDetails<T> details,
+    RequestDetails details,
   );
 
   /// Loads all instances of [T] that satisfy any filtes or pagination on
   /// [details].
-  Future<ReadListResult<T>> getItems(RequestDetails<T> details);
+  Future<ReadListResult<T>> getItems(RequestDetails details);
 }
 
 /// Introduces [setItem] to a data contract, but not [WriteMixin.setItems].
 mixin SingleWriteMixin<T> {
   /// Persists [item].
-  Future<WriteResult<T>> setItem(T item, RequestDetails<T> details);
+  Future<WriteResult<T>> setItem(T item, RequestDetails details);
 }
 
 /// Introduces [setItem] and [setItems] to a data contract.
 mixin WriteMixin<T> {
   /// Persists [item].
-  Future<WriteResult<T>> setItem(T item, RequestDetails<T> details);
+  Future<WriteResult<T>> setItem(T item, RequestDetails details);
 
   /// Persists all [items].
   Future<WriteListResult<T>> setItems(
     Iterable<T> items,
-    RequestDetails<T> details,
+    RequestDetails details,
   );
 
   /// Clears an item with the given [id] if one exists.
-  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details);
+  Future<DeleteResult<T>> delete(String id, RequestDetails details);
 }
 
 /// {@template DataContract}

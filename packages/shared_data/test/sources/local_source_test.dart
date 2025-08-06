@@ -6,22 +6,22 @@ import 'source_list_test.dart';
 
 class MockCachePersistence extends Mock implements CachePersistence {}
 
-final details = RequestDetails<TestModel>();
-final abcDetails = RequestDetails<TestModel>(
-  filters: const [MsgStartsWithFilter('abc')],
+final details = RequestDetails();
+final abcDetails = RequestDetails(
+  filter: const MsgStartsWithFilter('abc'),
 );
-final paginationDetails = RequestDetails<TestModel>(
+final paginationDetails = RequestDetails(
   pagination: Pagination.page(1),
 );
-final page2Details = RequestDetails<TestModel>(
+final page2Details = RequestDetails(
   pagination: Pagination.page(2),
 );
-final abcPaginationDetails = RequestDetails<TestModel>(
-  filters: const [MsgStartsWithFilter('abc')],
+final abcPaginationDetails = RequestDetails(
+  filter: const MsgStartsWithFilter('abc'),
   pagination: Pagination.page(1),
 );
-final abcDetailsNoOverwrite = RequestDetails<TestModel>(
-  filters: const [MsgStartsWithFilter('abc')],
+final abcDetailsNoOverwrite = RequestDetails(
+  filter: const MsgStartsWithFilter('abc'),
   shouldOverwrite: false,
 );
 
@@ -98,7 +98,7 @@ void main() {
     });
 
     test('not cache pagination info', () async {
-      final deets = RequestDetails<TestModel>(
+      final deets = RequestDetails(
         pagination: Pagination.page(2),
       );
       final item = TestModel.randomId();
@@ -378,7 +378,7 @@ void main() {
     });
 
     test('NOT honor pagination', () async {
-      final page1Deets = RequestDetails<TestModel>(
+      final page1Deets = RequestDetails(
         pagination: Pagination.page(1),
       );
       final randomIdItem = TestModel.randomId();
@@ -470,8 +470,8 @@ void main() {
     test('return no items from custom filter if empty', () async {
       await mem.setItems([item, item2], abcDetails);
 
-      final xyzDetails = RequestDetails<TestModel>(
-        filters: const [MsgStartsWithFilter('xyz')],
+      final xyzDetails = RequestDetails(
+        filter: const MsgStartsWithFilter('xyz'),
       );
       await notInCache(mem, [item, item2], requests: [details, xyzDetails]);
     });
@@ -522,13 +522,13 @@ void main() {
     test('clearForRequest removes from request cache', () async {
       await mem.setItems([item, item2], details);
 
-      final detailsWithFilter = RequestDetails<TestModel>(
-        filters: const [MsgStartsWithFilter('asdf')],
+      final detailsWithFilter = RequestDetails(
+        filter: const MsgStartsWithFilter('asdf'),
       );
       await mem.setItems([item], detailsWithFilter);
 
-      final detailsWithFilter2 = RequestDetails<TestModel>(
-        filters: const [MsgStartsWithFilter('xyz')],
+      final detailsWithFilter2 = RequestDetails(
+        filter: const MsgStartsWithFilter('xyz'),
       );
       await mem.setItems([item2], detailsWithFilter2);
 
@@ -576,7 +576,7 @@ void main() {
 Future<void> fullyContains(
   LocalSource<TestModel> mem,
   List<TestModel> items, {
-  required List<RequestDetails<TestModel>> requests,
+  required List<RequestDetails> requests,
 }) async {
   for (final item in items) {
     expect(item.id, isNotNull);
@@ -604,7 +604,7 @@ Future<void> fullyContains(
 Future<void> notInCache(
   LocalSource<TestModel> mem,
   List<TestModel> items, {
-  List<RequestDetails<TestModel>> requests = const [],
+  List<RequestDetails> requests = const [],
   bool containsAtAll = true,
 }) async {
   for (final item in items) {

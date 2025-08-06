@@ -15,7 +15,7 @@ final _log = Logger('client_auth.RestAuth');
 /// successful Firebase authentication requests are synced here, creating
 /// two active sessions.
 /// {@endtemplate}
-class RestAuth<T extends BaseUser> implements AuthService {
+class RestAuth<T extends AuthUser> implements AuthService {
   /// {@macro RestAuth}
   RestAuth({
     required this.api,

@@ -41,7 +41,7 @@ class WriteSuccess<T> extends WriteResult<T> {
   const WriteSuccess(this.item, {required this.details}) : super._();
 
   final T item;
-  final RequestDetails<T> details;
+  final RequestDetails details;
 
   /// Create a copy of WriteResult
   /// with the given fields replaced by the non-null parameter values.
@@ -76,7 +76,7 @@ abstract mixin class $WriteSuccessCopyWith<T, $Res>
           WriteSuccess<T> value, $Res Function(WriteSuccess<T>) _then) =
       _$WriteSuccessCopyWithImpl;
   @useResult
-  $Res call({T item, RequestDetails<T> details});
+  $Res call({T item, RequestDetails details});
 }
 
 /// @nodoc
@@ -102,7 +102,7 @@ class _$WriteSuccessCopyWithImpl<T, $Res>
       details: null == details
           ? _self.details
           : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
+              as RequestDetails,
     ));
   }
 }
@@ -207,7 +207,7 @@ class WriteListSuccess<T> extends WriteListResult<T> {
   const WriteListSuccess(this.items, {required this.details}) : super._();
 
   final Iterable<T> items;
-  final RequestDetails<T> details;
+  final RequestDetails details;
 
   /// Create a copy of WriteListResult
   /// with the given fields replaced by the non-null parameter values.
@@ -242,7 +242,7 @@ abstract mixin class $WriteListSuccessCopyWith<T, $Res>
           WriteListSuccess<T> value, $Res Function(WriteListSuccess<T>) _then) =
       _$WriteListSuccessCopyWithImpl;
   @useResult
-  $Res call({Iterable<T> items, RequestDetails<T> details});
+  $Res call({Iterable<T> items, RequestDetails details});
 }
 
 /// @nodoc
@@ -268,7 +268,7 @@ class _$WriteListSuccessCopyWithImpl<T, $Res>
       details: null == details
           ? _self.details
           : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
+              as RequestDetails,
     ));
   }
 }
@@ -371,7 +371,7 @@ class $DeleteResultCopyWith<T, $Res> {
 class DeleteSuccess<T> extends DeleteResult<T> {
   const DeleteSuccess(this.details) : super._();
 
-  final RequestDetails<T> details;
+  final RequestDetails details;
 
   /// Create a copy of DeleteResult
   /// with the given fields replaced by the non-null parameter values.
@@ -404,7 +404,7 @@ abstract mixin class $DeleteSuccessCopyWith<T, $Res>
           DeleteSuccess<T> value, $Res Function(DeleteSuccess<T>) _then) =
       _$DeleteSuccessCopyWithImpl;
   @useResult
-  $Res call({RequestDetails<T> details});
+  $Res call({RequestDetails details});
 }
 
 /// @nodoc
@@ -425,7 +425,7 @@ class _$DeleteSuccessCopyWithImpl<T, $Res>
       null == details
           ? _self.details
           : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
+              as RequestDetails,
     ));
   }
 }
@@ -529,7 +529,7 @@ class ReadSuccess<T> extends ReadResult<T> {
   const ReadSuccess(this.item, {required this.details}) : super._();
 
   final T? item;
-  final RequestDetails<T> details;
+  final RequestDetails details;
 
   /// Create a copy of ReadResult
   /// with the given fields replaced by the non-null parameter values.
@@ -564,7 +564,7 @@ abstract mixin class $ReadSuccessCopyWith<T, $Res>
           ReadSuccess<T> value, $Res Function(ReadSuccess<T>) _then) =
       _$ReadSuccessCopyWithImpl;
   @useResult
-  $Res call({T? item, RequestDetails<T> details});
+  $Res call({T? item, RequestDetails details});
 }
 
 /// @nodoc
@@ -590,7 +590,7 @@ class _$ReadSuccessCopyWithImpl<T, $Res>
       details: null == details
           ? _self.details
           : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
+              as RequestDetails,
     ));
   }
 }
@@ -716,7 +716,7 @@ class ReadListSuccess<T> extends ReadListResult<T> {
     return EqualUnmodifiableSetView(_missingItemIds);
   }
 
-  final RequestDetails<T> details;
+  final RequestDetails details;
 
   /// Create a copy of ReadListResult
   /// with the given fields replaced by the non-null parameter values.
@@ -762,7 +762,7 @@ abstract mixin class $ReadListSuccessCopyWith<T, $Res>
       {Iterable<T> items,
       Map<String, T> itemsMap,
       Set<String> missingItemIds,
-      RequestDetails<T> details});
+      RequestDetails details});
 }
 
 /// @nodoc
@@ -798,7 +798,7 @@ class _$ReadListSuccessCopyWithImpl<T, $Res>
       details: null == details
           ? _self.details
           : details // ignore: cast_nullable_to_non_nullable
-              as RequestDetails<T>,
+              as RequestDetails,
     ));
   }
 }

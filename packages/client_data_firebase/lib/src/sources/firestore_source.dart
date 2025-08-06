@@ -32,7 +32,7 @@ class FirestoreSource<T> extends Source<T> {
   DocumentReference<Json> doc(String id) => collection.doc(id);
 
   @override
-  Future<ReadResult<T>> getById(String id, RequestDetails<T> details) async {
+  Future<ReadResult<T>> getById(String id, RequestDetails details) async {
     try {
       final snapshot = await doc(id).get();
       return ReadSuccess<T>(_hydrateDocument(snapshot), details: details);
@@ -45,30 +45,30 @@ class FirestoreSource<T> extends Source<T> {
   @override
   Future<ReadListResult<T>> getByIds(
     Set<String> ids,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
     var query = collection.where(FieldPath.documentId, whereIn: ids);
     query = _applyFilters(query, details);
-    return query.get().then(
-      (snapshot) {
-        if (snapshot.docs.isEmpty) {
-          return ReadListResult.empty(details, missingItemIds: ids);
-        }
-        final objs = _hydrateQuery(snapshot);
-        final nonNullIds =
-            objs.map<String?>(bindings.getId).where((id) => id != null).toSet();
-        return ReadListResult.fromList(
-          objs,
-          details,
-          ids.difference(nonNullIds),
-          bindings.getId,
-        );
-      },
-    );
+    return query.get().then((snapshot) {
+      if (snapshot.docs.isEmpty) {
+        return ReadListResult.empty(details, missingItemIds: ids);
+      }
+      final objs = _hydrateQuery(snapshot);
+      final nonNullIds = objs
+          .map<String?>(bindings.getId)
+          .where((id) => id != null)
+          .toSet();
+      return ReadListResult.fromList(
+        objs,
+        details,
+        ids.difference(nonNullIds),
+        bindings.getId,
+      );
+    });
   }
 
   @override
-  Future<ReadListResult<T>> getItems(RequestDetails<T> details) async {
+  Future<ReadListResult<T>> getItems(RequestDetails details) async {
     final query = _applyFilters(collection, details);
     try {
       final snapshot = await query.get();
@@ -88,15 +88,12 @@ class FirestoreSource<T> extends Source<T> {
   }
 
   @override
-  Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) async {
+  Future<WriteResult<T>> setItem(T item, RequestDetails details) async {
     final (result, itemCopy) = await _setItem(item, details);
     return result;
   }
 
-  Future<(WriteResult<T>, T)> _setItem(
-    T item,
-    RequestDetails<T> details,
-  ) async {
+  Future<(WriteResult<T>, T)> _setItem(T item, RequestDetails details) async {
     final itemId = bindings.getId(item);
     if (itemId != null && !details.shouldOverwrite) {
       final existingItemResult = await getById(itemId, details);
@@ -106,7 +103,7 @@ class FirestoreSource<T> extends Source<T> {
             final existingItem = existingItemResult.item as T;
             return (
               WriteSuccess<T>(existingItem, details: details),
-              existingItem
+              existingItem,
             );
           } else {
             // Do nothing - the item did not exist so we would not overwrite
@@ -132,12 +129,12 @@ class FirestoreSource<T> extends Source<T> {
     }
 
     try {
-      final savedItem = await collection.add(_serializeItem(item)).then(
-        (ref) async {
-          final snapshot = await ref.get();
-          return _hydrateDocument(snapshot);
-        },
-      );
+      final savedItem = await collection.add(_serializeItem(item)).then((
+        ref,
+      ) async {
+        final snapshot = await ref.get();
+        return _hydrateDocument(snapshot);
+      });
 
       if (savedItem == null) {
         return (
@@ -159,7 +156,7 @@ class FirestoreSource<T> extends Source<T> {
   @override
   Future<WriteListResult<T>> setItems(
     Iterable<T> items,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
     var (savedItems, failedWrites) = await _setItems(items, details);
 
@@ -184,7 +181,7 @@ class FirestoreSource<T> extends Source<T> {
 
   Future<(List<T>, List<T>)> _setItems(
     Iterable<T> items,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
     final writeFutures = <Future<(WriteResult<T>, T)>>[];
     for (final item in items) {
@@ -223,9 +220,9 @@ class FirestoreSource<T> extends Source<T> {
         DateTime() => rawCreatedAt.toIso8601String(),
         String() => rawCreatedAt,
         _ => throw Exception(
-            'Unexpected type in FirestoreTimestampConverter: '
-            '${rawCreatedAt.runtimeType}',
-          )
+          'Unexpected type in FirestoreTimestampConverter: '
+          '${rawCreatedAt.runtimeType}',
+        ),
       };
     }
     return bindings.fromJson(data);
@@ -244,13 +241,13 @@ class FirestoreSource<T> extends Source<T> {
     return serialized;
   }
 
-  Query<Json> _applyFilters(Query<Json> query, RequestDetails<T> details) {
+  Query<Json> _applyFilters(Query<Json> query, RequestDetails details) {
     var q = query;
-    for (final filter in details.filters) {
-      if (filter is! FirestoreFilter<T>) {
+    if (details.filter != null) {
+      if (details.filter is! FirestoreFilter) {
         throw Exception('Unexpected non-FirestoreFilter in FirestoreSource');
       }
-      q = filter.filterQuery(q);
+      q = (details.filter! as FirestoreFilter).filterQuery(q);
     }
     return q;
   }
@@ -259,7 +256,7 @@ class FirestoreSource<T> extends Source<T> {
   SourceType get sourceType => SourceType.remote;
 
   @override
-  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details) async {
+  Future<DeleteResult<T>> delete(String id, RequestDetails details) async {
     try {
       final ref = collection.doc(id);
       await ref.delete();

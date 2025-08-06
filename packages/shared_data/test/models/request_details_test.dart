@@ -5,35 +5,34 @@ import 'package:test/test.dart';
 import 'test_model.dart';
 
 void main() {
-  final details = RequestDetails<TestModel>();
-  final localDetails =
-      RequestDetails<TestModel>(requestType: RequestType.local);
-  final paginationDetails = RequestDetails<TestModel>(
+  final details = RequestDetails();
+  final localDetails = RequestDetails(requestType: RequestType.local);
+  final paginationDetails = RequestDetails(
     pagination: Pagination.page(1),
   );
-  final page2Details = RequestDetails<TestModel>(
+  final page2Details = RequestDetails(
     pagination: Pagination.page(2),
   );
-  final paginationDetailsWithFilter = RequestDetails<TestModel>(
+  final paginationDetailsWithFilter = RequestDetails(
     pagination: Pagination.page(1),
-    filters: const [MsgStartsWithFilter('abc')],
+    filter: const MsgStartsWithFilter('abc'),
   );
-  final page2DetailsWithFilter = RequestDetails<TestModel>(
+  final page2DetailsWithFilter = RequestDetails(
     pagination: Pagination.page(2),
-    filters: const [MsgStartsWithFilter('abc')],
+    filter: const MsgStartsWithFilter('abc'),
   );
-  final localPaginationDetails = RequestDetails<TestModel>(
+  final localPaginationDetails = RequestDetails(
     requestType: RequestType.local,
     pagination: Pagination.page(1),
   );
 
-  final localPaginationDetailsWithFilter = RequestDetails<TestModel>(
+  final localPaginationDetailsWithFilter = RequestDetails(
     requestType: RequestType.local,
     pagination: Pagination.page(1),
-    filters: const [MsgStartsWithFilter('abc')],
+    filter: const MsgStartsWithFilter('abc'),
   );
 
-  final localPage2Details = RequestDetails<TestModel>(
+  final localPage2Details = RequestDetails(
     requestType: RequestType.local,
     pagination: Pagination.page(2),
   );
@@ -66,7 +65,7 @@ void main() {
     );
   });
 
-  test('RequestTypes and pagination request types share noPagiationCacheKey',
+  test('RequestDetails and pagination RequestDetails share noPagiationCacheKey',
       () {
     expect(details.cacheKey, equals(paginationDetails.noPaginationCacheKey));
     expect(

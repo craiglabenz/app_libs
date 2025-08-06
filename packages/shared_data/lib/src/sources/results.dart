@@ -29,8 +29,8 @@ sealed class WriteResult<T> with _$WriteResult<T> {
   /// Container for a single object write request which did not encounter any
   /// errors.
   /// {@endtemplate}
-  const factory WriteResult.success(T item,
-      {required RequestDetails<T> details}) = WriteSuccess;
+  const factory WriteResult.success(T item, {required RequestDetails details}) =
+      WriteSuccess;
 
   /// {@template RequestFailure}
   /// Represents a failure with the write, resulting from either an unexpected
@@ -85,7 +85,7 @@ sealed class WriteListResult<T> with _$WriteListResult<T> {
   /// {@endtemplate}
   const factory WriteListResult.success(
     Iterable<T> items, {
-    required RequestDetails<T> details,
+    required RequestDetails details,
   }) = WriteListSuccess;
 
   /// {@macro RequestFailure}
@@ -137,7 +137,7 @@ sealed class DeleteResult<T> with _$DeleteResult<T> {
   /// {@template BulkWriteSuccess}
   /// Container for a bulk write request which did not encounter any errors.
   /// {@endtemplate}
-  const factory DeleteResult.success(RequestDetails<T> details) = DeleteSuccess;
+  const factory DeleteResult.success(RequestDetails details) = DeleteSuccess;
 
   /// {@macro RequestFailure}
   const factory DeleteResult.failure(
@@ -188,7 +188,7 @@ sealed class ReadResult<T> with _$ReadResult<T> {
   /// error.
   const factory ReadResult.success(
     T? item, {
-    required RequestDetails<T> details,
+    required RequestDetails details,
   }) = ReadSuccess;
 
   /// {@macro RequestFailure}
@@ -250,7 +250,7 @@ sealed class ReadListResult<T> with _$ReadListResult<T> {
     required Iterable<T> items,
     required Map<String, T> itemsMap,
     required Set<String> missingItemIds,
-    required RequestDetails<T> details,
+    required RequestDetails details,
   }) = ReadListSuccess;
 
   const ReadListResult._();
@@ -258,7 +258,7 @@ sealed class ReadListResult<T> with _$ReadListResult<T> {
   /// Map-friendly constructor.
   factory ReadListResult.fromMap(
     Map<String, T> map,
-    RequestDetails<T> details,
+    RequestDetails details,
     Set<String> missingItemIds,
   ) =>
       ReadListSuccess(
@@ -271,7 +271,7 @@ sealed class ReadListResult<T> with _$ReadListResult<T> {
   /// List-friendly constructor.
   factory ReadListResult.fromList(
     Iterable<T> items,
-    RequestDetails<T> details,
+    RequestDetails details,
     Set<String> missingItemIds,
     String? Function(T) getId,
   ) {
@@ -288,7 +288,7 @@ sealed class ReadListResult<T> with _$ReadListResult<T> {
   }
 
   factory ReadListResult.empty(
-    RequestDetails<T> details, {
+    RequestDetails details, {
     Set<String> missingItemIds = const <String>{},
   }) =>
       ReadListResult.fromList(

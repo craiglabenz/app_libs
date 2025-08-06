@@ -2,47 +2,39 @@ import 'dart:async';
 
 import 'package:client_auth/client_auth.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:shared_data/shared_data.dart';
 
 final _log = Logger('client_auth.AuthRepository');
 
-/// {@template BaseAuthRepository}
-/// Top level coordinator for app authorization.
+/// {@template AuthRepository}
+/// Creates and manages user accounts.
+///
+/// Coordinates infromation between a [SocialAuthService] and a
+/// [SyncAuthService].
 /// {@endtemplate}
-abstract class BaseAuthRepository
-    with SocialAuthService, AnonymousAuthService, ReadinessMixin<AuthUser?>
-    implements StreamAuthService {
-  /// Most recent [AuthUser] encountered, or `null` if there is no active
-  /// session.
-  AuthUser? lastUser;
-}
-
-/// {@macro BaseAuthRepository}
-class AuthRepository
-    with ReadinessMixin<AuthUser?>
-    implements BaseAuthRepository {
-  /// {@macro BaseAuthRepository}
+class AuthRepository with ReadinessMixin<AuthUser?> {
+  /// {@macro AuthRepository}
   AuthRepository(
-    this._primaryAuth, {
-    List<AuthService>? secondaryAuths,
-  })  : _secondaryAuths = secondaryAuths ?? const <AuthService>[],
+    this._socialAuth, {
+    required SyncAuthService syncAuth,
+  })  : _syncAuth = syncAuth,
         _userUpdatesController = StreamController<AuthUser?>.broadcast();
 
-  /// Primary authorization driver for the [AuthRepository].
-  final AuthService _primaryAuth;
+  /// Primary identity provider for the [AuthRepository].
+  final SocialAuthService _socialAuth;
 
-  /// Secondary authorization services which mirror the state of [_primaryAuth].
+  /// Secondary authorization services which mirror the state of [_socialAuth].
   /// This allows the client to talk to multiple backend services if necessary.
-  final List<AuthService> _secondaryAuths;
+  final SyncAuthService _syncAuth;
 
   final StreamController<AuthUser?> _userUpdatesController;
 
-  StreamSubscription<AuthUser?>? _primaryAuthSubscription;
+  StreamSubscription<SocialUser?>? _socialAuthSubscription;
 
   AuthUser? _lastUser;
 
-  @override
+  /// The most recently / current [AuthUser] information. Will be null if the
+  /// app is in a logged-out state.
   AuthUser? get lastUser {
     assert(
       isReady,
@@ -52,7 +44,6 @@ class AuthRepository
     return _lastUser;
   }
 
-  @override
   set lastUser(AuthUser? newUser) {
     final isFirstRun = isNotResolved;
     if (!isFirstRun && newUser == _lastUser) return;
@@ -64,37 +55,45 @@ class AuthRepository
     }
   }
 
-  /// Wires up all listeners and resolves when [_primaryAuth] has yielded some
+  Future<void> _syncSocialUser(SocialUser? user) async {
+    if (user == null) {
+      lastUser = null;
+      return;
+    }
+    lastUser = await _syncAuth.verifySocialUserSession(user);
+
+    /// If [_syncAuth] could not verify a session with who Firebase said is
+    /// logged in then they are not fully logged in and must be fully logged out
+    /// to allow them to completely restore their session.
+    if (lastUser == null) {
+      await logOut();
+    }
+  }
+
+  /// Wires up all listeners and resolves when [_socialAuth] has yielded some
   /// data, even if that is just to say that definitively no user is logged in.
   ///
-  /// This method is close to a no-op if [_primaryAuth] is not a
-  /// [StreamAuthService].
+  /// This method is close to a no-op if [_socialAuth] is not a
+  /// [StreamSocialAuthService].
   ///
   /// This method is idempotent and can safely be called by any other class.
   @override
   Future<AuthUser?> performInitialization() async {
     _log.finest('Initializing AuthRepository');
-    if (_primaryAuth is StreamAuthService) {
-      _primaryAuthSubscription ??= _primaryAuth.listen(
-        (AuthUser? user) => lastUser = user,
-      );
+    if (_socialAuth is StreamSocialAuthService) {
+      _socialAuthSubscription ??= _socialAuth.listen(_syncSocialUser);
       // StreamAuthService.initialize also completes when a user is emitted,
       // meaning awaiting it is synonymous with awaiting our own
       // initCompleter.future which is resolved in the [lastUser] setter.
-      unawaited(_primaryAuth.initialize());
+      unawaited(_socialAuth.initialize());
 
-      return ready;
-    } else if (_primaryAuth is RestAuth) {
-      // TODO(craiglabenz): Should this still call an `initialize` fnc?
-      if (!isNotResolved) {
-        markReady(null);
-      }
       return ready;
     }
-    throw Exception('Unexpected type of _primaryAuth: $_primaryAuth');
+    throw Exception('Unexpected type of _socialAuth: $_socialAuth');
   }
 
-  @override
+  /// Accepts a callback to invoke on every new [AuthUser]. Immediately calls
+  /// new subscriptions if [lastUser] is not null.
   StreamSubscription<AuthUser?> listen(void Function(AuthUser?) cb) {
     final sub = _userUpdatesController.stream.listen(cb);
     if (_lastUser != null) {
@@ -104,380 +103,258 @@ class AuthRepository
   }
 
   /// {@macro createAnonymousAccount}
-  @override
   Future<AuthResponse> createAnonymousAccount() async {
-    if (_primaryAuth is! AnonymousAuthService) {
-      throw Exception(
-        'AuthRepository is not configured for anonymous accounts '
-        'because $_primaryAuth does not implement `AnonymousAuthService`.',
-      );
-    }
+    final socialAuthResponse = await _socialAuth.createAnonymousAccount();
 
-    final authResponse =
-        await (_primaryAuth as AnonymousAuthService).createAnonymousAccount();
+    switch (socialAuthResponse) {
+      case SocialAuthSuccess():
+        final authResponse = await _syncAuth.syncAnonymousAccount(
+          socialAuthResponse,
+        );
 
-    switch (authResponse) {
-      case AuthSuccess():
-        for (final secondaryAuth in _secondaryAuths) {
-          if (secondaryAuth is! AnonymousAuthService) {
+        switch (authResponse) {
+          case AuthSuccess(:final user):
+            // Publish this information.
+            lastUser = user;
+
+          case AuthFailure(:final error):
             _log.severe(
-              '$secondaryAuth is not configured to sync an anonymous account',
+              'Failed to sync AnonymousAccount ${socialAuthResponse.user.id} '
+              'to backup auth :: $error',
             );
-            continue;
-          }
-          final secondaryAuthResponse =
-              await (secondaryAuth as AnonymousAuthService)
-                  .syncAnonymousAccount(authResponse);
-
-          if (secondaryAuthResponse is AuthFailure) {
-            _log.shout(
-              '$secondaryAuth failed to create a matching anonymous account. '
-              '${authResponse.user} is likely in a compromised state.',
-            );
-          }
         }
-        // Publish this information.
-        lastUser = authResponse.user;
-      case AuthFailure():
+        return authResponse;
+
+      case SocialAuthFailure():
         _log.shout(
-          '$_primaryAuth unable to create new anonymous account. Auth system '
+          '$_socialAuth unable to create new anonymous account. Auth system '
           'may be down entirely.',
         );
         lastUser = null;
+
+        return AuthFailure(socialAuthResponse.error);
     }
-    return authResponse;
   }
 
-  @override
-  Future<AuthResponse> syncAnonymousAccount(AuthSuccess authSuccess) {
-    throw UnimplementedError(
-      'syncAnonymousAccount should only be called on the secondaryAuth list.',
-    );
-  }
-
-  @override
+  /// {@macro signUp}
   Future<AuthResponse> signUp({
     required String email,
     required String password,
   }) async {
-    final authResponse = await _primaryAuth.signUp(
+    final socialAuthResponse = await _socialAuth.signUp(
       email: email,
       password: password,
     );
 
-    switch (authResponse) {
-      case AuthSuccess():
-        for (final secondaryAuth in _secondaryAuths) {
-          final syncAuthResponse = await secondaryAuth.signUp(
-            email: email,
-            password: password,
-          );
+    switch (socialAuthResponse) {
+      case SocialAuthSuccess():
+        final authResponse = await _syncAuth.signUp(
+          socialAuthResponse,
+        );
 
-          // In the case of a failed sync, do not cancel the effort, which
-          // would likely necessitate deleting the primaryAuth account.
-          // Instead, log the error and allow for `loginWithEmailAndPassword`
-          // to attempt to heal the system.
-          if (syncAuthResponse is AuthFailure) {
+        switch (authResponse) {
+          case AuthSuccess(:final user):
+            // Publish this information.
+            lastUser = user;
+
+          case AuthFailure(:final error):
             _log.severe(
-              'Failed to sync user $email to $secondaryAuth :: '
-              '$syncAuthResponse',
+              'Failed to sync AnonymousAccount ${socialAuthResponse.user.id} '
+              'to backup auth :: $error',
             );
-          }
         }
-
-        // Publish this information.
-        lastUser = authResponse.user;
-      case AuthFailure():
+        return authResponse;
+      case SocialAuthFailure():
         _log.severe(
-          'Failed to signUp new user $email with primary auth $_primaryAuth',
+          'Failed to signUp new user $email with primary auth $_socialAuth',
         );
         _lastUser = null;
+        return AuthFailure(socialAuthResponse.error);
     }
-    return authResponse;
   }
 
-  @override
+  /// {@macro logInWithEmailAndPassword}
   Future<AuthResponse> logInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    final authResponse = await _primaryAuth.logInWithEmailAndPassword(
+    final socialAuthResponse = await _socialAuth.logInWithEmailAndPassword(
       email: email,
       password: password,
     );
-    switch (authResponse) {
-      case AuthSuccess():
-        for (final secondaryAuth in _secondaryAuths) {
-          final syncAuthResponse =
-              await secondaryAuth.logInWithEmailAndPassword(
-            email: email,
-            password: password,
-          );
-
-          if (syncAuthResponse is AuthFailure) {
-            _log.severe(
-              'Failed to login user $email to $secondaryAuth :: '
-              '$syncAuthResponse. Attempting to signUp user instead.',
-            );
-
-            final syncAuthFallbackResponse = await secondaryAuth.signUp(
-              email: email,
-              password: password,
-            );
-
-            if (syncAuthFallbackResponse is AuthFailure) {
-              _log.severe(
-                'Failed at fallback signUp of user $email :: '
-                '$syncAuthFallbackResponse. Account is likely compromised '
-                'state.',
-              );
-            }
-          }
-        }
+    switch (socialAuthResponse) {
+      case SocialAuthSuccess():
+        final authResponse = await _syncAuth.logInWithEmailAndPassword(
+          socialAuthResponse,
+        );
 
         // Publish this information.
-        lastUser = authResponse.user;
-      case AuthFailure():
+        switch (authResponse) {
+          case AuthSuccess(:final user):
+            // Publish this information.
+            lastUser = user;
+
+          case AuthFailure(:final error):
+
+            // Is this a good idea?
+            // final syncAuthFallbackResponse = await secondaryAuth.signUp(
+            //   email: email,
+            //   password: password,
+            // );
+
+            _log.severe(
+              'Failed to sync AnonymousAccount ${socialAuthResponse.user.id} '
+              'to backup auth :: $error',
+            );
+        }
+        return authResponse;
+      case SocialAuthFailure():
         _log.severe(
-          'Failed to signUp new user $email with primary auth $_primaryAuth',
+          'Failed to signUp new user $email with primary auth $_socialAuth',
         );
         _lastUser = null;
+        return AuthFailure(socialAuthResponse.error);
     }
-    return authResponse;
   }
 
-  @override
+  /// {@macro logInWithApple}
   Future<AuthResponse> logInWithApple() async {
-    if (_primaryAuth is! SocialAuthService) {
-      throw Exception(
-        'Cannot log in with Apple because $_primaryAuth is not a '
-        'SocialAuthService',
-      );
-    }
-    final authResponse =
-        await (_primaryAuth as SocialAuthService).logInWithApple();
-    switch (authResponse) {
-      case AuthSuccess():
-        for (final _ in _secondaryAuths) {
-          // TODO(craiglabenz): Figure out how to sync accounts when an app
-          // actually has >1 auth backends.
-          throw UnimplementedError();
+    final socialAuthResponse = await _socialAuth.logInWithApple();
+    switch (socialAuthResponse) {
+      case SocialAuthSuccess():
+        final authResponse =
+            await _syncAuth.syncAppleAuthentication(socialAuthResponse);
+        switch (authResponse) {
+          case AuthSuccess(:final user):
+            // Publish this information.
+            lastUser = user;
+
+          case AuthFailure(:final error):
+            _log.severe(
+              'Failed to sync AnonymousAccount ${socialAuthResponse.user.id} '
+              'to backup auth :: $error',
+            );
         }
-        // Publish this information.
-        lastUser = authResponse.user;
-      case AuthFailure():
-        {}
+        return authResponse;
+      case SocialAuthFailure():
+        _log.severe(
+          'Failed to logInWithApple',
+        );
+        _lastUser = null;
+        return AuthFailure(socialAuthResponse.error);
     }
-    return authResponse;
   }
 
-  @override
+  /// {@macro logInWithGoogle}
   Future<AuthResponse> logInWithGoogle() async {
-    if (_primaryAuth is! SocialAuthService) {
-      throw Exception(
-        'Cannot log in with Google because $_primaryAuth is not a '
-        'SocialAuthService',
-      );
-    }
-    final authResponse =
-        await (_primaryAuth as SocialAuthService).logInWithGoogle();
-    switch (authResponse) {
-      case AuthSuccess():
-        for (final _ in _secondaryAuths) {
-          // TODO(craiglabenz): Figure out how to sync accounts when an app
-          // actually has >1 auth backends.
-          throw UnimplementedError();
+    final socialAuthResponse = await _socialAuth.logInWithGoogle();
+    switch (socialAuthResponse) {
+      case SocialAuthSuccess():
+        final authResponse =
+            await _syncAuth.syncGoogleAuthentication(socialAuthResponse);
+        switch (authResponse) {
+          case AuthSuccess(:final user):
+            // Publish this information.
+            lastUser = user;
+
+          case AuthFailure(:final error):
+            _log.severe(
+              'Failed to sync AnonymousAccount ${socialAuthResponse.user.id} '
+              'to backup auth :: $error',
+            );
         }
-        // Publish this information.
-        lastUser = authResponse.user;
-      case AuthFailure():
-        {}
+        return authResponse;
+      case SocialAuthFailure():
+        _log.severe(
+          'Failed to logInWithGoogle',
+        );
+        _lastUser = null;
+        return AuthFailure(socialAuthResponse.error);
     }
-    return authResponse;
   }
 
-  @override
+  /// {@macro logOut}
   Future<AuthFailure?> logOut() async {
     if (_lastUser == null) return null;
 
-    final failure = await _primaryAuth.logOut();
+    final failure = await _socialAuth.logOut();
     if (failure != null) {
       _log.severe(
-        'Failed to logout ${lastUser!.email} from $_primaryAuth. Auth system '
+        'Failed to logout ${lastUser!.email} from $_socialAuth. Auth system '
         'may be down :: $failure',
       );
     }
 
-    for (final secondaryAuth in _secondaryAuths) {
-      final secondaryLogoutFailure = await secondaryAuth.logOut();
-      if (secondaryLogoutFailure != null) {
-        _log.severe(
-          'Failed to logout ${lastUser!.email} from $secondaryAuth. Auth '
-          'system may be down :: $secondaryLogoutFailure',
-        );
-      }
+    final syncAuthFailure = await _syncAuth.logOut();
+    if (syncAuthFailure != null) {
+      _log.severe(
+        'Failed to logout ${lastUser!.email} from $_syncAuth. This should not '
+        'have been possible - all we need to do is remove API keys from '
+        'local storage. :: $syncAuthFailure',
+      );
     }
+
     lastUser = null;
-    return failure;
+    return failure != null ? AuthFailure(failure.error) : syncAuthFailure;
   }
 
-  @override
+  // Future<AuthUser?> _loadUserWithExpectations(
+  //   String id,
+  //   String originMethod, {
+  //   /// If true, the user is expected to exist.
+  //   /// If false, the user is expected to not exist (it is being created).
+  //   /// If null, no assumption is made.
+  //   bool? exists = true,
+  //   Set<AuthProvider> expectedProviders = const {},
+  //   Set<AuthProvider> unexpectedProviders = const {},
+  // }) async {
+  //   final loadedUser = await _authUserRepo.getById(
+  //     id,
+  //     RequestDetails.read(requestType: RequestType.refresh),
+  //   );
+
+  //   if (exists != null) {
+  //     if (!exists && loadedUser != null) {
+  //       _log.shout(
+  //         'Found unexpected existing AuthUser in $originMethod with Id $id',
+  //       );
+  //     }
+  //     if (exists && loadedUser == null) {
+  //       _log.shout(
+  //         'Did not find expected AuthUser in $originMethod with Id $id',
+  //       );
+  //     }
+  //   }
+  //   if (loadedUser != null) {
+  //     if (expectedProviders.isNotEmpty) {
+  //       final missingProviders =
+  //           loadedUser.allProviders.difference(expectedProviders);
+  //       if (missingProviders.isNotEmpty) {
+  //         _log.shout(
+  //           'Expected to find AuthUser in $originMethod with Id $id and at '
+  //           'least $expectedProviders. Instead, found AuthUser with '
+  //           '${loadedUser.allProviders}',
+  //         );
+  //       }
+  //       if (unexpectedProviders.isNotEmpty) {
+  //         final surprisingProviders =
+  //             loadedUser.allProviders.intersection(unexpectedProviders);
+  //         if (surprisingProviders.isNotEmpty) {
+  //           _log.shout(
+  //             'Found AuthUser in $originMethod with Id $id which '
+  //             'unexpectedly already had $surprisingProviders.',
+  //           );
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return loadedUser;
+  // }
+
+  /// {@macro disposeAuth}
   void dispose() {
-    _primaryAuthSubscription?.cancel();
-    _primaryAuth.dispose();
-    for (final secondaryAuth in _secondaryAuths) {
-      secondaryAuth.dispose();
-    }
-  }
-
-  @override
-  Future<Set<AuthProvider>> getAvailableMethods(String email) {
-    assert(
-      _primaryAuth is SocialAuthService,
-      'AuthRepository is not configured to call getAvailableMethods '
-      'because $_primaryAuth is not a `SocialAuthService`.',
-    );
-    return (_primaryAuth as SocialAuthService).getAvailableMethods(email);
-  }
-}
-
-/// {@template FakeAuthRepository}
-/// Faked implementation of [BaseAuthRepository] that is helpful when testing
-/// objects which depend on a [BaseAuthRepository] but do not want to bother
-/// with complicated login mechanics.
-///
-/// Usage:
-/// ```dart
-/// final authRepo = FakeAuthRepo(initialUser: authUserOrNull);
-///
-/// final _sub = authRepo.listen((AuthUser? authUser) {
-///   // logic
-/// });
-///
-/// // mimics a successful login flow for `myUser`
-/// authRepo.publishNewUser(myUser);
-///
-/// _sub.cancel();
-/// ```
-/// {@endtemplate}
-class FakeAuthRepository
-    with ReadinessMixin<AuthUser?>
-    implements BaseAuthRepository {
-  /// {@macro FakeAuthRepository}
-  FakeAuthRepository({
-    AuthUser? initialUser,
-    bool shouldMarkReady = true,
-  }) {
-    _lastUser = initialUser;
-    if (shouldMarkReady) {
-      markReady(initialUser);
-    }
-  }
-
-  final _controller = StreamController<AuthUser?>.broadcast();
-
-  AuthUser? _lastUser;
-
-  @override
-  AuthUser? get lastUser {
-    assert(
-      isReady,
-      'Must not access AuthRepository.lastUser until the '
-      'AuthRepository.initialized future resolves',
-    );
-    return _lastUser;
-  }
-
-  @override
-  set lastUser(AuthUser? newUser) {
-    _lastUser = newUser;
-    _controller.add(newUser);
-    if (isNotResolved) {
-      markReady(newUser);
-    }
-  }
-
-  @override
-  Future<AuthResponse> createAnonymousAccount() => throw Exception(
-        'Do not call real methods on FakeAuthRepository. '
-        'Only call `publishNewUser`.',
-      );
-
-  @override
-  Future<Set<AuthProvider>> getAvailableMethods(String email) =>
-      throw Exception(
-        'Do not call real methods on FakeAuthRepository. '
-        'Only call `publishNewUser`.',
-      );
-
-  @override
-  Future<AuthUser?> performInitialization() => Future.value(lastUser);
-
-  @override
-  StreamSubscription<AuthUser?> listen(void Function(AuthUser? p1) cb) {
-    final sub = _controller.stream.listen(cb);
-    if (_lastUser != null) {
-      cb(_lastUser);
-    }
-    return sub;
-  }
-
-  @override
-  Future<AuthResponse> logInWithApple() => throw Exception(
-        'Do not call real methods on FakeAuthRepository. '
-        'Only call `publishNewUser`.',
-      );
-
-  @override
-  Future<AuthResponse> logInWithEmailAndPassword({
-    required String email,
-    required String password,
-  }) =>
-      throw Exception(
-        'Do not call real methods on FakeAuthRepository. '
-        'Only call `publishNewUser`.',
-      );
-
-  @override
-  Future<AuthResponse> logInWithGoogle() => throw Exception(
-        'Do not call real methods on FakeAuthRepository. '
-        'Only call `publishNewUser`.',
-      );
-
-  @override
-  Future<AuthFailure?> logOut() => throw Exception(
-        'Do not call real methods on FakeAuthRepository. '
-        'Only call `publishNewUser`.',
-      );
-
-  @override
-  Future<AuthResponse> signUp({
-    required String email,
-    required String password,
-  }) =>
-      throw Exception(
-        'Do not call real methods on FakeAuthRepository. '
-        'Only call `publishNewUser`.',
-      );
-
-  @override
-  Future<AuthResponse> syncAnonymousAccount(AuthSuccess authSuccess) =>
-      throw Exception(
-        'Do not call real methods on FakeAuthRepository. '
-        'Only call `publishNewUser`.',
-      );
-
-  /// The mechanism by which tests emit new users.
-  @visibleForTesting
-  // Make this more explicit than setting `fakeAuthRepo.lastUser = myUser` since
-  // that alternate API is not how to real [AuthRepository] objects work.
-  // ignore: use_setters_to_change_properties
-  void publishNewUser(AuthUser? user) {
-    lastUser = user;
-  }
-
-  @override
-  Future<void> dispose() async {
-    await _controller.close();
+    _socialAuthSubscription?.cancel();
+    _socialAuth.dispose();
+    _syncAuth.dispose();
   }
 }

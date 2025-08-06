@@ -6,7 +6,7 @@ part of 'user.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_AuthUser _$AuthUserFromJson(Map<String, dynamic> json) => _AuthUser(
+AuthUser _$AuthUserFromJson(Map<String, dynamic> json) => AuthUser(
       id: json['id'] as String,
       jwt: json['jwt'] as String?,
       loggingId: json['loggingId'] as String,
@@ -17,17 +17,18 @@ _AuthUser _$AuthUserFromJson(Map<String, dynamic> json) => _AuthUser(
       allProviders: (json['allProviders'] as List<dynamic>)
           .map((e) => $enumDecode(_$AuthProviderEnumMap, e))
           .toSet(),
+      $type: json['runtimeType'] as String?,
     );
 
-Map<String, dynamic> _$AuthUserToJson(_AuthUser instance) => <String, dynamic>{
+Map<String, dynamic> _$AuthUserToJson(AuthUser instance) => <String, dynamic>{
       'id': instance.id,
       'jwt': instance.jwt,
       'loggingId': instance.loggingId,
       'email': instance.email,
       'createdAt': instance.createdAt.toIso8601String(),
-      'lastAuthProvider': _$AuthProviderEnumMap[instance.lastAuthProvider]!,
-      'allProviders':
-          instance.allProviders.map((e) => _$AuthProviderEnumMap[e]!).toList(),
+      'lastAuthProvider': instance.lastAuthProvider,
+      'allProviders': instance.allProviders.toList(),
+      'runtimeType': instance.$type,
     };
 
 const _$AuthProviderEnumMap = {
@@ -37,27 +38,40 @@ const _$AuthProviderEnumMap = {
   AuthProvider.email: 'email',
 };
 
+SocialUser _$SocialUserFromJson(Map<String, dynamic> json) => SocialUser(
+      id: json['id'] as String,
+      email: json['email'] as String?,
+      provider: $enumDecodeNullable(_$AuthProviderEnumMap, json['provider']),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      $type: json['runtimeType'] as String?,
+    );
+
+Map<String, dynamic> _$SocialUserToJson(SocialUser instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'email': instance.email,
+      'provider': instance.provider,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'runtimeType': instance.$type,
+    };
+
 EmailCredential _$EmailCredentialFromJson(Map<String, dynamic> json) =>
     EmailCredential(
-      id: json['id'] as String?,
-      userId: json['userId'] as String,
       email: json['email'] as String,
+      password: json['password'] as String,
       $type: json['runtimeType'] as String?,
     );
 
 Map<String, dynamic> _$EmailCredentialToJson(EmailCredential instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'userId': instance.userId,
       'email': instance.email,
+      'password': instance.password,
       'runtimeType': instance.$type,
     };
 
 AppleCredential _$AppleCredentialFromJson(Map<String, dynamic> json) =>
     AppleCredential(
-      id: json['id'] as String?,
-      userId: json['userId'] as String,
-      userIdentifier: json['userIdentifier'] as String,
+      userIdentifier: json['userIdentifier'] as String?,
       givenName: json['givenName'] as String?,
       familyName: json['familyName'] as String?,
       email: json['email'] as String?,
@@ -69,8 +83,6 @@ AppleCredential _$AppleCredentialFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$AppleCredentialToJson(AppleCredential instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'userId': instance.userId,
       'userIdentifier': instance.userIdentifier,
       'givenName': instance.givenName,
       'familyName': instance.familyName,
@@ -83,8 +95,6 @@ Map<String, dynamic> _$AppleCredentialToJson(AppleCredential instance) =>
 
 GoogleCredential _$GoogleCredentialFromJson(Map<String, dynamic> json) =>
     GoogleCredential(
-      id: json['id'] as String?,
-      userId: json['userId'] as String,
       displayName: json['displayName'] as String?,
       email: json['email'] as String,
       uniqueId: json['uniqueId'] as String,
@@ -96,8 +106,6 @@ GoogleCredential _$GoogleCredentialFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$GoogleCredentialToJson(GoogleCredential instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'userId': instance.userId,
       'displayName': instance.displayName,
       'email': instance.email,
       'uniqueId': instance.uniqueId,

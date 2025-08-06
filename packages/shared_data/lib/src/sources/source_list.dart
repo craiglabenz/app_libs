@@ -48,7 +48,7 @@ class SourceList<T> extends DataContract<T> {
   Future<void> _cacheItem(
     T item,
     List<Source<T>> emptySources,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
     for (final source in emptySources) {
       await source.setItem(item, details);
@@ -58,7 +58,7 @@ class SourceList<T> extends DataContract<T> {
   Future<void> _cacheItems(
     Iterable<T> items,
     List<Source<T>> emptySources,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
     for (final source in emptySources) {
       await source.setItems(items, details);
@@ -66,7 +66,7 @@ class SourceList<T> extends DataContract<T> {
   }
 
   @override
-  Future<ReadResult<T>> getById(String id, RequestDetails<T> details) async {
+  Future<ReadResult<T>> getById(String id, RequestDetails details) async {
     details.assertEmpty('SourceList<$T>.getById');
     final emptySources = <Source<T>>[];
     for (final matchedSource in getSources(requestType: details.requestType)) {
@@ -94,7 +94,7 @@ class SourceList<T> extends DataContract<T> {
   @override
   Future<ReadListResult<T>> getByIds(
     Set<String> ids,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
     details.assertEmpty('SourceList<$T>.getByIds');
     final items = <String, T>{};
@@ -161,7 +161,7 @@ class SourceList<T> extends DataContract<T> {
   }
 
   @override
-  Future<ReadListResult<T>> getItems(RequestDetails<T> details) async {
+  Future<ReadListResult<T>> getItems(RequestDetails details) async {
     final emptySources = <Source<T>>[];
     for (final matchedSource in getSources(requestType: details.requestType)) {
       if (matchedSource.unmatched) {
@@ -199,7 +199,7 @@ class SourceList<T> extends DataContract<T> {
   }
 
   @override
-  Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) async {
+  Future<WriteResult<T>> setItem(T item, RequestDetails details) async {
     T itemDup = item;
     for (final ms in getSources(
       requestType: details.requestType,
@@ -231,7 +231,7 @@ class SourceList<T> extends DataContract<T> {
   @override
   Future<WriteListResult<T>> setItems(
     Iterable<T> items,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
     assert(
       details.requestType == RequestType.local,
@@ -257,7 +257,7 @@ class SourceList<T> extends DataContract<T> {
   }
 
   /// Clears all local data cached against this request.
-  Future<void> clearForRequest(RequestDetails<T> details) async {
+  Future<void> clearForRequest(RequestDetails details) async {
     for (final source in sources) {
       if (source is! LocalSource) continue;
       await (source as LocalSource<T>).clearForRequest(details);
@@ -265,7 +265,7 @@ class SourceList<T> extends DataContract<T> {
   }
 
   @override
-  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details) async {
+  Future<DeleteResult<T>> delete(String id, RequestDetails details) async {
     for (final ms in getSources(requestType: details.requestType)) {
       if (ms.unmatched) continue;
       final result = await ms.source.delete(id, details);

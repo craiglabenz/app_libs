@@ -3,7 +3,6 @@ import 'package:client_auth/client_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_data/shared_data.dart';
-import '../helpers/helpers.dart';
 
 const userPayload =
 //
@@ -63,7 +62,7 @@ Future<http.Response> register409Handler(
   return http.Response('Conflict', 409, headers: normalHeaders);
 }
 
-RestAuth<FakeUser> setUpAuthService({
+RestAuth<AuthUser> setUpAuthService({
   ReadHandler? readHandler,
   WriteRequestHandler? postHandler,
   WriteRequestHandler? putHandler,
@@ -83,7 +82,7 @@ RestAuth<FakeUser> setUpAuthService({
     ),
     headersBuilder: () => <String, String>{},
   );
-  return RestAuth<FakeUser>(
+  return RestAuth<AuthUser>(
     api: api,
     logInUrl: const ApiUrl(path: 'login', baseUrl: 'api/v1'),
     registerUrl: const ApiUrl(path: 'register', baseUrl: 'api/v1'),

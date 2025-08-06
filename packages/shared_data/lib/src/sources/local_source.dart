@@ -173,7 +173,7 @@ class LocalSource<T> extends Source<T> {
   }
 
   /// Clears this request from the request cache.
-  Future<void> clearForRequest(RequestDetails<T> details) async {
+  Future<void> clearForRequest(RequestDetails details) async {
     if (details.pagination == null) {
       _log.finest(
         'Clearing unpaginated request $details with CacheKey '
@@ -197,7 +197,7 @@ class LocalSource<T> extends Source<T> {
   SourceType sourceType = SourceType.local;
 
   @override
-  Future<ReadResult<T>> getById(String id, RequestDetails<T> details) async {
+  Future<ReadResult<T>> getById(String id, RequestDetails details) async {
     details.assertEmpty('LocalSource<$T>.getById');
     return ReadSuccess<T>(_itemsPersistence.getById(id), details: details);
   }
@@ -205,7 +205,7 @@ class LocalSource<T> extends Source<T> {
   @override
   Future<ReadListResult<T>> getByIds(
     Set<String> ids,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
     details.assertEmpty('LocalSource<$T>.getByIds');
     final items = _itemsPersistence.getByIds(ids);
@@ -221,7 +221,7 @@ class LocalSource<T> extends Source<T> {
   }
 
   @override
-  Future<ReadListResult<T>> getItems(RequestDetails<T> details) async {
+  Future<ReadListResult<T>> getItems(RequestDetails details) async {
     Set<String>? ids;
     if (details.pagination == null) {
       ids = _cachePersistence.getCacheKey(details.cacheKey);
@@ -251,7 +251,7 @@ class LocalSource<T> extends Source<T> {
       bindings.toJson(item)..update('id', (value) => idBuilder!.call(item)));
 
   @override
-  Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) async {
+  Future<WriteResult<T>> setItem(T item, RequestDetails details) async {
     var itemCopy = item;
     if (bindings.getId(itemCopy) == null) {
       if (idBuilder == null) {
@@ -273,7 +273,7 @@ class LocalSource<T> extends Source<T> {
   @override
   Future<WriteListResult<T>> setItems(
     Iterable<T> items,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
     if (items.isEmpty) {
       await clearForRequest(details);
@@ -301,7 +301,7 @@ class LocalSource<T> extends Source<T> {
   }
 
   @override
-  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details) {
+  Future<DeleteResult<T>> delete(String id, RequestDetails details) {
     assert(
       details.requestType.includes(sourceType),
       'Should not route ${details.requestType} request to $this',

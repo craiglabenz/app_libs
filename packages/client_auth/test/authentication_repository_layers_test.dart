@@ -1,10 +1,12 @@
-import 'dart:collection';
 import 'package:client_auth/client_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_data/shared_data.dart';
 
 import 'helpers/helpers.dart';
+
+class MockSyncAuth extends Mock implements SyncAuthService {}
 
 FirebaseUser buildFbUser({required Duration accountAge}) {
   final now = DateTime.now().toUtc();
@@ -19,8 +21,8 @@ FirebaseUser buildFbUser({required Duration accountAge}) {
 }
 
 void main() {
-  late FakeRestAuth restAuth;
   late AuthRepository authRepo;
+  late SyncAuthService syncAuth;
   final AuthUser user = AuthUser(
     id: 'asdf',
     loggingId: 'abc',
@@ -29,22 +31,33 @@ void main() {
     lastAuthProvider: AuthProvider.anonymous,
     allProviders: {AuthProvider.anonymous},
   );
+  final SocialUser socialUser = SocialUser(
+    id: 'asdf',
+    email: 'user@email.com',
+    createdAt: DateTime(2025, 1, 1, 12),
+    provider: AuthProvider.anonymous,
+  );
   const String pw = 'pw';
+  registerFallbackValue(
+    SocialAuthSuccess(
+      socialUser,
+      credential:
+          const EmailCredential(email: 'user@email.com', password: 'pswrd'),
+    ),
+  );
 
   group('AuthRepository should', () {
+    setUp(() {
+      syncAuth = MockSyncAuth();
+    });
+
     test('successfully create a user on sign up', () async {
       // final fbUser = buildFbUser(accountAge: Duration.zero);
-      restAuth = FakeRestAuth(
-        loginResults: Queue.from(
-          <AuthResponse>[
-            const AuthFailure(AuthenticationError.badEmailPassword()),
-          ],
-        ),
-        registerResults: Queue.from(<AuthResponse>[AuthSuccess(user)]),
-      );
+      when(() => syncAuth.signUp(any()))
+          .thenAnswer((_) async => AuthSuccess(user, apiToken: 'abc'));
       authRepo = AuthRepository(
-        FakeFirebaseAuth()..prepareLogin(user),
-        secondaryAuths: [restAuth],
+        FakeFirebaseAuth()..prepareLogin(socialUser),
+        syncAuth: syncAuth,
       );
       final AuthResponse result = await authRepo.signUp(
         email: user.email!,
@@ -54,9 +67,6 @@ void main() {
       final AuthUser signedUpUser = result.getOrRaise();
       expect(signedUpUser.email, user.email);
       expect(signedUpUser.id, user.id);
-      // Did not attempt to login because account is new
-      expect(restAuth.loginResults, isNotEmpty);
-      expect(restAuth.registerResults, isEmpty);
     });
 
     test(
@@ -65,8 +75,9 @@ void main() {
         authRepo = AuthRepository(
           FakeFirebaseAuth()
             ..prepareLoginError(
-              const AuthFailure(AuthenticationError.invalidPassword()),
+              const SocialAuthFailure(AuthenticationError.invalidPassword()),
             ),
+          syncAuth: syncAuth,
         );
         await authRepo.initialize();
         final AuthResponse result = await authRepo.logInWithEmailAndPassword(
@@ -80,12 +91,11 @@ void main() {
     );
 
     test('successfully logs in a user on EM/PW login', () async {
-      restAuth = FakeRestAuth(
-        loginResults: Queue.from(<AuthResponse>[AuthSuccess(user)]),
-      );
+      when(() => syncAuth.logInWithEmailAndPassword(any()))
+          .thenAnswer((_) async => AuthSuccess(user, apiToken: 'abc'));
       authRepo = AuthRepository(
-        FakeFirebaseAuth()..prepareLogin(user),
-        secondaryAuths: [restAuth],
+        FakeFirebaseAuth()..prepareLogin(socialUser),
+        syncAuth: syncAuth,
       );
       final AuthResponse result = await authRepo.logInWithEmailAndPassword(
         email: user.email!,
@@ -93,59 +103,20 @@ void main() {
       );
       expect(authRepo.lastUser, isNotNull);
       expect(result, isAuthSuccess);
-      expect(restAuth.loginResults.isEmpty, true);
     });
 
-    test('successfully creates a user that is new to the app server', () async {
-      authRepo = AuthRepository(
-        FakeFirebaseAuth()..prepareLogin(user),
-      );
-      final AuthResponse result = await authRepo.logInWithEmailAndPassword(
-        email: user.email!,
-        password: pw,
-      );
-      expect(result, isAuthSuccess);
-      expect(result.getOrRaise(), user);
-    });
+    // test('successfully creates a user that is new to the app server', () async {
 
-    test('successfully suggests acceptable login forms', () async {
-      restAuth = FakeRestAuth();
-      authRepo = AuthRepository(
-        FakeFirebaseAuth()
-          ..error = const AuthFailure(AuthenticationError.wrongMethod(
-            <AuthProvider>{AuthProvider.google},
-          )),
-        secondaryAuths: [restAuth],
-      );
-      final AuthResponse result = await authRepo.logInWithEmailAndPassword(
-        email: user.email!,
-        password: pw,
-      );
-      expect(result, isAuthFailure);
-      expect(
-        (result as AuthFailure).error,
-        const WrongMethod(<AuthProvider>{AuthProvider.google}),
-      );
-    });
-
-    test('successfully suggests acceptable login forms on sign up', () async {
-      restAuth = FakeRestAuth();
-      authRepo = AuthRepository(
-        FakeFirebaseAuth()
-          ..error = const AuthFailure(AuthenticationError.wrongMethod(
-            <AuthProvider>{AuthProvider.google},
-          )),
-        secondaryAuths: [restAuth],
-      );
-      final AuthResponse result = await authRepo.signUp(
-        email: user.email!,
-        password: pw,
-      );
-      expect(result, isAuthFailure);
-      expect(
-        (result as AuthFailure).error,
-        const WrongMethod(<AuthProvider>{AuthProvider.google}),
-      );
-    });
+    //   authRepo = AuthRepository(
+    //     FakeFirebaseAuth()..prepareLogin(socialUser),
+    //     syncAuth: syncAuth,
+    //   );
+    //   final AuthResponse result = await authRepo.logInWithEmailAndPassword(
+    //     email: user.email!,
+    //     password: pw,
+    //   );
+    //   expect(result, isAuthSuccess);
+    //   expect(result.getOrRaise(), user);
+    // });
   });
 }

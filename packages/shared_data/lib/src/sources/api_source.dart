@@ -45,7 +45,7 @@ class ApiSource<T> extends Source<T> {
   SourceType get sourceType => SourceType.remote;
 
   @override
-  Future<ReadResult<T>> getById(String id, RequestDetails<T> details) async {
+  Future<ReadResult<T>> getById(String id, RequestDetails details) async {
     if (!loadedItems.containsKey(id) || !loadedItems[id]!.isCompleted) {
       _print('Maybe queuing Id $id');
       queueId(id);
@@ -54,14 +54,21 @@ class ApiSource<T> extends Source<T> {
   }
 
   @override
-  Future<ReadListResult<T>> getItems(
-    RequestDetails<T> details,
-  ) async {
+  Future<ReadListResult<T>> getItems(RequestDetails details) async {
     final Params params = <String, String>{};
 
-    // Add all specified filters as query parameters
-    for (final filter in details.filters) {
-      params.addAll(filter.toParams());
+    // // Add all specified filters as query parameters
+    // for (final filter in details.filters) {
+    //   params.addAll(filter.toParams());
+    // }
+    if (details.filter != null) {
+      if (details.filter is RestFilter) {
+        params.addAll((details.filter! as RestFilter).toParams());
+      } else {
+        throw Exception(
+          'Invalid non-RestFilter ${details.filter} in ApiSource',
+        );
+      }
     }
 
     final result = await fetchItems(params);
@@ -80,9 +87,9 @@ class ApiSource<T> extends Source<T> {
   @override
   Future<ReadListResult<T>> getByIds(
     Set<String> ids,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) async {
-    assert(details.filters.isEmpty, 'Must not supply filters to `getByIds`');
+    assert(details.filter == null, 'Must not supply filters to `getByIds`');
 
     if (ids.isEmpty) {
       return ReadListResult<T>.fromList([], details, {}, bindings.getId);
@@ -138,7 +145,7 @@ class ApiSource<T> extends Source<T> {
     queuedIds.clear();
     final byIds = await getByIds(
       ids,
-      RequestDetails<T>(),
+      RequestDetails(),
     );
     switch (byIds) {
       case ReadListFailure():
@@ -176,7 +183,7 @@ class ApiSource<T> extends Source<T> {
   }
 
   @override
-  Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) async {
+  Future<WriteResult<T>> setItem(T item, RequestDetails details) async {
     final request = WriteApiRequest(
       url: bindings.getId(item) == null
           ? bindings.getCreateUrl()
@@ -207,7 +214,7 @@ class ApiSource<T> extends Source<T> {
   @override
   Future<WriteListResult<T>> setItems(
     Iterable<T> items,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) =>
       throw Exception('Should never call ApiSource.setItems');
 
@@ -236,7 +243,7 @@ class ApiSource<T> extends Source<T> {
   }
 
   @override
-  Future<DeleteResult<T>> delete(String id, RequestDetails<T> details) async {
+  Future<DeleteResult<T>> delete(String id, RequestDetails details) async {
     final request = WriteApiRequest(
       url: bindings.getDetailUrl(id),
       body: null,
@@ -252,22 +259,16 @@ class ApiSource<T> extends Source<T> {
   List<T> hydrateListResponse(ApiSuccess success) {
     switch (success.body) {
       case HtmlApiResultBody():
-        {
-          return <T>[];
-        }
+        return <T>[];
       case JsonApiResultBody(:final data):
-        {
-          if (data.containsKey('results')) {
-            final List<Json> results = (data['results']! as List).cast<Json>();
-            return results.map<T>(bindings.fromJson).toList();
-          } else {
-            return [bindings.fromJson(data)];
-          }
+        if (data.containsKey('results')) {
+          final List<Json> results = (data['results']! as List).cast<Json>();
+          return results.map<T>(bindings.fromJson).toList();
+        } else {
+          return [bindings.fromJson(data)];
         }
       case PlainTextApiResultBody():
-        {
-          return <T>[];
-        }
+        return <T>[];
     }
   }
 }

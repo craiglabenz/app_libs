@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:equatable/equatable.dart';
 import 'package:shared_data/shared_data.dart';
 
 class TestModel {
@@ -46,19 +47,21 @@ class TestModel {
   );
 }
 
-class MsgStartsWithFilter<T extends TestModel> extends ReadFilter<T> {
+class MsgStartsWithFilter with EquatableMixin implements RestFilter, Filter {
   const MsgStartsWithFilter(this.value);
   final String value;
+
   @override
-  bool predicate(T obj) => obj.msg.startsWith(value);
+  CacheKey get cacheKey => value;
+
   @override
-  Map<String, String> toParams() => {'msg__startsWith': value};
+  Json toJson() => {'value': value};
 
   @override
   List<Object?> get props => [value];
 
   @override
-  CacheKey get cacheKey => value;
+  Map<String, String> toParams() => toJson().cast<String, String>();
 }
 
 class FakeSourceList<T> extends SourceList<T> {
@@ -74,7 +77,7 @@ class FakeSourceList<T> extends SourceList<T> {
   @override
   Future<ReadResult<T>> getById(
     String id,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) =>
       Future.value(
         ReadSuccess<T>(objs.first, details: details),
@@ -83,25 +86,25 @@ class FakeSourceList<T> extends SourceList<T> {
   @override
   Future<ReadListResult<T>> getByIds(
     Set<String> ids,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) =>
       Future.value(
         ReadListResult<T>.fromList([objs.first], details, {}, bindings.getId),
       );
 
   @override
-  Future<ReadListResult<T>> getItems(RequestDetails<T> details) => Future.value(
+  Future<ReadListResult<T>> getItems(RequestDetails details) => Future.value(
         ReadListResult<T>.fromList([objs.first], details, {}, bindings.getId),
       );
 
   @override
-  Future<WriteResult<T>> setItem(T item, RequestDetails<T> details) =>
+  Future<WriteResult<T>> setItem(T item, RequestDetails details) =>
       Future.value(WriteSuccess<T>(objs.first, details: details));
 
   @override
   Future<WriteListResult<T>> setItems(
     Iterable<T> items,
-    RequestDetails<T> details,
+    RequestDetails details,
   ) =>
       Future.value(WriteListSuccess<T>([objs.first], details: details));
 }
@@ -110,17 +113,14 @@ class FakeSourceList<T> extends SourceList<T> {
 ///
 /// Not the most performant class, as this re-serializes the model. Best used
 /// only for tests.
-class FieldEquals<T, F> extends ReadFilter<T> {
+class FieldEquals<Type, Value> extends Filter with RestFilter, EquatableMixin {
   const FieldEquals(this.fieldName, this.value, this.getValue);
   final String fieldName;
-  final F? value;
-  final F? Function(T) getValue;
+  final Value? value;
+  final Value? Function(Type) getValue;
 
   @override
-  bool predicate(T obj) => getValue(obj) == value;
-
-  @override
-  List<Object?> get props => [fieldName, value, T.runtimeType];
+  List<Object?> get props => [fieldName, value, Type.runtimeType];
 
   @override
   Map<String, String> toParams() =>
@@ -128,4 +128,7 @@ class FieldEquals<T, F> extends ReadFilter<T> {
 
   @override
   CacheKey get cacheKey => '$fieldName-equals-$value';
+
+  @override
+  Json toJson() => toParams();
 }

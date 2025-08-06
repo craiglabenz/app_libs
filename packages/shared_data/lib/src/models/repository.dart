@@ -20,7 +20,7 @@ class Repository<T> {
   late final Logger _log;
 
   /// Loads an item by the given [id] if it exists.
-  Future<T?> getById(String id, [RequestDetails<T>? details]) async {
+  Future<T?> getById(String id, [RequestDetails? details]) async {
     final result = await sourceList.getById(
       id,
       details ?? RequestDetails.read(),
@@ -38,7 +38,7 @@ class Repository<T> {
   /// are included in `missingIds`.
   Future<(List<T> items, Set<String> missingIds)> getByIds(
     Set<String> ids, [
-    RequestDetails<T>? details,
+    RequestDetails? details,
   ]) async {
     final result = await sourceList.getByIds(
       ids,
@@ -58,7 +58,7 @@ class Repository<T> {
 
   /// Loads all items that match the given request [details], or the default
   /// [RequestDetails.read] object if not given.
-  Future<List<T>> getItems([RequestDetails<T>? details]) async {
+  Future<List<T>> getItems([RequestDetails? details]) async {
     final result = await sourceList.getItems(details ?? RequestDetails.read());
     switch (result) {
       case ReadListSuccess<T>():
@@ -70,7 +70,7 @@ class Repository<T> {
 
   /// Persists the given item and returns the saved value if the write was
   /// successful.
-  Future<T?> setItem(T item, [RequestDetails<T>? details]) async {
+  Future<T?> setItem(T item, [RequestDetails? details]) async {
     final result = await sourceList.setItem(
       item,
       details ?? RequestDetails.write(),
@@ -86,7 +86,7 @@ class Repository<T> {
   /// Persists all [items].
   Future<List<T>> setItems(
     Iterable<T> items, [
-    RequestDetails<T>? details,
+    RequestDetails? details,
   ]) async {
     final result = await sourceList.setItems(
       items,
@@ -101,14 +101,14 @@ class Repository<T> {
   }
 
   /// Removes the item associated with the given [id] from persistence.
-  Future<void> delete(String id, [RequestDetails<T>? details]) =>
+  Future<void> delete(String id, [RequestDetails? details]) =>
       sourceList.delete(id, details ?? RequestDetails.write());
 
   /// Clears all local data. Does not delete anything from any remote sources.
   Future<void> clear() => sourceList.clear();
 
   /// Clears all local data cached against this request.
-  Future<void> clearForRequest(RequestDetails<T> details) =>
+  Future<void> clearForRequest(RequestDetails details) =>
       sourceList.clearForRequest(details);
 
   /// Releases any open resources like stream subscriptions.

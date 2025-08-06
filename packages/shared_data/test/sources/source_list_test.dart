@@ -26,20 +26,20 @@ const errorBody = '{"error": "not found"}';
 final obj = TestModel.fromJson(jsonDecode(detailResponseBody) as Json);
 final obj2 = TestModel.fromJson(jsonDecode(detailResponseBody2) as Json);
 
-final details = RequestDetails<TestModel>();
-final localDetails = RequestDetails<TestModel>(requestType: RequestType.local);
-final refreshDetails = RequestDetails<TestModel>(
+final details = RequestDetails();
+final localDetails = RequestDetails(requestType: RequestType.local);
+final refreshDetails = RequestDetails(
   requestType: RequestType.refresh,
 );
-final abcDetails = RequestDetails<TestModel>(
-  filters: const [MsgStartsWithFilter('abc')],
+final abcDetails = RequestDetails(
+  filter: const MsgStartsWithFilter('abc'),
 );
-final refreshAbcDetails = RequestDetails<TestModel>(
-  filters: const [MsgStartsWithFilter('abc')],
+final refreshAbcDetails = RequestDetails(
+  filter: const MsgStartsWithFilter('abc'),
   requestType: RequestType.refresh,
 );
-final localAbcDetails = RequestDetails<TestModel>(
-  filters: const [MsgStartsWithFilter('abc')],
+final localAbcDetails = RequestDetails(
+  filter: const MsgStartsWithFilter('abc'),
   requestType: RequestType.local,
 );
 
@@ -335,10 +335,10 @@ void main() {
     test('honor request types with filters when one is removed', () async {
       final sl = getSourceList(getRequestDelegate([listResponseBody]));
 
-      final page1Details = RequestDetails<TestModel>(
+      final page1Details = RequestDetails(
         pagination: Pagination.page(1),
       );
-      final page2Details = RequestDetails<TestModel>(
+      final page2Details = RequestDetails(
         pagination: Pagination.page(2),
       );
 
@@ -480,8 +480,8 @@ void main() {
       expect(remoteReadResult.getOrRaise().items.length, 2);
       await hasCached(sl, [obj, obj2], [details]);
 
-      final filteredDetails = RequestDetails<TestModel>(
-        filters: const [MsgStartsWithFilter('abc')],
+      final filteredDetails = RequestDetails(
+        filter: const MsgStartsWithFilter('abc'),
         requestType: RequestType.local,
       );
       await hasNotCached(sl, [obj, obj2], [filteredDetails]);
@@ -490,8 +490,8 @@ void main() {
     test('honor filters originally applied', () async {
       final sl = getSourceList(getRequestDelegate([twoElementResponseBody]));
 
-      final filteredDetails = RequestDetails<TestModel>(
-        filters: const [MsgStartsWithFilter('abc')],
+      final filteredDetails = RequestDetails(
+        filter: const MsgStartsWithFilter('abc'),
       );
       final remoteReadResult = await sl.getItems(filteredDetails);
       expect(remoteReadResult.getOrRaise().items.length, 2);
@@ -512,20 +512,16 @@ void main() {
       expect(localReadResult.getOrRaise().items.length, 2);
       await hasCached(sl, [obj, obj2], [details]);
 
-      final localMsgFredDetails = RequestDetails<TestModel>(
-        filters: [
-          FieldEquals<TestModel, String>('msg', 'Fred', (obj) => obj.msg)
-        ],
+      final localMsgFredDetails = RequestDetails(
+        filter: FieldEquals<TestModel, String>('msg', 'Fred', (obj) => obj.msg),
         requestType: RequestType.local,
       );
       await hasNotCached(sl, [obj, obj2], [localMsgFredDetails]);
 
       // Filters' contents are irrelevant because our fake API does not evaulate
       // its rules.
-      final globalMsgFredDetails = RequestDetails<TestModel>(
-        filters: [
-          FieldEquals<TestModel, String>('msg', 'Fred', (obj) => obj.msg)
-        ],
+      final globalMsgFredDetails = RequestDetails(
+        filter: FieldEquals<TestModel, String>('msg', 'Fred', (obj) => obj.msg),
       );
 
       final globalResults = await sl.getItems(globalMsgFredDetails);
@@ -603,7 +599,7 @@ final Matcher throwsAssertionError = throwsA(isA<AssertionError>());
 Future<void> hasCached(
   SourceList<TestModel> sl,
   List<TestModel> items,
-  List<RequestDetails<TestModel>> requests,
+  List<RequestDetails> requests,
 ) async {
   for (final (itemIndex, item) in items.indexed) {
     assert(item.id != null, '$item should all have Ids');
@@ -649,7 +645,7 @@ Future<void> hasCached(
 Future<void> hasNotCached(
   SourceList<TestModel> sl,
   List<TestModel> items,
-  List<RequestDetails<TestModel>> requests, {
+  List<RequestDetails> requests, {
   bool shouldExistAtAll = true,
 }) async {
   for (final (itemIndex, item) in items.indexed) {

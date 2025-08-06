@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:client_auth/client_auth.dart';
+import 'package:shared_data/shared_data.dart';
 
 /// Scriptable auth results from the application server.
 class FakeRestAuth implements AuthService {

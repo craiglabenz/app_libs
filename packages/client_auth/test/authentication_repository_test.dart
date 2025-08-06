@@ -5,6 +5,8 @@ import 'package:shared_data/shared_data.dart';
 
 import 'helpers/helpers.dart';
 
+class MockSyncAuth extends Mock implements SyncAuthService {}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -16,9 +18,16 @@ void main() {
     lastAuthProvider: AuthProvider.anonymous,
     allProviders: {AuthProvider.anonymous},
   );
+  final SocialUser socialUser = SocialUser(
+    id: 'asdf',
+    email: 'user@email.com',
+    createdAt: DateTime(2025, 1, 1, 12),
+    provider: AuthProvider.anonymous,
+  );
   const String pw = 'pw';
 
   group('AuthRepository', () {
+    late SyncAuthService syncAuth;
     late AuthRepository authRepository;
     late FakeFirebaseAuth firebaseAuthService;
 
@@ -29,12 +38,15 @@ void main() {
     setUp(() async {
       // await setUpTestingDI();
       firebaseAuthService = FakeFirebaseAuth();
-      authRepository = AuthRepository(firebaseAuthService);
+      syncAuth = MockSyncAuth();
+      authRepository = AuthRepository(firebaseAuthService, syncAuth: syncAuth);
     });
 
     group('createAnonymousAccount', () {
       test('creates a user', () async {
-        firebaseAuthService.prepareLogin(user);
+        firebaseAuthService.prepareLogin(socialUser);
+        when(() => syncAuth.syncAnonymousAccount(SocialAuthSuccess(socialUser)))
+            .thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
         final result = await authRepository.createAnonymousAccount();
         expect(result, isAuthSuccess);
         expect(result.getOrRaise(), user);
@@ -42,7 +54,7 @@ void main() {
 
       test('returns a failure', () async {
         firebaseAuthService.prepareLoginError(
-          const AuthFailure(AuthenticationError.unknownError()),
+          const SocialAuthFailure(AuthenticationError.unknownError()),
         );
         final result = await authRepository.createAnonymousAccount();
         expect(result, isAuthFailure);
@@ -55,7 +67,9 @@ void main() {
 
     group('signUp', () {
       test('creates a user', () async {
-        firebaseAuthService.prepareLogin(user);
+        firebaseAuthService.prepareLogin(socialUser);
+        when(() => syncAuth.signUp(SocialAuthSuccess(socialUser)))
+            .thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
         final result = await authRepository.signUp(
           email: user.email!,
           password: pw,
@@ -66,7 +80,7 @@ void main() {
 
       test('returns a failure', () async {
         firebaseAuthService.prepareLoginError(
-          const AuthFailure(AuthenticationError.emailTaken()),
+          const SocialAuthFailure(AuthenticationError.emailTaken()),
         );
         final result = await authRepository.signUp(
           email: user.email!,
@@ -82,7 +96,11 @@ void main() {
 
     group('logInWithEmailAndPassword', () {
       test('creates a user', () async {
-        firebaseAuthService.prepareLogin(user);
+        firebaseAuthService.prepareLogin(socialUser);
+        when(
+          () =>
+              syncAuth.logInWithEmailAndPassword(SocialAuthSuccess(socialUser)),
+        ).thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
         final result = await authRepository.logInWithEmailAndPassword(
           email: user.email!,
           password: pw,
@@ -93,7 +111,7 @@ void main() {
 
       test('returns a failure', () async {
         firebaseAuthService.prepareLoginError(
-          const AuthFailure(AuthenticationError.badEmailPassword()),
+          const SocialAuthFailure(AuthenticationError.badEmailPassword()),
         );
         final result = await authRepository.logInWithEmailAndPassword(
           email: user.email!,
@@ -109,7 +127,10 @@ void main() {
 
     group('logInWithApple', () {
       test('creates a user', () async {
-        firebaseAuthService.prepareLogin(user);
+        firebaseAuthService.prepareLogin(socialUser);
+        when(
+          () => syncAuth.syncAppleAuthentication(SocialAuthSuccess(socialUser)),
+        ).thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
         final result = await authRepository.logInWithApple();
         expect(result, isAuthSuccess);
         expect(result.getOrRaise(), user);
@@ -117,7 +138,7 @@ void main() {
 
       test('returns a failure', () async {
         firebaseAuthService.prepareLoginError(
-          const AuthFailure(AuthenticationError.badEmailPassword()),
+          const SocialAuthFailure(AuthenticationError.badEmailPassword()),
         );
         final result = await authRepository.logInWithApple();
         expect(result, isAuthFailure);
@@ -130,7 +151,11 @@ void main() {
 
     group('logInWithGoogle', () {
       test('creates a user', () async {
-        firebaseAuthService.prepareLogin(user);
+        firebaseAuthService.prepareLogin(socialUser);
+        when(
+          () =>
+              syncAuth.syncGoogleAuthentication(SocialAuthSuccess(socialUser)),
+        ).thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
         final result = await authRepository.logInWithGoogle();
         expect(result, isAuthSuccess);
         expect(result.getOrRaise(), user);
@@ -138,7 +163,7 @@ void main() {
 
       test('returns a failure', () async {
         firebaseAuthService.prepareLoginError(
-          const AuthFailure(AuthenticationError.emailTaken()),
+          const SocialAuthFailure(AuthenticationError.emailTaken()),
         );
         final result = await authRepository.logInWithGoogle();
         expect(result, isAuthFailure);
@@ -156,6 +181,7 @@ void main() {
 
       test('calls signOut', () async {
         authRepository.lastUser = MockAuthUser();
+        when(() => syncAuth.logOut()).thenAnswer((_) async => null);
         await authRepository.logOut();
         expect(
           firebaseAuthService.getStoredUser(),
@@ -185,6 +211,7 @@ void main() {
         () async {
           final authRepo = AuthRepository(
             FakeFirebaseAuth(),
+            syncAuth: syncAuth,
           );
           final emitted = <AuthUser?>[];
           final sub = authRepo.listen(emitted.add);
@@ -199,8 +226,11 @@ void main() {
         'emits new user when firebase user is not null',
         () async {
           final authRepo = AuthRepository(
-            FakeFirebaseAuth()..prepareLogin(user),
+            FakeFirebaseAuth()..prepareLogin(socialUser),
+            syncAuth: syncAuth,
           );
+          when(() => syncAuth.verifySocialUserSession(socialUser))
+              .thenAnswer((_) async => user);
           final emitted = <AuthUser?>[];
           final sub = authRepo.listen(emitted.add);
           await authRepo.initialize();
