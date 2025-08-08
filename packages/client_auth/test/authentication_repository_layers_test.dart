@@ -53,8 +53,8 @@ void main() {
 
     test('successfully create a user on sign up', () async {
       // final fbUser = buildFbUser(accountAge: Duration.zero);
-      when(() => syncAuth.signUp(any()))
-          .thenAnswer((_) async => AuthSuccess(user, apiToken: 'abc'));
+      when(() => syncAuth.signUp(any())).thenAnswer(
+          (_) async => AuthSuccess(user, isNewUser: true, apiToken: 'abc'));
       authRepo = AuthRepository(
         FakeFirebaseAuth()..prepareLogin(socialUser),
         syncAuth: syncAuth,
@@ -91,8 +91,8 @@ void main() {
     );
 
     test('successfully logs in a user on EM/PW login', () async {
-      when(() => syncAuth.logInWithEmailAndPassword(any()))
-          .thenAnswer((_) async => AuthSuccess(user, apiToken: 'abc'));
+      when(() => syncAuth.logInWithEmailAndPassword(any())).thenAnswer(
+          (_) async => AuthSuccess(user, isNewUser: false, apiToken: 'abc'));
       authRepo = AuthRepository(
         FakeFirebaseAuth()..prepareLogin(socialUser),
         syncAuth: syncAuth,
@@ -105,7 +105,8 @@ void main() {
       expect(result, isAuthSuccess);
     });
 
-    // test('successfully creates a user that is new to the app server', () async {
+    // test('successfully creates a user that is new to the app server',
+    // () async {
 
     //   authRepo = AuthRepository(
     //     FakeFirebaseAuth()..prepareLogin(socialUser),

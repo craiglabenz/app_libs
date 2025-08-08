@@ -15,6 +15,7 @@ sealed class AuthResponse with _$AuthResponse {
   /// Container for a successful authorization attempt.
   const factory AuthResponse.success(
     @AuthUserConverter() AuthUser user, {
+    required bool isNewUser,
     String? apiToken,
   }) = AuthSuccess;
 

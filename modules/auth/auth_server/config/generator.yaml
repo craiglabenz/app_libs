@@ -1,0 +1,15 @@
+type: module
+nickname: auth
+
+client_package_path: ../auth_client
+server_test_tools_path: test/integration/test_tools
+
+extraClasses:
+  - package:shared_data/shared_data.dart:AuthUser
+  - package:shared_data/shared_data.dart:AuthResponse
+  - package:shared_data/shared_data.dart:AuthenticationError
+  - package:shared_data/shared_data.dart:AuthProvider
+  - package:shared_data/shared_data.dart:AppleCredential
+  - package:shared_data/shared_data.dart:EmailCredential
+  - package:shared_data/shared_data.dart:GoogleCredential
+  - package:shared_data/shared_data.dart:RequestDetails

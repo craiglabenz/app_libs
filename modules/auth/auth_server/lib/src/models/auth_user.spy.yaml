@@ -1,0 +1,24 @@
+class: AuthUserDb
+serverOnly: true
+table: auth_users
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+
+  # Identifier set by Firebase Auth
+  socialId: String?
+  email: String?
+
+  lastAuthProvider: String
+  allProviders: Set<String>
+
+  # Unique random Id to prefix to all logging statements
+  loggingId: UuidValue
+  createdAt: DateTime
+
+indexes:
+  social_id_idx:
+    fields: socialId
+    unique: true
+  email_auth_user_idx:
+    fields: email
+    unique: true

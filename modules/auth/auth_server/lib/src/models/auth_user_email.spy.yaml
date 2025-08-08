@@ -1,0 +1,13 @@
+class: AuthUserEmail
+serverOnly: true
+table: auth_users_email
+
+fields:
+  authUser: AuthUserDb?, relation
+  email: String
+  password: String
+
+indexes:
+  email_auth_user_email_idx:
+    fields: email
+    unique: true

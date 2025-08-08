@@ -129,4 +129,9 @@ class FakeAuthRepository
   Future<void> dispose() async {
     await _controller.close();
   }
+
+  @override
+  void addNewUserListener(Future<void> Function(AuthUser p1) onNewUser) {
+    // No need for this in tests.
+  }
 }

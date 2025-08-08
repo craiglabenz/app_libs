@@ -55,7 +55,7 @@ class $AuthResponseCopyWith<$Res> {
 @JsonSerializable()
 class AuthSuccess extends AuthResponse {
   const AuthSuccess(@AuthUserConverter() this.user,
-      {this.apiToken, final String? $type})
+      {required this.isNewUser, this.apiToken, final String? $type})
       : $type = $type ?? 'success',
         super._();
   factory AuthSuccess.fromJson(Map<String, dynamic> json) =>
@@ -63,6 +63,7 @@ class AuthSuccess extends AuthResponse {
 
   @AuthUserConverter()
   final AuthUser user;
+  final bool isNewUser;
   final String? apiToken;
 
   @JsonKey(name: 'runtimeType')
@@ -88,18 +89,20 @@ class AuthSuccess extends AuthResponse {
         (other.runtimeType == runtimeType &&
             other is AuthSuccess &&
             const DeepCollectionEquality().equals(other.user, user) &&
+            (identical(other.isNewUser, isNewUser) ||
+                other.isNewUser == isNewUser) &&
             (identical(other.apiToken, apiToken) ||
                 other.apiToken == apiToken));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, const DeepCollectionEquality().hash(user), apiToken);
+  int get hashCode => Object.hash(runtimeType,
+      const DeepCollectionEquality().hash(user), isNewUser, apiToken);
 
   @override
   String toString() {
-    return 'AuthResponse.success(user: $user, apiToken: $apiToken)';
+    return 'AuthResponse.success(user: $user, isNewUser: $isNewUser, apiToken: $apiToken)';
   }
 }
 
@@ -110,7 +113,8 @@ abstract mixin class $AuthSuccessCopyWith<$Res>
           AuthSuccess value, $Res Function(AuthSuccess) _then) =
       _$AuthSuccessCopyWithImpl;
   @useResult
-  $Res call({@AuthUserConverter() AuthUser user, String? apiToken});
+  $Res call(
+      {@AuthUserConverter() AuthUser user, bool isNewUser, String? apiToken});
 }
 
 /// @nodoc
@@ -125,6 +129,7 @@ class _$AuthSuccessCopyWithImpl<$Res> implements $AuthSuccessCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? user = freezed,
+    Object? isNewUser = null,
     Object? apiToken = freezed,
   }) {
     return _then(AuthSuccess(
@@ -132,6 +137,10 @@ class _$AuthSuccessCopyWithImpl<$Res> implements $AuthSuccessCopyWith<$Res> {
           ? _self.user
           : user // ignore: cast_nullable_to_non_nullable
               as AuthUser,
+      isNewUser: null == isNewUser
+          ? _self.isNewUser
+          : isNewUser // ignore: cast_nullable_to_non_nullable
+              as bool,
       apiToken: freezed == apiToken
           ? _self.apiToken
           : apiToken // ignore: cast_nullable_to_non_nullable

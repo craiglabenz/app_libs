@@ -1,0 +1,20 @@
+class: AuthUserGoogle
+serverOnly: true
+table: auth_users_google
+
+fields:
+  authUser: AuthUserDb?, relation
+
+  email: String?
+  displayName: String?
+  photoUrl: String?
+
+  # Signed token from Google.
+  idToken: String?
+  serverAuthCode: String?
+  uniqueId: String?
+
+indexes:
+  email_idx:
+    fields: email
+    unique: true

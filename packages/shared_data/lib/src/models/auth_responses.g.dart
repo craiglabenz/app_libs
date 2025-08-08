@@ -8,6 +8,7 @@ part of 'auth_responses.dart';
 
 AuthSuccess _$AuthSuccessFromJson(Map<String, dynamic> json) => AuthSuccess(
       const AuthUserConverter().fromJson(json['user'] as Map<String, Object?>),
+      isNewUser: json['isNewUser'] as bool,
       apiToken: json['apiToken'] as String?,
       $type: json['runtimeType'] as String?,
     );
@@ -15,6 +16,7 @@ AuthSuccess _$AuthSuccessFromJson(Map<String, dynamic> json) => AuthSuccess(
 Map<String, dynamic> _$AuthSuccessToJson(AuthSuccess instance) =>
     <String, dynamic>{
       'user': const AuthUserConverter().toJson(instance.user),
+      'isNewUser': instance.isNewUser,
       'apiToken': instance.apiToken,
       'runtimeType': instance.$type,
     };

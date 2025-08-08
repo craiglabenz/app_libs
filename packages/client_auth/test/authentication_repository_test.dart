@@ -46,7 +46,8 @@ void main() {
       test('creates a user', () async {
         firebaseAuthService.prepareLogin(socialUser);
         when(() => syncAuth.syncAnonymousAccount(SocialAuthSuccess(socialUser)))
-            .thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
+            .thenAnswer((_) async =>
+                AuthSuccess(user, isNewUser: true, apiToken: 'api'));
         final result = await authRepository.createAnonymousAccount();
         expect(result, isAuthSuccess);
         expect(result.getOrRaise(), user);
@@ -68,8 +69,8 @@ void main() {
     group('signUp', () {
       test('creates a user', () async {
         firebaseAuthService.prepareLogin(socialUser);
-        when(() => syncAuth.signUp(SocialAuthSuccess(socialUser)))
-            .thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
+        when(() => syncAuth.signUp(SocialAuthSuccess(socialUser))).thenAnswer(
+            (_) async => AuthSuccess(user, isNewUser: true, apiToken: 'api'));
         final result = await authRepository.signUp(
           email: user.email!,
           password: pw,
@@ -100,7 +101,8 @@ void main() {
         when(
           () =>
               syncAuth.logInWithEmailAndPassword(SocialAuthSuccess(socialUser)),
-        ).thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
+        ).thenAnswer(
+            (_) async => AuthSuccess(user, isNewUser: false, apiToken: 'api'));
         final result = await authRepository.logInWithEmailAndPassword(
           email: user.email!,
           password: pw,
@@ -130,7 +132,8 @@ void main() {
         firebaseAuthService.prepareLogin(socialUser);
         when(
           () => syncAuth.syncAppleAuthentication(SocialAuthSuccess(socialUser)),
-        ).thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
+        ).thenAnswer(
+            (_) async => AuthSuccess(user, isNewUser: false, apiToken: 'api'));
         final result = await authRepository.logInWithApple();
         expect(result, isAuthSuccess);
         expect(result.getOrRaise(), user);
@@ -155,7 +158,8 @@ void main() {
         when(
           () =>
               syncAuth.syncGoogleAuthentication(SocialAuthSuccess(socialUser)),
-        ).thenAnswer((_) async => AuthSuccess(user, apiToken: 'api'));
+        ).thenAnswer(
+            (_) async => AuthSuccess(user, isNewUser: false, apiToken: 'api'));
         final result = await authRepository.logInWithGoogle();
         expect(result, isAuthSuccess);
         expect(result.getOrRaise(), user);

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:client_auth/client_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -66,6 +67,14 @@ class FirebaseAuthService extends StreamSocialAuthService {
         _emitUser(newUser);
       },
     );
+    // FAKE: to force a session when eal FirebaseAuth is turned off
+    // _emitUser(
+    //   SocialUser(
+    //     id: 'abc',
+    //     email: 'craig.labenz@gmail.com',
+    //     createdAt: DateTime.now(),
+    //   ),
+    // );
     return ready;
   }
 
@@ -169,6 +178,14 @@ class FirebaseAuthService extends StreamSocialAuthService {
     required String password,
   }) async {
     try {
+      // return SocialAuthSuccess(
+      //   SocialUser(
+      //     id: 'abc',
+      //     email: email,
+      //     createdAt: DateTime.now(),
+      //   ),
+      //   credential: EmailCredential(email: email, password: password),
+      // );
       _isAuthorizing = true;
       final cleanEmail = email.toLowerCase().trim();
 
@@ -277,6 +294,14 @@ class FirebaseAuthService extends StreamSocialAuthService {
     required String password,
   }) async {
     try {
+      // return SocialAuthSuccess(
+      //   SocialUser(
+      //     id: 'abc',
+      //     email: email,
+      //     createdAt: DateTime.now(),
+      //   ),
+      //   credential: EmailCredential(email: email, password: password),
+      // );
       _isAuthorizing = true;
 
       late final firebase_auth.UserCredential userCred;
@@ -296,13 +321,13 @@ class FirebaseAuthService extends StreamSocialAuthService {
 
       _isAuthorizing = false;
       if (userCred.user != null) {
-        final authUser = toSocialUser(
+        final socialUser = toSocialUser(
           userCred.user!,
           AuthProvider.email,
         );
-        _emitUser(authUser);
+        _emitUser(socialUser);
         return SocialAuthSuccess(
-          authUser,
+          socialUser,
           credential: EmailCredential(email: email, password: password),
         );
       }

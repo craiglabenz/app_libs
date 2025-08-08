@@ -55,6 +55,21 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
     }
   }
 
+  final List<Future<void> Function(AuthUser)> _onNewUserCallbacks = [];
+
+  /// Registers a listener to be called and awaited BEFORE a new user is
+  /// published. Use this to create any other new records that the app will
+  /// assume exist for all [AuthUser] records.
+  void addNewUserListener(Future<void> Function(AuthUser) onNewUser) {
+    _onNewUserCallbacks.add(onNewUser);
+  }
+
+  Future<void> _callNewUserListeners(AuthUser newUser) async {
+    for (final fn in _onNewUserCallbacks) {
+      await fn(newUser);
+    }
+  }
+
   Future<void> _syncSocialUser(SocialUser? user) async {
     if (user == null) {
       lastUser = null;
@@ -115,6 +130,7 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
         switch (authResponse) {
           case AuthSuccess(:final user):
             // Publish this information.
+            await _callNewUserListeners(user);
             lastUser = user;
 
           case AuthFailure(:final error):
@@ -148,18 +164,23 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
 
     switch (socialAuthResponse) {
       case SocialAuthSuccess():
-        final authResponse = await _syncAuth.signUp(
-          socialAuthResponse,
-        );
+        final authResponse = lastUser == null
+            ? await _syncAuth.signUp(
+                socialAuthResponse,
+              )
+            : await _syncAuth.syncEmailPasswordAuthentication(
+                socialAuthResponse,
+              );
 
         switch (authResponse) {
           case AuthSuccess(:final user):
             // Publish this information.
+            await _callNewUserListeners(user);
             lastUser = user;
 
           case AuthFailure(:final error):
             _log.severe(
-              'Failed to sync AnonymousAccount ${socialAuthResponse.user.id} '
+              'Failed to signUp SocialUser ${socialAuthResponse.user.id} '
               'to backup auth :: $error',
             );
         }
@@ -195,13 +216,6 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
             lastUser = user;
 
           case AuthFailure(:final error):
-
-            // Is this a good idea?
-            // final syncAuthFallbackResponse = await secondaryAuth.signUp(
-            //   email: email,
-            //   password: password,
-            // );
-
             _log.severe(
               'Failed to sync AnonymousAccount ${socialAuthResponse.user.id} '
               'to backup auth :: $error',
@@ -227,6 +241,9 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
         switch (authResponse) {
           case AuthSuccess(:final user):
             // Publish this information.
+            if (authResponse.isNewUser) {
+              await _callNewUserListeners(user);
+            }
             lastUser = user;
 
           case AuthFailure(:final error):
@@ -255,6 +272,9 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
         switch (authResponse) {
           case AuthSuccess(:final user):
             // Publish this information.
+            if (authResponse.isNewUser) {
+              await _callNewUserListeners(user);
+            }
             lastUser = user;
 
           case AuthFailure(:final error):

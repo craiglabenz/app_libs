@@ -1,0 +1,20 @@
+class: AuthUserApple
+serverOnly: true
+table: auth_users_apple
+
+fields:
+  authUser: AuthUserDb?, relation
+
+  email: String?
+  givenName: String?
+  familyName: String?
+
+  # Lord only knows what.
+  authorizationCode: String
+
+  # Signed token from Apple.
+  identityToken: String?
+
+  # Unique ID provided by Apple. Unique for the lifetime of the app's
+  # installation on the user's device.
+  userIdentifier: String?

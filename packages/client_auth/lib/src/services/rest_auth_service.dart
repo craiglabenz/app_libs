@@ -52,6 +52,7 @@ class RestAuth<T extends AuthUser> implements AuthService {
               Map<String, dynamic>.from(res.jsonOrRaise)
                 ..addAll(<String, dynamic>{'isNewUser': false}),
             ),
+            isNewUser: false,
           );
         }
       case ApiError():
@@ -76,6 +77,7 @@ class RestAuth<T extends AuthUser> implements AuthService {
               Map<String, dynamic>.from(res.jsonOrRaise)
                 ..addAll(<String, dynamic>{'isNewUser': true}),
             ),
+            isNewUser: true,
           );
         }
       case ApiError():

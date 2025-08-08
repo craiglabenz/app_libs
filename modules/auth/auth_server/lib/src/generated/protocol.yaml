@@ -1,0 +1,8 @@
+authUser:
+  - validateKey:
+  - createAnonymousUser:
+  - logInEmailUser:
+  - addEmailToUser:
+  - createUserWithEmailAndPassword:
+  - addAppleToUser:
+  - addGoogleToUser:

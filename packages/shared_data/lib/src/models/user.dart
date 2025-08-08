@@ -291,6 +291,14 @@ sealed class SocialCredential with _$SocialCredential {
         ),
         getListUrl: () => const ApiUrl(path: 'credentials'),
       );
+
+  /// Pulls the email out of the credential. Required only because some types
+  /// are nullable and some are not.
+  String? getEmail() => switch (this) {
+        EmailCredential() => email,
+        AppleCredential() => email,
+        GoogleCredential() => email,
+      };
 }
 
 /// {@template AuthUserConverter}

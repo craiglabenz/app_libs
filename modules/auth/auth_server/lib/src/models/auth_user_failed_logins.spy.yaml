@@ -1,0 +1,6 @@
+class: AuthUserFailedLogin
+serverOnly: true
+table: auth_user_failed_logins
+fields:
+  authUser: AuthUserDb?, relation
+  createdAt: DateTime
