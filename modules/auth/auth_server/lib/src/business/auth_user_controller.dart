@@ -123,15 +123,23 @@ class AuthUserController {
       };
     }
 
-    final row = AuthUserDb(
-      socialId: socialId,
-      lastAuthProvider: lastAuthProvider,
-      email: credential?.getEmail(),
-      allProviders: {},
-      loggingId: UuidValue.fromString(const Uuid().v4()),
-      createdAt: DateTime.now().toUtc(),
+    // Check whether the existing social user is logging back in.
+    AuthUserDb? authUser = await AuthUserDb.db.findFirstRow(
+      session,
+      where: (t) => t.socialId.equals(socialId),
     );
-    final authUser = await AuthUserDb.db.insertRow(session, row);
+
+    if (authUser == null) {
+      final row = AuthUserDb(
+        socialId: socialId,
+        lastAuthProvider: lastAuthProvider,
+        email: credential?.getEmail(),
+        allProviders: {},
+        loggingId: UuidValue.fromString(const Uuid().v4()),
+        createdAt: DateTime.now().toUtc(),
+      );
+      authUser = await AuthUserDb.db.insertRow(session, row);
+    }
 
     if (credential != null) {
       await addAuthToUser(session, authUser: authUser, credential: credential);
@@ -169,6 +177,11 @@ class AuthUserController {
   /// Attempts to add email and password authentication to an existing account.
   /// This is likely to upgrade an anonymous account, but could also take place
   /// on a user account that already has social auth.
+  ///
+  /// Unlike Apple and Google auth, this method does not gracefully UPSERT
+  /// records because it is not expected that users click the "Sign Up" button
+  /// when they already have an account with email auth. Those users should
+  /// log in.
   static Future<AuthUserEmail> addEmailToUser(
     Session session,
     AuthUserDb authUser,
@@ -199,7 +212,7 @@ class AuthUserController {
       session,
       authUser,
       // TODO:
-      // columns: [AuthUserDb.t.allProviders],
+      // columns: [AuthUserDb.t.allProviders, AuthUserDb.t.email],
     );
 
     return AuthUserEmail.db.insertRow(
@@ -212,32 +225,33 @@ class AuthUserController {
     );
   }
 
-  /// Validates a user-supplied password against what the database says they
-  /// supplied when they created their account.
-  static Future<bool> validatePassword({
-    required String rawPassword,
-    required String email,
-    required String hashedPassword,
-  }) => validatePasswordHash(rawPassword, email, hashedPassword);
-
   /// Attempts to add Apple Id authentication to an existing account.
   /// This is likely to upgrade an anonymous account, but could also take place
   /// on a user account that already has other auths.
+  ///
+  /// If the [AuthUserApple] record already exists, returns that, since users
+  /// logging back in via Apple/Google do not have different LOGIN vs SIGNUP
+  /// buttons.
   static Future<AuthUserApple> addAppleToUser(
     Session session,
     AuthUserDb authUser,
     AppleCredential credential,
   ) async {
-    final existingSocialQuery = AuthUserApple.db.count(
+    final existingSocial = await AuthUserApple.db.findFirstRow(
       session,
       where: (t) => t.authUserId.equals(authUser.id),
     );
-    if (await existingSocialQuery > 0) {
-      session.log(
-        'Attempting to add AuthUserApple to AuthUser Id ${authUser.id} which '
-        'already has AuthUserApple record',
-      );
-      throw AuthenticationError.conflict();
+    if (existingSocial != null) {
+      if (authUser.lastAuthProvider != AuthProvider.apple.name) {
+        authUser.lastAuthProvider = AuthProvider.apple.name;
+        AuthUserDb.db.updateRow(
+          session,
+          authUser,
+          // TODO:
+          // columns: [AuthUserDb.t.lastAuthProvider],
+        );
+      }
+      return existingSocial;
     }
 
     if (authUser.allProviders.contains(AuthProvider.apple.name)) {
@@ -249,11 +263,12 @@ class AuthUserController {
     }
 
     authUser.allProviders.add(AuthProvider.apple.name);
+    authUser.email ??= credential.email;
     AuthUserDb.db.updateRow(
       session,
       authUser,
       // TODO:
-      // columns: [AuthUserDb.t.allProviders],
+      // columns: [AuthUserDb.t.allProviders, AuthUserDb.t.email],
     );
 
     return AuthUserApple.db.insertRow(
@@ -273,21 +288,30 @@ class AuthUserController {
   /// Attempts to add Google authentication to an existing account.
   /// This is likely to upgrade an anonymous account, but could also take place
   /// on a user account that already has other auths.
+  ///
+  /// If the [AuthUserGoogle] record already exists, returns that, since users
+  /// logging back in via Apple/Google do not have different LOGIN vs SIGNUP
+  /// buttons.
   static Future<AuthUserGoogle> addGoogleToUser(
     Session session,
     AuthUserDb authUser,
     GoogleCredential credential,
   ) async {
-    final existingSocialQuery = AuthUserGoogle.db.count(
+    final existingSocial = await AuthUserGoogle.db.findFirstRow(
       session,
       where: (t) => t.authUserId.equals(authUser.id),
     );
-    if (await existingSocialQuery > 0) {
-      session.log(
-        'Attempting to add AuthUserGoogle to AuthUser Id ${authUser.id} which '
-        'already has AuthUserApple record',
-      );
-      throw AuthenticationError.conflict();
+    if (existingSocial != null) {
+      if (authUser.lastAuthProvider != AuthProvider.google.name) {
+        authUser.lastAuthProvider = AuthProvider.google.name;
+        AuthUserDb.db.updateRow(
+          session,
+          authUser,
+          // TODO:
+          // columns: [AuthUserDb.t.lastAuthProvider],
+        );
+      }
+      return existingSocial;
     }
 
     if (authUser.allProviders.contains(AuthProvider.google.name)) {
@@ -299,11 +323,12 @@ class AuthUserController {
     }
 
     authUser.allProviders.add(AuthProvider.google.name);
+    authUser.email ??= credential.email;
     AuthUserDb.db.updateRow(
       session,
       authUser,
       // TODO:
-      // columns: [AuthUserDb.t.allProviders],
+      // columns: [AuthUserDb.t.allProviders, AuthUserDb.t.email],
     );
 
     return AuthUserGoogle.db.insertRow(
@@ -320,18 +345,13 @@ class AuthUserController {
     );
   }
 
-  /// Converts an [AuthUserDb] into the client-facing [AuthUser] object.
-  static AuthUser toDto(AuthUserDb dbUser) => AuthUser(
-    id: dbUser.id.toString(),
-    lastAuthProvider: AuthProvider.values.byName(dbUser.lastAuthProvider),
-    allProviders: dbUser.allProviders
-        .map<AuthProvider>(
-          (provider) => AuthProvider.values.byName(dbUser.lastAuthProvider),
-        )
-        .toSet(),
-    loggingId: dbUser.loggingId.uuid,
-    createdAt: dbUser.createdAt,
-  );
+  /// Validates a user-supplied password against what the database says they
+  /// supplied when they created their account.
+  static Future<bool> validatePassword({
+    required String rawPassword,
+    required String email,
+    required String hashedPassword,
+  }) => validatePasswordHash(rawPassword, email, hashedPassword);
 
   /// Creates a JWT the user's device should hold onto and return with all
   /// future requests.

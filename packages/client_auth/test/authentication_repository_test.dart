@@ -69,7 +69,9 @@ void main() {
     group('signUp', () {
       test('creates a user', () async {
         firebaseAuthService.prepareLogin(socialUser);
-        when(() => syncAuth.signUp(SocialAuthSuccess(socialUser))).thenAnswer(
+        when(() =>
+            syncAuth.syncEmailPasswordAuthentication(
+                SocialAuthSuccess(socialUser))).thenAnswer(
             (_) async => AuthSuccess(user, isNewUser: true, apiToken: 'api'));
         final result = await authRepository.signUp(
           email: user.email!,

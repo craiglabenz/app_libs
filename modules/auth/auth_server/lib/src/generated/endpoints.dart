@@ -105,31 +105,6 @@ class Endpoints extends _i1.EndpointDispatch {
             credential: params['credential'],
           ),
         ),
-        'createUserWithEmailAndPassword': _i1.MethodConnector(
-          name: 'createUserWithEmailAndPassword',
-          params: {
-            'socialId': _i1.ParameterDescription(
-              name: 'socialId',
-              type: _i1.getType<String>(),
-              nullable: false,
-            ),
-            'credential': _i1.ParameterDescription(
-              name: 'credential',
-              type: _i1.getType<_i3.EmailCredential>(),
-              nullable: false,
-            ),
-          },
-          call: (
-            _i1.Session session,
-            Map<String, dynamic> params,
-          ) async =>
-              (endpoints['authUser'] as _i2.AuthUserEndpoint)
-                  .createUserWithEmailAndPassword(
-            session,
-            socialId: params['socialId'],
-            credential: params['credential'],
-          ),
-        ),
         'addAppleToUser': _i1.MethodConnector(
           name: 'addAppleToUser',
           params: {

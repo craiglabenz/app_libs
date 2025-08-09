@@ -53,7 +53,7 @@ void main() {
 
     test('successfully create a user on sign up', () async {
       // final fbUser = buildFbUser(accountAge: Duration.zero);
-      when(() => syncAuth.signUp(any())).thenAnswer(
+      when(() => syncAuth.syncEmailPasswordAuthentication(any())).thenAnswer(
           (_) async => AuthSuccess(user, isNewUser: true, apiToken: 'abc'));
       authRepo = AuthRepository(
         FakeFirebaseAuth()..prepareLogin(socialUser),

@@ -12,4 +12,3 @@ extraClasses:
   - package:shared_data/shared_data.dart:AppleCredential
   - package:shared_data/shared_data.dart:EmailCredential
   - package:shared_data/shared_data.dart:GoogleCredential
-  - package:shared_data/shared_data.dart:RequestDetails

@@ -71,7 +71,7 @@ class ServerpodAuthService extends SyncAuthService {
   @override
   Future<AuthResponse> logInWithEmailAndPassword(SocialAuthSuccess success) =>
       _cacheApiKey(
-        _client.authUser.addEmailToUser(
+        _client.authUser.logInEmailUser(
           socialId: success.user.id,
           credential: success.credential as EmailCredential,
         ),
@@ -87,14 +87,6 @@ class ServerpodAuthService extends SyncAuthService {
       return const AuthFailure(AuthenticationError.logoutError());
     }
   }
-
-  @override
-  Future<AuthResponse> signUp(SocialAuthSuccess success) => _cacheApiKey(
-    _client.authUser.createUserWithEmailAndPassword(
-      socialId: success.user.id,
-      credential: success.credential as EmailCredential,
-    ),
-  );
 
   @override
   void dispose() {}

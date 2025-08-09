@@ -251,39 +251,6 @@ class _AuthUserEndpoint {
     });
   }
 
-  _i3.Future<_i4.AuthResponse> createUserWithEmailAndPassword(
-    _i1.TestSessionBuilder sessionBuilder, {
-    required String socialId,
-    required _i5.EmailCredential credential,
-  }) async {
-    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
-        endpoint: 'authUser',
-        method: 'createUserWithEmailAndPassword',
-      );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'authUser',
-          methodName: 'createUserWithEmailAndPassword',
-          parameters: _i1.testObjectToJson({
-            'socialId': socialId,
-            'credential': credential,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue = await (_localCallContext.method.call(
-          _localUniqueSession,
-          _localCallContext.arguments,
-        ) as _i3.Future<_i4.AuthResponse>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
   _i3.Future<_i4.AuthResponse> addAppleToUser(
     _i1.TestSessionBuilder sessionBuilder, {
     required String socialId,

@@ -37,9 +37,7 @@ Future<void> bootstrap(
   Bloc.observer = const AppBlocObserver();
 
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   setUpDI(
     apiBaseUrl: switch (env) {
@@ -47,7 +45,7 @@ Future<void> bootstrap(
       Environment.staging => '127.0.0.1',
       Environment.prod => '127.0.0.1',
     },
-    firebaseAuthService: FirebaseAuthService(),
+    firebaseAuthService: FirebaseAuthService(fake: true),
   );
 
   runApp(await builder());

@@ -109,10 +109,6 @@ abstract class SyncAuthService {
     SocialAuthSuccess authSuccess,
   );
 
-  /// Allows a secondary auth service to create a new account anchored on email
-  /// and password authentication.
-  Future<AuthResponse> signUp(SocialAuthSuccess authSuccess);
-
   /// Allows a secondary auth service
   Future<AuthResponse> logInWithEmailAndPassword(SocialAuthSuccess authSuccess);
 

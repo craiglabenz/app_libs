@@ -21,32 +21,23 @@ class AuthUserEndpoint extends Endpoint {
     Session session, {
     required String socialId,
   }) async {
-    if (!session.passwords.containsKey('jwtSalt') ||
-        session.passwords['jwtSalt'] == '') {
-      throw Exception('Failed to configure security salt. Cannot sign JWTs');
-    }
-
-    final user = await AuthUserController.createUser(
+    final authUser = await AuthUserController.createUser(
       session,
       socialId: socialId,
       isAnonymous: true,
     );
 
-    if (user == null) {
+    if (authUser == null) {
       return const AuthFailure(AuthenticationError.unknownError());
     }
 
     final jwt = AuthUserController.createJwt(
-      user,
+      authUser,
       AuthProvider.anonymous,
       null,
       session.passwords['jwtSalt']!,
     );
-    return AuthSuccess(
-      AuthUserController.toDto(user),
-      isNewUser: true,
-      apiToken: jwt,
-    );
+    return AuthSuccess(authUser.toDto(), isNewUser: true, apiToken: jwt);
   }
 
   /// Attempts to verify an existing user account by email and password.
@@ -55,11 +46,6 @@ class AuthUserEndpoint extends Endpoint {
     required String socialId,
     required EmailCredential credential,
   }) async {
-    if (!session.passwords.containsKey('jwtSalt') ||
-        session.passwords['jwtSalt'] == '') {
-      throw Exception('Failed to configure security salt. Cannot sign JWTs');
-    }
-
     final authUser = await AuthUserDb.db.findFirstRow(
       session,
       where: (t) => t.socialId.equals(socialId),
@@ -133,11 +119,7 @@ class AuthUserEndpoint extends Endpoint {
       emailAuth.id,
       session.passwords['jwtSalt']!,
     );
-    return AuthSuccess(
-      AuthUserController.toDto(authUser),
-      isNewUser: false,
-      apiToken: jwt,
-    );
+    return AuthSuccess(authUser.toDto(), isNewUser: false, apiToken: jwt);
   }
 
   /// Adds an [AuthUserEmail] record to the associated [AuthUserDb].
@@ -146,103 +128,49 @@ class AuthUserEndpoint extends Endpoint {
     required String socialId,
     required EmailCredential credential,
   }) async {
-    if (!session.passwords.containsKey('jwtSalt') ||
-        session.passwords['jwtSalt'] == '') {
-      throw Exception('Failed to configure security salt. Cannot sign JWTs');
-    }
-
-    final authUserDb = session.userObject as AuthUserDb?;
-
-    if (authUserDb == null) {
-      return const AuthFailure(AuthenticationError.unknownError());
-    }
-
-    if (authUserDb.socialId != socialId) {
-      session.log(
-        'addEmailToUser rejected as session socialId '
-        '${authUserDb.socialId} != supplied socialId $socialId',
-        level: LogLevel.warning,
-      );
-      return const AuthFailure(AuthenticationError.unknownError());
-    }
-
-    final user = session.userObject as AuthUserDb;
-
-    final emailRow = await AuthUserController.addEmailToUser(
-      session,
-      user,
-      credential,
-    );
-
-    final jwt = AuthUserController.createJwt(
-      user,
-      AuthProvider.email,
-      emailRow.id,
-      session.passwords['jwtSalt']!,
-    );
-    return AuthSuccess(
-      AuthUserController.toDto(user),
-      isNewUser: false,
-      apiToken: jwt,
-    );
-  }
-
-  /// Attempts to create a new account secured by an email and password.
-  Future<AuthResponse> createUserWithEmailAndPassword(
-    Session session, {
-    required String socialId,
-    required EmailCredential credential,
-  }) async {
-    if (!session.passwords.containsKey('jwtSalt') ||
-        session.passwords['jwtSalt'] == '') {
-      session.log(
-        'Failed to configure security salt. Cannot sign JWTs',
-        level: LogLevel.fatal,
-      );
-      throw Exception('Failed to configure security salt. Cannot sign JWTs');
-    }
-
-    final existingUser = await AuthUserDb.db.findFirstRow(
-      session,
-      where: (t) => t.email.equals(credential.email),
-    );
-
-    if (existingUser != null) {
-      session.log(
-        'Failed to create new user for existing email address '
-        '${credential.email}',
-        level: LogLevel.info,
-      );
-      return AuthFailure(AuthenticationError.conflict());
-    }
-
-    final authUser = await AuthUserController.createUser(
-      session,
-      socialId: socialId,
-      credential: credential,
-    );
+    AuthUserDb? authUser = await session.authUser;
+    AuthUserEmail? emailRow;
+    bool isNewUser = authUser == null;
 
     if (authUser == null) {
-      session.log(
-        'Failed to create new AuthUserDb for socialId $socialId',
-        level: LogLevel.error,
+      authUser = await AuthUserController.createUser(
+        session,
+        socialId: socialId,
+        credential: credential,
       );
-      return const AuthFailure(AuthenticationError.unknownError());
-    }
-
-    // [emailRow] is created during [AuthUserController.createUser] by way of
-    // the [credential]
-    final emailRow = await AuthUserEmail.db.findFirstRow(
-      session,
-      where: (t) => t.authUserId.equals(authUser.id),
-    );
-
-    if (emailRow == null) {
-      session.log(
-        'Failed to create AuthUserEmail for new AuthUserDb Id ${authUser.id}',
-        level: LogLevel.error,
+      if (authUser == null) {
+        session.log(
+          'Failed to create AuthUserDb for SocialId $socialId and '
+          'email ${credential.getEmail()}',
+        );
+        return AuthFailure(AuthenticationError.unknownError());
+      }
+      emailRow = await AuthUserEmail.db.findFirstRow(
+        session,
+        where: (t) => t.authUserId.equals(authUser!.id),
       );
-      return const AuthFailure(AuthenticationError.unknownError());
+      if (emailRow == null) {
+        session.log(
+          'Failed to create AuthUserEmail for SocialId $socialId and '
+          'email ${credential.getEmail()}',
+        );
+        return AuthFailure(AuthenticationError.unknownError());
+      }
+    } else {
+      if (authUser.socialId != socialId) {
+        session.log(
+          'addEmailToUser rejected as session socialId '
+          '${authUser.socialId} != supplied socialId $socialId',
+          level: LogLevel.warning,
+        );
+        return const AuthFailure(AuthenticationError.unknownError());
+      }
+
+      emailRow = await AuthUserController.addEmailToUser(
+        session,
+        authUser,
+        credential,
+      );
     }
 
     final jwt = AuthUserController.createJwt(
@@ -251,12 +179,66 @@ class AuthUserEndpoint extends Endpoint {
       emailRow.id,
       session.passwords['jwtSalt']!,
     );
-    return AuthSuccess(
-      AuthUserController.toDto(authUser),
-      isNewUser: true,
-      apiToken: jwt,
-    );
+    return AuthSuccess(authUser.toDto(), isNewUser: isNewUser, apiToken: jwt);
   }
+
+  /// Attempts to create a new account secured by an email and password.
+  // Future<AuthResponse> createUserWithEmailAndPassword(
+  //   Session session, {
+  //   required String socialId,
+  //   required EmailCredential credential,
+  // }) async {
+  //   final existingUser = await AuthUserDb.db.findFirstRow(
+  //     session,
+  //     where: (t) => t.email.equals(credential.email),
+  //   );
+
+  //   if (existingUser != null) {
+  //     session.log(
+  //       'Failed to create new user for existing email address '
+  //       '${credential.email}',
+  //       level: LogLevel.info,
+  //     );
+  //     return AuthFailure(AuthenticationError.conflict());
+  //   }
+
+  //   final authUser = await AuthUserController.createUser(
+  //     session,
+  //     socialId: socialId,
+  //     credential: credential,
+  //   );
+
+  //   if (authUser == null) {
+  //     session.log(
+  //       'Failed to create new AuthUserDb for socialId $socialId',
+  //       level: LogLevel.error,
+  //     );
+  //     return const AuthFailure(AuthenticationError.unknownError());
+  //   }
+
+  //   // [emailRow] is created during [AuthUserController.createUser] by way of
+  //   // the [credential]
+  //   final emailRow = await AuthUserEmail.db.findFirstRow(
+  //     session,
+  //     where: (t) => t.authUserId.equals(authUser.id),
+  //   );
+
+  //   if (emailRow == null) {
+  //     session.log(
+  //       'Failed to create AuthUserEmail for new AuthUserDb Id ${authUser.id}',
+  //       level: LogLevel.error,
+  //     );
+  //     return const AuthFailure(AuthenticationError.unknownError());
+  //   }
+
+  //   final jwt = AuthUserController.createJwt(
+  //     authUser,
+  //     AuthProvider.email,
+  //     emailRow.id,
+  //     session.passwords['jwtSalt']!,
+  //   );
+  //   return AuthSuccess(authUser.toDto(), isNewUser: true, apiToken: jwt);
+  // }
 
   /// Adds an [AuthUserApple] record to the associated [AuthUserDb].
   Future<AuthResponse> addAppleToUser(
@@ -264,33 +246,49 @@ class AuthUserEndpoint extends Endpoint {
     required String socialId,
     required AppleCredential credential,
   }) async {
-    if (!session.passwords.containsKey('jwtSalt') ||
-        session.passwords['jwtSalt'] == '') {
-      throw Exception('Failed to configure security salt. Cannot sign JWTs');
-    }
+    AuthUserDb? authUser = await session.authUser;
+    AuthUserApple? appleRow;
 
-    final authUserDb = await session.authUser;
-
-    if (authUserDb == null) {
-      return const AuthFailure(AuthenticationError.unknownError());
-    }
-
-    if (authUserDb.socialId != socialId) {
-      session.log(
-        'addAppleToUser rejected as session socialId '
-        '${authUserDb.socialId} != supplied socialId $socialId',
-        level: LogLevel.warning,
+    if (authUser == null) {
+      authUser = await AuthUserController.createUser(
+        session,
+        socialId: socialId,
+        credential: credential,
       );
-      return const AuthFailure(AuthenticationError.unknownError());
+      if (authUser == null) {
+        session.log(
+          'Failed to create AuthUserDb for SocialId $socialId and '
+          'email ${credential.getEmail()}',
+        );
+        return AuthFailure(AuthenticationError.unknownError());
+      }
+      appleRow = await AuthUserApple.db.findFirstRow(
+        session,
+        where: (t) => t.authUserId.equals(authUser!.id),
+      );
+      if (appleRow == null) {
+        session.log(
+          'Failed to create AuthUserApple for SocialId $socialId and '
+          'email ${credential.getEmail()}',
+        );
+        return AuthFailure(AuthenticationError.unknownError());
+      }
+    } else {
+      if (authUser.socialId != socialId) {
+        session.log(
+          'addAppleToUser rejected as session socialId '
+          '${authUser.socialId} != supplied socialId $socialId',
+          level: LogLevel.warning,
+        );
+        return const AuthFailure(AuthenticationError.unknownError());
+      }
+
+      appleRow = await AuthUserController.addAppleToUser(
+        session,
+        authUser,
+        credential,
+      );
     }
-
-    final authUser = session.userObject as AuthUserDb;
-
-    final appleRow = await AuthUserController.addAppleToUser(
-      session,
-      authUser,
-      credential,
-    );
 
     final jwt = AuthUserController.createJwt(
       authUser,
@@ -298,11 +296,7 @@ class AuthUserEndpoint extends Endpoint {
       appleRow.id,
       session.passwords['jwtSalt']!,
     );
-    return AuthSuccess(
-      AuthUserController.toDto(authUser),
-      isNewUser: false,
-      apiToken: jwt,
-    );
+    return AuthSuccess(authUser.toDto(), isNewUser: false, apiToken: jwt);
   }
 
   /// Adds an [AuthUserGoogle] record to the associated [AuthUserDb].
@@ -311,33 +305,49 @@ class AuthUserEndpoint extends Endpoint {
     required String socialId,
     required GoogleCredential credential,
   }) async {
-    if (!session.passwords.containsKey('jwtSalt') ||
-        session.passwords['jwtSalt'] == '') {
-      throw Exception('Failed to configure security salt. Cannot sign JWTs');
-    }
+    AuthUserDb? authUser = await session.authUser;
+    AuthUserGoogle? googleRow;
 
-    final authUserDb = session.userObject as AuthUserDb?;
-
-    if (authUserDb == null) {
-      return const AuthFailure(AuthenticationError.unknownError());
-    }
-
-    if (authUserDb.socialId != socialId) {
-      session.log(
-        'addGoogleToUser rejected as session socialId '
-        '${authUserDb.socialId} != supplied socialId $socialId',
-        level: LogLevel.warning,
+    if (authUser == null) {
+      authUser = await AuthUserController.createUser(
+        session,
+        socialId: socialId,
+        credential: credential,
       );
-      return const AuthFailure(AuthenticationError.unknownError());
+      if (authUser == null) {
+        session.log(
+          'Failed to create AuthUserDb for SocialId $socialId and '
+          'email ${credential.getEmail()}',
+        );
+        return AuthFailure(AuthenticationError.unknownError());
+      }
+      googleRow = await AuthUserGoogle.db.findFirstRow(
+        session,
+        where: (t) => t.authUserId.equals(authUser!.id),
+      );
+      if (googleRow == null) {
+        session.log(
+          'Failed to create AuthUserGoogle for SocialId $socialId and '
+          'email ${credential.getEmail()}',
+        );
+        return AuthFailure(AuthenticationError.unknownError());
+      }
+    } else {
+      if (authUser.socialId != socialId) {
+        session.log(
+          'addGoogleToUser rejected as session socialId '
+          '${authUser.socialId} != supplied socialId $socialId',
+          level: LogLevel.warning,
+        );
+        return const AuthFailure(AuthenticationError.unknownError());
+      }
+
+      googleRow = await AuthUserController.addGoogleToUser(
+        session,
+        authUser,
+        credential,
+      );
     }
-
-    final authUser = session.userObject as AuthUserDb;
-
-    final googleRow = await AuthUserController.addGoogleToUser(
-      session,
-      authUser,
-      credential,
-    );
 
     final jwt = AuthUserController.createJwt(
       authUser,
@@ -345,10 +355,6 @@ class AuthUserEndpoint extends Endpoint {
       googleRow.id,
       session.passwords['jwtSalt']!,
     );
-    return AuthSuccess(
-      AuthUserController.toDto(authUser),
-      isNewUser: false,
-      apiToken: jwt,
-    );
+    return AuthSuccess(authUser.toDto(), isNewUser: false, apiToken: jwt);
   }
 }

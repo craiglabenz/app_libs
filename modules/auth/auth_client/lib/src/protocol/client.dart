@@ -68,19 +68,6 @@ class EndpointAuthUser extends _i1.EndpointRef {
       );
 
   /// Attempts to create a new account secured by an email and password.
-  _i2.Future<_i3.AuthResponse> createUserWithEmailAndPassword({
-    required String socialId,
-    required _i4.EmailCredential credential,
-  }) =>
-      caller.callServerEndpoint<_i3.AuthResponse>(
-        'auth.authUser',
-        'createUserWithEmailAndPassword',
-        {
-          'socialId': socialId,
-          'credential': credential,
-        },
-      );
-
   /// Adds an [AuthUserApple] record to the associated [AuthUserDb].
   _i2.Future<_i3.AuthResponse> addAppleToUser({
     required String socialId,

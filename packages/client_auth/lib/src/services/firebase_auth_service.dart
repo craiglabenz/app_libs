@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:client_auth/client_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -28,6 +27,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
     GetAppleCredentials? getAppleCredentials,
     GoogleSignIn? googleSignIn,
     firebase_auth.FirebaseAuth? firebaseAuth,
+    this.fake = false,
   })  : _getAppleCredentials =
             getAppleCredentials ?? SignInWithApple.getAppleIDCredential,
         _googleSignIn = googleSignIn ?? GoogleSignIn.standard(),
@@ -37,6 +37,9 @@ class FirebaseAuthService extends StreamSocialAuthService {
   final firebase_auth.FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
   final GetAppleCredentials _getAppleCredentials;
+
+  /// If [true], returns a stock [SocialUser] from all methods.
+  final bool fake;
 
   StreamSubscription<FirebaseUser?>? _firebaseStreamSubscription;
 
@@ -67,14 +70,9 @@ class FirebaseAuthService extends StreamSocialAuthService {
         _emitUser(newUser);
       },
     );
-    // FAKE: to force a session when eal FirebaseAuth is turned off
-    // _emitUser(
-    //   SocialUser(
-    //     id: 'abc',
-    //     email: 'craig.labenz@gmail.com',
-    //     createdAt: DateTime.now(),
-    //   ),
-    // );
+    if (fake) {
+      _emitUser(_fakeSocialUser);
+    }
     return ready;
   }
 
@@ -99,6 +97,10 @@ class FirebaseAuthService extends StreamSocialAuthService {
 
   @override
   Future<SocialAuthResponse> createAnonymousAccount() async {
+    if (fake) {
+      _emitUser(_fakeSocialUser);
+      return SocialAuthSuccess(_fakeSocialUser);
+    }
     try {
       _isAuthorizing = true;
       final userCred = await _auth.signInAnonymously();
@@ -120,6 +122,21 @@ class FirebaseAuthService extends StreamSocialAuthService {
 
   @override
   Future<SocialAuthResponse> logInWithApple() async {
+    if (fake) {
+      _emitUser(_fakeSocialUser);
+      return SocialAuthSuccess(
+        _fakeSocialUser,
+        credential: const AppleCredential(
+          userIdentifier: 'abc',
+          givenName: 'Craig',
+          familyName: 'Labenz',
+          email: 'craig.labenz@gmail.com',
+          authorizationCode: 'xyz',
+          identityToken: '--abc--',
+          state: 'yes',
+        ),
+      );
+    }
     try {
       _isAuthorizing = true;
       final appleIdCredential = await _getAppleCredentials(
@@ -177,15 +194,17 @@ class FirebaseAuthService extends StreamSocialAuthService {
     required String email,
     required String password,
   }) async {
+    if (fake) {
+      return SocialAuthSuccess(
+        SocialUser(
+          id: 'abc',
+          email: email,
+          createdAt: DateTime.now(),
+        ),
+        credential: EmailCredential(email: email, password: password),
+      );
+    }
     try {
-      // return SocialAuthSuccess(
-      //   SocialUser(
-      //     id: 'abc',
-      //     email: email,
-      //     createdAt: DateTime.now(),
-      //   ),
-      //   credential: EmailCredential(email: email, password: password),
-      // );
       _isAuthorizing = true;
       final cleanEmail = email.toLowerCase().trim();
 
@@ -229,6 +248,20 @@ class FirebaseAuthService extends StreamSocialAuthService {
 
   @override
   Future<SocialAuthResponse> logInWithGoogle() async {
+    if (fake) {
+      _emitUser(_fakeSocialUser);
+      return SocialAuthSuccess(
+        _fakeSocialUser,
+        credential: const GoogleCredential(
+          displayName: 'Craig Labenz',
+          email: 'craig.labenz@gmail.com',
+          uniqueId: 'abc',
+          photoUrl: 'https://fake-photo.com',
+          idToken: 'fake-token',
+          serverAuthCode: 'yes',
+        ),
+      );
+    }
     try {
       _isAuthorizing = true;
       final googleUser = await _googleSignIn.signIn();
@@ -293,15 +326,17 @@ class FirebaseAuthService extends StreamSocialAuthService {
     required String email,
     required String password,
   }) async {
+    if (fake) {
+      return SocialAuthSuccess(
+        SocialUser(
+          id: 'abc',
+          email: email,
+          createdAt: DateTime.now(),
+        ),
+        credential: EmailCredential(email: email, password: password),
+      );
+    }
     try {
-      // return SocialAuthSuccess(
-      //   SocialUser(
-      //     id: 'abc',
-      //     email: email,
-      //     createdAt: DateTime.now(),
-      //   ),
-      //   credential: EmailCredential(email: email, password: password),
-      // );
       _isAuthorizing = true;
 
       late final firebase_auth.UserCredential userCred;
@@ -357,78 +392,6 @@ class FirebaseAuthService extends StreamSocialAuthService {
     }
   }
 
-  // Future<AuthUser?> _syncFirebaseUserWithDatabase(
-  //   FirebaseUser firebaseUser, {
-  //   AuthProvider? provider,
-
-  //   /// If the user authenticated from an [AuthProvider] which is associated
-  //   /// with a [SocialCredential], that should be passed here to be saved
-  //   SocialCredential? credential,
-
-  //   /// If the user was preloaded for account state checks, provide the object
-  //   /// here to prevent a duplicate read
-  //   AuthUser? user,
-
-  //   /// If the user was both preloaded and had modifications made to it (because
-  //   /// a new auth method yielded new information, for example), then this can
-  //   /// be passed in to guarantee a save
-  //   bool mustSave = false,
-  // }) async {
-  //   assert(
-  //     !mustSave || user != null,
-  //     'Can only pass mustSave=true when user is not null',
-  //   );
-
-  //   AuthUser? loadedUser = user ??
-  //       await _loadUserWithExpectations(
-  //         firebaseUser.uid,
-  //         '_syncFirebaseUserWithDatabase',
-  //         exists: null,
-  //       );
-
-  //   bool shouldSave = false;
-  //   if (loadedUser == null) {
-  //     if (provider == null) {
-  //       _log.shout(
-  //         'Reached invalid state with no AuthUser in Firestore '
-  //         'and a null authProvider value passed to '
-  //         '_syncFirebaseUserWithDatabase. An AuthUser should have been '
-  //         'created in Firestore when this account was first created.',
-  //       );
-  //       await logOut();
-  //       return null;
-  //     }
-  //     // Write the new AuthUser record to Firestore
-  //     loadedUser = toAuthUser(firebaseUser, provider);
-  //     shouldSave = true;
-  //   } else {
-  //     if (provider != null) {
-  //       if (loadedUser.lastAuthProvider != provider ||
-  //           !loadedUser.allProviders.contains(provider)) {
-  //         loadedUser = loadedUser.copyWith(lastAuthProvider: provider);
-  //         loadedUser = loadedUser.copyWith(
-  //           allProviders: Set<AuthProvider>.from(loadedUser.allProviders)
-  //             ..add(provider),
-  //         );
-  //         shouldSave = true;
-  //       }
-  //     }
-  //   }
-  //   if (shouldSave) {
-  //     final savedUser = await _authUserRepo.setItem(
-  //       loadedUser,
-  //       RequestDetails.write(),
-  //     );
-
-  //     if (savedUser != null && credential != null) {
-  //       await _credentialRepo.setItem(credential);
-  //     }
-  //     return savedUser;
-  //   } else {
-  //     return loadedUser;
-  //   }
-  // }
-
   /// Converts a [FirebaseUser] to an application [SocialUser].
   SocialUser toSocialUser(
     FirebaseUser user, [
@@ -476,3 +439,9 @@ extension NewAwareFirebaseUser on FirebaseUser {
       (metadata.lastSignInTime!.difference(metadata.creationTime!)) <
           const Duration(seconds: 5);
 }
+
+final _fakeSocialUser = SocialUser(
+  id: 'abc',
+  email: 'craig.labenz@gmail.com',
+  createdAt: DateTime(2025, 1, 1, 12).toUtc(),
+);

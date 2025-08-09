@@ -164,13 +164,8 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
 
     switch (socialAuthResponse) {
       case SocialAuthSuccess():
-        final authResponse = lastUser == null
-            ? await _syncAuth.signUp(
-                socialAuthResponse,
-              )
-            : await _syncAuth.syncEmailPasswordAuthentication(
-                socialAuthResponse,
-              );
+        final authResponse =
+            await _syncAuth.syncEmailPasswordAuthentication(socialAuthResponse);
 
         switch (authResponse) {
           case AuthSuccess(:final user):
