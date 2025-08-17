@@ -32,13 +32,19 @@ class FirebaseAuthService extends StreamSocialAuthService {
             getAppleCredentials ?? SignInWithApple.getAppleIDCredential,
         _googleSignIn = googleSignIn ?? GoogleSignIn.standard(),
         _auth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
-        _userUpdatesController = StreamController<SocialUser?>();
+        _userUpdatesController = StreamController<SocialUser?>() {
+    if (fake) {
+      _log.warning(
+        'Created FAKE FirebaseAuthService. No created accounts will be real.',
+      );
+    }
+  }
 
   final firebase_auth.FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
   final GetAppleCredentials _getAppleCredentials;
 
-  /// If [true], returns a stock [SocialUser] from all methods.
+  /// If true, returns a stock [SocialUser] from all methods.
   final bool fake;
 
   StreamSubscription<FirebaseUser?>? _firebaseStreamSubscription;
@@ -127,7 +133,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
       return SocialAuthSuccess(
         _fakeSocialUser,
         credential: const AppleCredential(
-          userIdentifier: 'abc',
+          userIdentifier: _fakeUserIdentifier,
           givenName: 'Craig',
           familyName: 'Labenz',
           email: 'craig.labenz@gmail.com',
@@ -197,7 +203,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
     if (fake) {
       return SocialAuthSuccess(
         SocialUser(
-          id: 'abc',
+          id: _fakeUserIdentifier,
           email: email,
           createdAt: DateTime.now(),
         ),
@@ -255,7 +261,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
         credential: const GoogleCredential(
           displayName: 'Craig Labenz',
           email: 'craig.labenz@gmail.com',
-          uniqueId: 'abc',
+          uniqueId: _fakeUserIdentifier,
           photoUrl: 'https://fake-photo.com',
           idToken: 'fake-token',
           serverAuthCode: 'yes',
@@ -329,7 +335,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
     if (fake) {
       return SocialAuthSuccess(
         SocialUser(
-          id: 'abc',
+          id: _fakeUserIdentifier,
           email: email,
           createdAt: DateTime.now(),
         ),
@@ -441,7 +447,9 @@ extension NewAwareFirebaseUser on FirebaseUser {
 }
 
 final _fakeSocialUser = SocialUser(
-  id: 'abc',
+  id: _fakeUserIdentifier,
   email: 'craig.labenz@gmail.com',
   createdAt: DateTime(2025, 1, 1, 12).toUtc(),
 );
+
+const _fakeUserIdentifier = 'abc';
