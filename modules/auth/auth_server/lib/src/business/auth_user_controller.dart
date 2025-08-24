@@ -15,7 +15,14 @@ class AuthUserController {
         session.passwords['jwtSalt'] == '') {
       throw Exception('Failed to configure security salt. Cannot sign JWTs');
     }
-    final jwt = JWT.verify(token, SecretKey(session.passwords['jwtSalt']!));
+    JWT jwt;
+    try {
+      jwt = JWT.verify(token, SecretKey(session.passwords['jwtSalt']!));
+    } on JWTInvalidException {
+      session.log('Invalid signature for token. Not activating session');
+      return null;
+    }
+
     final payload = jwt.payload as Map<String, dynamic>;
     if (!payload.containsKey('socialId') || payload['socialId']!.isEmpty) {
       return null;
