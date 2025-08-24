@@ -111,9 +111,7 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
   /// new subscriptions if [lastUser] is not null.
   StreamSubscription<AuthUser?> listen(void Function(AuthUser?) cb) {
     final sub = _userUpdatesController.stream.listen(cb);
-    if (_lastUser != null) {
-      cb(_lastUser);
-    }
+    cb(_lastUser);
     return sub;
   }
 
@@ -290,8 +288,6 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
 
   /// {@macro logOut}
   Future<AuthFailure?> logOut() async {
-    if (_lastUser == null) return null;
-
     final failure = await _socialAuth.logOut();
     if (failure != null) {
       _log.severe(

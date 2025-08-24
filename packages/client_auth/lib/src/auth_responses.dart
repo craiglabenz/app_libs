@@ -100,6 +100,8 @@ AuthenticationError authErrorfromFirebaseException(
       e.code == 'invalid-verification-id') {
     _log.info('2FA error: ${e.code} :: from $e');
     return const AuthenticationError.invalidCode();
+  } else if (e.code == 'weak-password') {
+    return const AuthenticationError.invalidPassword();
   }
   _log.warning(
     'Unexpected FirebaseAuthException.code value: '

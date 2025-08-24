@@ -17,6 +17,12 @@ enum Readiness {
 /// Adds functionality to check and verify readiness. This usually constitutes
 /// completing some asynchronous setup operation, but could also involve
 /// depending on another object's readiness and then taking an action.
+///
+/// To use [ReadinessMixin], implement [performInitialization] and eventually
+/// call [markReady], passing in the instance of [T] loaded by the resource.
+///
+/// [T] is the central object this resource produces once ready. If no such
+/// resource exists, choose `void`.
 mixin ReadinessMixin<T> {
   /// Cache of whether this object is ready. Set by the completer.
   Readiness status = Readiness.loading;
@@ -56,9 +62,10 @@ mixin ReadinessMixin<T> {
 
   /// Calls [performInitialization] with extra bookkeeping. Descendant classes
   /// should implement [performInitialization] but then invoke [initialize].
-  Future<T> initialize() {
+  Future<void> initialize() {
     _hasCalledInitialize = true;
-    return performInitialization();
+    performInitialization();
+    return _readinessCompleter.future;
   }
 
   /// Wires up all necessary resources for this object to be ready for general
@@ -66,7 +73,7 @@ mixin ReadinessMixin<T> {
   ///
   /// The job of [initialize] is to set up any necessary resources and then call
   /// [markReady] or [markReadinessFailed].
-  Future<T> performInitialization();
+  void performInitialization();
 
   /// Removes any established readiness, if for example a dependency of this
   /// object has also lost readiness.
