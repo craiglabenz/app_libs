@@ -1,10 +1,13 @@
 import 'dart:io';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:logging/logging.dart';
 import 'package:matcher/matcher.dart';
 import 'package:shared_data/shared_data.dart';
 
 part 'results.freezed.dart';
+
+final _log = Logger('Results');
 
 //////////////////
 /// WRITE RESULTS
@@ -330,10 +333,20 @@ sealed class ReadListResult<T> with _$ReadListResult<T> {
 
   /// Helper to extract expected [ReadListFailure] objects or throw in the case
   /// of an unexpected [ReadListSuccess].
-  ReadListFailure<T> errorOrRaise() => switch (this) {
+  ReadListFailure<T> errorOrRaise() {
+    try {
+      return switch (this) {
         ReadListSuccess() => throw Exception('Unexpected $runtimeType'),
         ReadListFailure() => this as ReadListFailure<T>,
       };
+    } on Exception catch (e, st) {
+      _log.severe('Error with itemsOrRaise for $T', e, st);
+      return ReadListFailure<T>(
+        FailureReason.badRequest,
+        'Failure parsing error',
+      );
+    }
+  }
 
   /// Helper to extract expected [List<T>] objects or throw in the case of
   /// an unexpected [ReadListFailure].
@@ -341,10 +354,17 @@ sealed class ReadListResult<T> with _$ReadListResult<T> {
   /// Note that this will return an empty list without throwing, as that is part
   /// of the contract of a [ReadListSuccess]. This merely unwraps the possible
   /// [ReadListFailure] which should have already been ruled out.
-  List<T> itemsOrRaise() => switch (this) {
+  List<T> itemsOrRaise() {
+    try {
+      return switch (this) {
         ReadListSuccess<T>() => (this as ReadListSuccess<T>).items.toList(),
         ReadListFailure<T>() => throw Exception('Unexpected $runtimeType'),
       };
+    } on Exception catch (e, st) {
+      _log.severe('Error with itemsOrRaise for $T', e, st);
+      return [];
+    }
+  }
 }
 
 /// Testing matcher for whether this request was a failure.

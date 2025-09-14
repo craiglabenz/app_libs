@@ -182,6 +182,7 @@ void main() {
 
     group('logOut', () {
       test('does nothing without a lastUser', () async {
+        when(syncAuth.logOut).thenAnswer((_) async => null);
         expect(authRepository.logOut(), completes);
       });
 
@@ -222,7 +223,7 @@ void main() {
           final emitted = <AuthUser?>[];
           final sub = authRepo.listen(emitted.add);
           await authRepo.initialize();
-          expect(emitted, equals([null]));
+          expect(emitted, equals([null, null]));
           await sub.cancel();
         },
         timeout: const Timeout(Duration(seconds: 1)),
@@ -232,7 +233,7 @@ void main() {
         'emits new user when firebase user is not null',
         () async {
           final authRepo = AuthRepository(
-            FakeFirebaseAuth()..prepareLogin(socialUser),
+            FakeFirebaseAuth()..prepareLogin(socialUser, AuthEvent.emitted),
             syncAuth: syncAuth,
           );
           when(() => syncAuth.verifySocialUserSession(socialUser))
@@ -240,7 +241,7 @@ void main() {
           final emitted = <AuthUser?>[];
           final sub = authRepo.listen(emitted.add);
           await authRepo.initialize();
-          expect(emitted, equals([user]));
+          expect(emitted, equals([null, user]));
           await sub.cancel();
         },
         timeout: const Timeout(Duration(seconds: 1)),

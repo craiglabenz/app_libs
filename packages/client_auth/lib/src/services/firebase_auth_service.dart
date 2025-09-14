@@ -32,7 +32,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
             getAppleCredentials ?? SignInWithApple.getAppleIDCredential,
         _googleSignIn = googleSignIn ?? GoogleSignIn.standard(),
         _auth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance,
-        _userUpdatesController = StreamController<SocialUser?>() {
+        _userUpdatesController = StreamController<(SocialUser?, AuthEvent)>() {
     if (fake) {
       _log.warning(
         'Created FAKE FirebaseAuthService. No created accounts will be real.',
@@ -51,9 +51,10 @@ class FirebaseAuthService extends StreamSocialAuthService {
 
   // Not currently .broadcast() - is that okay? In theory only the outermost
   // auth repository will listen to this.
-  final StreamController<SocialUser?> _userUpdatesController;
+  final StreamController<(SocialUser?, AuthEvent)> _userUpdatesController;
 
   SocialUser? _lastUserEmitted;
+  AuthEvent? _lastAuthEventEmitted;
 
   /// Set to true before calling a Firebase auth function and set back to false
   /// after completing _syncFirebaseUserWithDatabase.
@@ -73,19 +74,22 @@ class FirebaseAuthService extends StreamSocialAuthService {
         _log.finest(
           'New FirebaseUser from Firebase: $firebaseUser :: $newUser',
         );
-        _emitUser(newUser);
+
+        // `.emitted` because if the `return if _isAuthorizing` check above
+        _emitUser(newUser, AuthEvent.emitted);
       },
     );
     if (fake) {
-      _emitUser(_fakeSocialUser);
+      _emitUser(_fakeSocialUser, AuthEvent.emitted);
     }
     return ready;
   }
 
-  void _emitUser(SocialUser? user) {
+  void _emitUser(SocialUser? user, AuthEvent event) {
     if (isNotResolved || user?.id != _lastUserEmitted?.id) {
       _lastUserEmitted = user;
-      _userUpdatesController.sink.add(user);
+      _lastAuthEventEmitted = event;
+      _userUpdatesController.sink.add((user, event));
     }
     if (isNotResolved) {
       markReady(user);
@@ -93,10 +97,12 @@ class FirebaseAuthService extends StreamSocialAuthService {
   }
 
   @override
-  StreamSubscription<SocialUser?> listen(void Function(SocialUser?) cb) {
+  StreamSubscription<(SocialUser?, AuthEvent)> listen(
+    void Function((SocialUser?, AuthEvent e)) cb,
+  ) {
     final sub = _userUpdatesController.stream.listen(cb);
     if (_lastUserEmitted != null) {
-      cb(_lastUserEmitted);
+      cb((_lastUserEmitted, _lastAuthEventEmitted!));
     }
     return sub;
   }
@@ -104,7 +110,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
   @override
   Future<SocialAuthResponse> createAnonymousAccount() async {
     if (fake) {
-      _emitUser(_fakeSocialUser);
+      _emitUser(_fakeSocialUser, AuthEvent.authenticated);
       return SocialAuthSuccess(_fakeSocialUser);
     }
     try {
@@ -116,7 +122,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
           AuthProvider.anonymous,
         );
         _isAuthorizing = false;
-        _emitUser(authUser);
+        _emitUser(authUser, AuthEvent.authenticated);
         return SocialAuthSuccess(authUser);
       }
       _log.shout('No error, but null user from createAnonymousAccount');
@@ -129,7 +135,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
   @override
   Future<SocialAuthResponse> logInWithApple() async {
     if (fake) {
-      _emitUser(_fakeSocialUser);
+      _emitUser(_fakeSocialUser, AuthEvent.authenticated);
       return SocialAuthSuccess(
         _fakeSocialUser,
         credential: const AppleCredential(
@@ -158,6 +164,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
         accessToken: appleIdCredential.authorizationCode,
       );
 
+      final preExistingUser = _auth.currentUser != null;
       final userCred = await ((_auth.currentUser != null)
           ? _auth.currentUser!.linkWithCredential(credential)
           : _auth.signInWithCredential(credential));
@@ -168,7 +175,10 @@ class FirebaseAuthService extends StreamSocialAuthService {
           userCred.user!,
           AuthProvider.apple,
         );
-        _emitUser(socialUser);
+        _emitUser(
+          socialUser,
+          preExistingUser ? AuthEvent.addedAuth : AuthEvent.authenticated,
+        );
         return SocialAuthSuccess(
           socialUser,
           credential: AppleCredential(
@@ -230,7 +240,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
           AuthProvider.email,
         );
         _isAuthorizing = false;
-        _emitUser(authUser);
+        _emitUser(authUser, AuthEvent.authenticated);
         return SocialAuthSuccess(
           authUser,
           credential: EmailCredential(email: cleanEmail, password: password),
@@ -255,7 +265,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
   @override
   Future<SocialAuthResponse> logInWithGoogle() async {
     if (fake) {
-      _emitUser(_fakeSocialUser);
+      _emitUser(_fakeSocialUser, AuthEvent.authenticated);
       return SocialAuthSuccess(
         _fakeSocialUser,
         credential: const GoogleCredential(
@@ -284,6 +294,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
         idToken: googleAuth.idToken,
       );
 
+      final preExistingUser = _auth.currentUser != null;
       final userCred = await ((_auth.currentUser != null)
           ? _auth.currentUser!.linkWithCredential(credential)
           : _auth.signInWithCredential(credential));
@@ -294,7 +305,10 @@ class FirebaseAuthService extends StreamSocialAuthService {
           userCred.user!,
           AuthProvider.google,
         );
-        _emitUser(socialUser);
+        _emitUser(
+          socialUser,
+          preExistingUser ? AuthEvent.addedAuth : AuthEvent.authenticated,
+        );
         return SocialAuthSuccess(
           socialUser,
           credential: GoogleCredential(
@@ -347,7 +361,9 @@ class FirebaseAuthService extends StreamSocialAuthService {
 
       late final firebase_auth.UserCredential userCred;
 
+      bool preExistingUser = false;
       if (_auth.currentUser != null) {
+        preExistingUser = true;
         final authCred = firebase_auth.EmailAuthProvider.credential(
           email: email,
           password: password,
@@ -366,7 +382,10 @@ class FirebaseAuthService extends StreamSocialAuthService {
           userCred.user!,
           AuthProvider.email,
         );
-        _emitUser(socialUser);
+        _emitUser(
+          socialUser,
+          preExistingUser ? AuthEvent.addedAuth : AuthEvent.authenticated,
+        );
         return SocialAuthSuccess(
           socialUser,
           credential: EmailCredential(email: email, password: password),

@@ -40,6 +40,15 @@ Map<String, dynamic> _$EmailTakenErrorToJson(EmailTakenError instance) =>
       'runtimeType': instance.$type,
     };
 
+ForceLogout _$ForceLogoutFromJson(Map<String, dynamic> json) => ForceLogout(
+      $type: json['runtimeType'] as String?,
+    );
+
+Map<String, dynamic> _$ForceLogoutToJson(ForceLogout instance) =>
+    <String, dynamic>{
+      'runtimeType': instance.$type,
+    };
+
 InvalidPasswordError _$InvalidPasswordErrorFromJson(
         Map<String, dynamic> json) =>
     InvalidPasswordError(

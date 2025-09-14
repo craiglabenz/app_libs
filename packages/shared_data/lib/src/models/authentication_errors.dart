@@ -22,6 +22,9 @@ sealed class AuthenticationError
   /// during user sign up or when syncing an account to secondary auth services.  ///
   const factory AuthenticationError.emailTaken() = EmailTakenError;
 
+  /// Forces a full logout to reset the session.
+  const factory AuthenticationError.forceLogout() = ForceLogout;
+
   /// The user's password fails to meet some criteria.
   const factory AuthenticationError.invalidPassword() = InvalidPasswordError;
 
@@ -61,6 +64,7 @@ sealed class AuthenticationError
 
   /// Converts this error into something we can show to the user.
   String toDisplay() => switch (this) {
+        ForceLogout() => throw Exception('Should not display [ForceLogout]'),
         BadEmailPasswordError() => 'Unknown email and password',
         CancelledSocialAuthError() => 'Social login terminated',
         EmailTakenError() => 'This email address is already in use',

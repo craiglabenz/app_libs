@@ -89,6 +89,9 @@ sealed class BaseUser with _$BaseUser {
   /// recovered if they lose access to their device.
   bool get isNotAnonymous => !isAnonymous;
 
+  /// True if the user's email value is non-null and not-empty.
+  bool get hasEmail => email != null && email!.isNotEmpty;
+
   /// Meta information to make [AuthUser] objects pluggable with the
   /// rest of the data layer.
   static Bindings<AuthUser> get authUserBindings => Bindings<AuthUser>(

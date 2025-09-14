@@ -97,9 +97,10 @@ class ServerpodAuthService extends SyncAuthService {
     // to confirm that the request stands any chance of being successful.
     final key = await keyManager.get();
     if (key == null) {
+      _log.finer('Could not verify $user because Serverpod Auth has no key');
       return null;
     }
-    // If we have a key, give it a try!
+    // If we have a key, give it a try.
     final response = await _cacheApiKey(_client.authUser.validateKey());
     return switch (response) {
       AuthSuccess() => response.user,

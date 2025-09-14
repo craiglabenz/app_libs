@@ -20,6 +20,8 @@ AuthenticationError _$AuthenticationErrorFromJson(Map<String, dynamic> json) {
       return CancelledSocialAuthError.fromJson(json);
     case 'emailTaken':
       return EmailTakenError.fromJson(json);
+    case 'forceLogout':
+      return ForceLogout.fromJson(json);
     case 'invalidPassword':
       return InvalidPasswordError.fromJson(json);
     case 'invalidCode':
@@ -172,6 +174,41 @@ class EmailTakenError extends AuthenticationError {
   @override
   String toString() {
     return 'AuthenticationError.emailTaken()';
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class ForceLogout extends AuthenticationError {
+  const ForceLogout({final String? $type})
+      : $type = $type ?? 'forceLogout',
+        super._();
+  factory ForceLogout.fromJson(Map<String, dynamic> json) =>
+      _$ForceLogoutFromJson(json);
+
+  @JsonKey(name: 'runtimeType')
+  final String $type;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$ForceLogoutToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is ForceLogout);
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'AuthenticationError.forceLogout()';
   }
 }
 

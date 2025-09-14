@@ -81,7 +81,9 @@ abstract class SocialAuthService {
 abstract class StreamSocialAuthService extends SocialAuthService
     with ReadinessMixin<SocialUser?> {
   /// Registers a callback with the stream of user updates.
-  StreamSubscription<SocialUser?> listen(void Function(SocialUser?) cb);
+  StreamSubscription<(SocialUser?, AuthEvent)> listen(
+    void Function((SocialUser?, AuthEvent)) cb,
+  );
 }
 
 /// An auth service which will track users in its own way, but will not

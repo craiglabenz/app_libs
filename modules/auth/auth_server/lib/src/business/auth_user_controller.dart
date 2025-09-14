@@ -97,6 +97,11 @@ class AuthUserController {
         level: LogLevel.warning,
       );
       return null;
+    } else {
+      session.log(
+        'Successfully validated JWT for AuthUser::${authUser.id!.uuid}',
+        level: LogLevel.info,
+      );
     }
 
     return AuthenticationInfo(

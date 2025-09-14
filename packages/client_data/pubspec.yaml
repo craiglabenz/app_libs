@@ -36,4 +36,4 @@ dev_dependencies:
   json_serializable: ^6.7.1
   mockito: ^5.4.2
   mocktail: ^1.0.1
-  very_good_analysis: ^5.1.0
+  very_good_analysis: ^9.0.0

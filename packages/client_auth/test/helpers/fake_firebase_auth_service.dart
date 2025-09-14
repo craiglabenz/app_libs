@@ -11,18 +11,25 @@ class FakeFirebaseAuth extends StreamSocialAuthService {
   /// If not null, the exception to be thrown during the next login attempt.
   /// This value is reset to `null` after each being thrown.
   SocialAuthFailure? error;
-  final StreamController<SocialUser?> _controller =
-      StreamController<SocialUser?>();
+  final StreamController<(SocialUser?, AuthEvent)> _controller =
+      StreamController<(SocialUser?, AuthEvent)>();
 
   /// Sets the user to be yielded by the next login/sign up attempt.
   // ignore: use_setters_to_change_properties
-  void prepareLogin(SocialUser? user) => _stagedUser = user;
+  void prepareLogin(
+    SocialUser? user, [
+    AuthEvent event = AuthEvent.authenticated,
+  ]) {
+    _stagedUser = user;
+    _lastAuthEvent = event;
+  }
 
   /// Sets the error to be thrown by the next login/sign up attempt.
   // ignore: use_setters_to_change_properties
   void prepareLoginError(SocialAuthFailure e) => error = e;
 
   SocialUser? _lastEmittedUser;
+  AuthEvent? _lastAuthEvent;
 
   @override
   Future<SocialUser?> performInitialization() {
@@ -34,7 +41,10 @@ class FakeFirebaseAuth extends StreamSocialAuthService {
   void _emitUser() {
     _lastEmittedUser = _stagedUser;
     _stagedUser = null;
-    _controller.sink.add(_lastEmittedUser);
+    _controller.sink.add(
+      (_lastEmittedUser, _lastAuthEvent ?? AuthEvent.authenticated),
+    );
+    _lastAuthEvent = null;
     markReady(_lastEmittedUser);
   }
 
@@ -86,13 +96,17 @@ class FakeFirebaseAuth extends StreamSocialAuthService {
   }
 
   @override
-  StreamSubscription<SocialUser?> listen(void Function(SocialUser? user) cb) {
+  StreamSubscription<(SocialUser?, AuthEvent authEvent)> listen(
+    void Function((SocialUser? user, AuthEvent e)) cb,
+  ) {
     final sub = _controller.stream.listen(cb);
     if (_lastEmittedUser != null) {
       // This is the only place it is safe to call _controller.sink.add outside
       // of _emitUser, which we do here merely to immediately publish the last
       // emitted user.
-      _controller.sink.add(_lastEmittedUser);
+      _controller.sink.add(
+        (_lastEmittedUser, _lastAuthEvent ?? AuthEvent.authenticated),
+      );
     }
     return sub;
   }

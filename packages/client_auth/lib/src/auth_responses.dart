@@ -79,6 +79,8 @@ AuthenticationError authErrorfromFirebaseException(
   if (e.code == 'account-exists-with-different-credential' ||
       e.code == 'email-already-in-use') {
     return const AuthenticationError.emailTaken();
+  } else if (e.code == 'provider-already-linked') {
+    return const AuthenticationError.forceLogout();
   } else if (e.code == 'invalid-credential') {
     // Very unfortunate malformed thingy error. Probably Firebase's fault.
     _log.warning('Firebase error: Invalid-credential from $e');
