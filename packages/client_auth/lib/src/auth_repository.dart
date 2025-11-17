@@ -73,6 +73,7 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
     if (!isFirstRun && newUser == _lastUser) return;
 
     _lastUser = newUser;
+    _log.info('Publishing $newUser on public stream');
     _userUpdatesController.sink.add(newUser);
     if (isFirstRun) {
       markReady(_lastUser);
@@ -90,6 +91,9 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
   }
 
   Future<void> _callNewUserListeners(AuthUser newUser) async {
+    _log.info(
+      'Invoking ${_onNewUserCallbacks.length} newUserCallbacks for $newUser',
+    );
     for (final fn in _onNewUserCallbacks) {
       await fn(newUser);
     }

@@ -1,6 +1,7 @@
-// ignore_for_file: use_if_null_to_convert_nulls_to_bools
-
 import 'dart:async';
+import 'package:logging/logging.dart';
+
+final _log = Logger('Readiness');
 
 /// Possible statuses for the readiness check flow.
 enum Readiness {
@@ -63,6 +64,7 @@ mixin ReadinessMixin<T> {
   /// Calls [performInitialization] with extra bookkeeping. Descendant classes
   /// should implement [performInitialization] but then invoke [initialize].
   Future<void> initialize() {
+    _log.finest('Initializing readiness for $this');
     _hasCalledInitialize = true;
     performInitialization();
     return _readinessCompleter.future;
@@ -81,6 +83,7 @@ mixin ReadinessMixin<T> {
   /// A common use case is anything that marks itself ready once a user session
   /// is established; after that user logs out.
   void resetReadiness() {
+    _log.fine('Resetting readiness for $this');
     _readinessCompleter = Completer<T>();
     status = Readiness.loading;
   }
@@ -88,6 +91,7 @@ mixin ReadinessMixin<T> {
   /// Marks this object as ready.
   void markReady(T obj) {
     if (_readinessCompleter.isCompleted) {
+      _log.fine('Failed to mark $this ready: Already ready');
       if (failed) {
         throw Exception(
           'Cannot mark an object as ready after previously marking it unready',
@@ -95,6 +99,7 @@ mixin ReadinessMixin<T> {
       }
       return;
     }
+    _log.fine('Marking $this as ready with $obj');
     status = Readiness.ready;
     _readinessCompleter.complete(obj);
   }
@@ -104,6 +109,10 @@ mixin ReadinessMixin<T> {
   /// catastrophic failure as this likely does.
   void markReadinessFailed() {
     if (_readinessCompleter.isCompleted) {
+      _log.fine(
+        'Failed to mark $this readiness as failed: Completer already '
+        'complete with status $status',
+      );
       if (isReady) {
         throw Exception(
           'Cannot mark an object as unready after previously marking it ready',
@@ -111,6 +120,7 @@ mixin ReadinessMixin<T> {
       }
       return;
     }
+    _log.fine('Marking $this as readiness: failed');
     status = Readiness.failed;
     _readinessCompleter.completeError(
       'Failed to complete readiness check for $runtimeType',

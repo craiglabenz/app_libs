@@ -1,4 +1,5 @@
 export 'auth_responses.dart';
+export 'auth_user_repository.dart';
 export 'authentication_errors.dart';
 export 'bindings.dart';
 export 'relations.dart';

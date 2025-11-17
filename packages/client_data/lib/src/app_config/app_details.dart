@@ -1,4 +1,5 @@
 import 'package:client_data/client_data.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:platform/platform.dart';
 
 /// Indicator for the nature of the runtime - for real, for development, or
@@ -6,6 +7,11 @@ import 'package:platform/platform.dart';
 enum Environment {
   /// Indicates the app is in the hands of real end users.
   prod,
+
+  /// Indicates the app is running locally but talking to the production
+  /// database. This will maintain the connection with the real server but lower
+  /// logging thresholds and disable Sentry entirely.
+  devProdDb,
 
   /// Indicates the app is in the hands of beta testers.
   qa,
@@ -43,10 +49,21 @@ class AppDetails {
     osVersion: currentPlatformVersion(),
   );
 
-  factory AppDetails.fake({
-    String? os,
-    int? buildNumber,
+  factory AppDetails.web({
+    required String apiBaseUrl,
+    required WebBrowserInfo browserInfo,
+    required Environment env,
+    required String version,
   }) => AppDetails(
+    apiBaseUrl: apiBaseUrl,
+    appVersion: getBuildVersion(version),
+    buildNumber: getBuildNumber(version),
+    environment: env,
+    os: browserInfo.browserName.name,
+    osVersion: browserInfo.userAgent ?? 'Missing User Agent',
+  );
+
+  factory AppDetails.fake({String? os, int? buildNumber}) => AppDetails(
     apiBaseUrl: 'https://fake.com',
     appVersion: 'fake',
     environment: Environment.test,

@@ -54,7 +54,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
   final StreamController<(SocialUser?, AuthEvent)> _userUpdatesController;
 
   SocialUser? _lastUserEmitted;
-  AuthEvent? _lastAuthEventEmitted;
+  late AuthEvent _lastAuthEventEmitted;
 
   /// Set to true before calling a Firebase auth function and set back to false
   /// after completing _syncFirebaseUserWithDatabase.
@@ -102,7 +102,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
   ) {
     final sub = _userUpdatesController.stream.listen(cb);
     if (_lastUserEmitted != null) {
-      cb((_lastUserEmitted, _lastAuthEventEmitted!));
+      cb((_lastUserEmitted, _lastAuthEventEmitted));
     }
     return sub;
   }
@@ -164,7 +164,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
         accessToken: appleIdCredential.authorizationCode,
       );
 
-      final preExistingUser = _auth.currentUser != null;
+      final userIsPreExisting = _auth.currentUser != null;
       final userCred = await ((_auth.currentUser != null)
           ? _auth.currentUser!.linkWithCredential(credential)
           : _auth.signInWithCredential(credential));
@@ -177,7 +177,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
         );
         _emitUser(
           socialUser,
-          preExistingUser ? AuthEvent.addedAuth : AuthEvent.authenticated,
+          userIsPreExisting ? AuthEvent.addedAuth : AuthEvent.authenticated,
         );
         return SocialAuthSuccess(
           socialUser,
@@ -294,7 +294,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
         idToken: googleAuth.idToken,
       );
 
-      final preExistingUser = _auth.currentUser != null;
+      final userIsPreExisting = _auth.currentUser != null;
       final userCred = await ((_auth.currentUser != null)
           ? _auth.currentUser!.linkWithCredential(credential)
           : _auth.signInWithCredential(credential));
@@ -307,7 +307,7 @@ class FirebaseAuthService extends StreamSocialAuthService {
         );
         _emitUser(
           socialUser,
-          preExistingUser ? AuthEvent.addedAuth : AuthEvent.authenticated,
+          userIsPreExisting ? AuthEvent.addedAuth : AuthEvent.authenticated,
         );
         return SocialAuthSuccess(
           socialUser,

@@ -1,14 +1,14 @@
 import 'package:flutter/widgets.dart';
 import 'package:platform/platform.dart';
 
-String getCurrentPlatform([Platform localPlatform = const LocalPlatform()]) {
+String getCurrentPlatform({
+  Platform localPlatform = const LocalPlatform(),
+}) {
   if (localPlatform.isAndroid) {
     return Platform.android;
-  }
-  if (localPlatform.isIOS) {
+  } else if (localPlatform.isIOS) {
     return Platform.iOS;
-  }
-  if (localPlatform.isMacOS) {
+  } else if (localPlatform.isMacOS) {
     return Platform.iOS;
   }
   throw UnsupportedError('unsupported platform exception');

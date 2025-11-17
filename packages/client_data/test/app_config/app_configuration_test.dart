@@ -32,16 +32,19 @@ Platform unknownPlatform() {
 void main() {
   group('currentPlatform', () {
     test('returns iOS when isIOS is true', () {
-      expect(getCurrentPlatform(iOSPlatform()), Platform.iOS);
+      expect(getCurrentPlatform(localPlatform: iOSPlatform()), Platform.iOS);
     });
 
     test('returns Android when isAndroid is true', () {
-      expect(getCurrentPlatform(androidPlatform()), Platform.android);
+      expect(
+        getCurrentPlatform(localPlatform: androidPlatform()),
+        Platform.android,
+      );
     });
 
     test('throws unsupported when neither iOS or Android', () {
       expect(
-        () => getCurrentPlatform(unknownPlatform()),
+        () => getCurrentPlatform(localPlatform: unknownPlatform()),
         throwsA(isA<UnsupportedError>()),
       );
     });
