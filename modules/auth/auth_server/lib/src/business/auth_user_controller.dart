@@ -24,12 +24,13 @@ class AuthUserController {
     }
 
     final payload = jwt.payload as Map<String, dynamic>;
+    session.log('DECODED JWT PAYLOAD :: ${payload.toString()}');
     if (!payload.containsKey('socialId') || payload['socialId']!.isEmpty) {
       return null;
     }
 
     late final AuthProvider authProvider;
-    late final int authId;
+    int? authId;
     try {
       authProvider = AuthProvider.values.byName(
         payload['provider'] ?? '_missing_',
@@ -45,18 +46,27 @@ class AuthUserController {
     try {
       authId = int.parse(payload['authId'] ?? '_missing_');
     } on Exception {
-      session.log(
-        'Invalid JWT authId value of ${payload['authId']}',
-        level: LogLevel.warning,
-      );
-      return null;
+      if (authProvider != AuthProvider.anonymous) {
+        session.log(
+          'Invalid JWT authId value of ${payload['authId']}',
+          level: LogLevel.warning,
+        );
+        return null;
+      }
     }
 
+    // One of two things must now be true. Either:
+    //
+    // 1. The `authProvider` is .anonymous, OR
+    // 2. `authId` is not null
+    assert(
+      authId != null || authProvider == AuthProvider.anonymous,
+      'Unexpectedly found null authId while authProvider is $authProvider',
+    );
+
     switch (authProvider) {
-      case AuthProvider.anonymous:
-      // Do nothing
       case AuthProvider.email:
-        final emailAuth = await AuthUserEmail.db.findById(session, authId);
+        final emailAuth = await AuthUserEmail.db.findById(session, authId!);
         if (emailAuth == null) {
           session.log(
             'Received invalid JWT referencing unknown AuthUserEmail Id $authId',
@@ -65,7 +75,7 @@ class AuthUserController {
           return null;
         }
       case AuthProvider.apple:
-        final appleAuth = await AuthUserApple.db.findById(session, authId);
+        final appleAuth = await AuthUserApple.db.findById(session, authId!);
         if (appleAuth == null) {
           session.log(
             'Received invalid JWT referencing unknown AuthUserApple Id $authId',
@@ -74,7 +84,7 @@ class AuthUserController {
           return null;
         }
       case AuthProvider.google:
-        final googleAuth = await AuthUserGoogle.db.findById(session, authId);
+        final googleAuth = await AuthUserGoogle.db.findById(session, authId!);
         if (googleAuth == null) {
           session.log(
             'Received invalid JWT referencing unknown AuthUserGoogle '
@@ -83,6 +93,8 @@ class AuthUserController {
           );
           return null;
         }
+      case AuthProvider.anonymous:
+      // Do nothing
     }
 
     final authUser = await AuthUserDb.db.findFirstRow(
@@ -146,7 +158,7 @@ class AuthUserController {
         socialId: socialId,
         lastAuthProvider: lastAuthProvider,
         email: credential?.getEmail(),
-        allProviders: {},
+        allProviders: {lastAuthProvider},
         loggingId: UuidValue.fromString(const Uuid().v4()),
         createdAt: DateTime.now().toUtc(),
       );

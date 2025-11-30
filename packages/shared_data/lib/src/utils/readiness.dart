@@ -91,12 +91,16 @@ mixin ReadinessMixin<T> {
   /// Marks this object as ready.
   void markReady(T obj) {
     if (_readinessCompleter.isCompleted) {
-      _log.fine('Failed to mark $this ready: Already ready');
       if (failed) {
         throw Exception(
-          'Cannot mark an object as ready after previously marking it unready',
+          'Cannot mark an object as ready after previously marking it unready. '
+          'Call resetReadiness() if you intended to do this.',
         );
       }
+      _log.fine(
+        'Redundantly marking $this ready when already ready. '
+        'Not a bad tongue twister.',
+      );
       return;
     }
     _log.fine('Marking $this as ready with $obj');
@@ -109,15 +113,15 @@ mixin ReadinessMixin<T> {
   /// catastrophic failure as this likely does.
   void markReadinessFailed() {
     if (_readinessCompleter.isCompleted) {
-      _log.fine(
-        'Failed to mark $this readiness as failed: Completer already '
-        'complete with status $status',
-      );
       if (isReady) {
         throw Exception(
-          'Cannot mark an object as unready after previously marking it ready',
+          'Cannot mark an object as unready after previously marking it ready. '
+          'Call resetReadiness() if you intended to do this.',
         );
       }
+      _log.fine(
+        'Redundantly marking $this as failed when already marked as failed.',
+      );
       return;
     }
     _log.fine('Marking $this as readiness: failed');

@@ -29,6 +29,7 @@ class ServerpodAuthService extends SyncAuthService {
     if (response is AuthSuccess &&
         response.apiToken != null &&
         response.apiToken!.isNotEmpty) {
+      _log.finest('Saving API Token: ${response.apiToken}');
       keyManager.put(response.apiToken!);
     }
     return response;

@@ -30,6 +30,7 @@ class AuthUserEndpoint extends Endpoint {
     if (authUser == null) {
       return const AuthFailure(AuthenticationError.unknownError());
     }
+    session.log('Created anonymous AuthUser: ${authUser.id!.uuid}');
 
     final jwt = AuthUserController.createJwt(
       authUser,
@@ -37,6 +38,7 @@ class AuthUserEndpoint extends Endpoint {
       null,
       session.passwords['jwtSalt']!,
     );
+    session.log('Created JWT $jwt');
     return AuthSuccess(authUser.toDto(), isNewUser: true, apiToken: jwt);
   }
 
