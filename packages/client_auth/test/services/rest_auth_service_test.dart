@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:client_auth/client_auth.dart';
+import 'package:data_layer/data_layer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_data/shared_data.dart';
@@ -84,9 +85,9 @@ RestAuth<AuthUser> setUpAuthService({
   );
   return RestAuth<AuthUser>(
     api: api,
-    logInUrl: const ApiUrl(path: 'login', baseUrl: 'api/v1'),
-    registerUrl: const ApiUrl(path: 'register', baseUrl: 'api/v1'),
-    logOutUrl: const ApiUrl(path: 'logout', baseUrl: 'api/v1'),
+    logInUrl: const ApiUrl(path: 'login', basePath: 'api/v1'),
+    registerUrl: const ApiUrl(path: 'register', basePath: 'api/v1'),
+    logOutUrl: const ApiUrl(path: 'logout', basePath: 'api/v1'),
   );
 }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:client_auth/client_auth.dart';
+import 'package:data_layer/data_layer.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
 
@@ -52,6 +53,8 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
 
   StreamSubscription<(SocialUser?, AuthEvent)>? _socialAuthSubscription;
 
+  Completer<AuthUser?> _initCompleter = Completer<AuthUser?>();
+
   AuthUser? _lastUser;
 
   /// The most recently / current [AuthUser] information. Will be null if the
@@ -69,16 +72,25 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
   }
 
   set lastUser(AuthUser? newUser) {
-    final isFirstRun = isNotResolved;
+    final isFirstRun = isNotReady;
     if (!isFirstRun && newUser == _lastUser) return;
 
     _lastUser = newUser;
     _log.info('Publishing $newUser on public stream');
     _userUpdatesController.sink.add(newUser);
+
     if (isFirstRun) {
-      markReady(_lastUser);
+      _initCompleter.complete(newUser);
     }
     _log.finer('New AuthUser: $newUser');
+  }
+
+  @override
+  void resetReadiness() {
+    _initCompleter = Completer<AuthUser?>();
+    _lastUser = null;
+    super.resetReadiness();
+    _userUpdatesController.sink.add(null);
   }
 
   final List<Future<void> Function(AuthUser)> _onNewUserCallbacks = [];
@@ -109,12 +121,16 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
 
     switch (event) {
       case AuthEvent.addedAuth || AuthEvent.emitted:
-        lastUser = await _syncAuth.verifySocialUserSession(user);
+        // Store this in a separate variable to read in the if == null check
+        // below, because if this is the initial user then [lastUser] is not
+        // safe to read until the initCompleter is completed.
+        final syncedUser = await _syncAuth.verifySocialUserSession(user);
+        lastUser = syncedUser;
 
         /// If [_syncAuth] could not verify a session with who Firebase said is
         /// logged in then they are not fully logged in and must be fully logged
         /// out to allow them to completely restore their session.
-        if (lastUser == null) {
+        if (syncedUser == null) {
           _log.finer('Logging out SocialUser $user because syncing failed');
           await logOut();
         }
@@ -141,9 +157,9 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
       // StreamAuthService.initialize also completes when a user is emitted,
       // meaning awaiting it is synonymous with awaiting our own
       // initCompleter.future which is resolved in the [lastUser] setter.
-      unawaited(_socialAuth.initialize());
+      _socialAuth.initialize();
 
-      return ready;
+      return _initCompleter.future;
     }
     throw Exception('Unexpected type of _socialAuth: $_socialAuth');
   }

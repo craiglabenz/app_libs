@@ -1,11 +1,9 @@
-import 'package:shared_data/shared_data.dart';
-
 class FakeProfile {
   const FakeProfile({
     required this.id,
     required this.username,
   });
-  factory FakeProfile.fromJson(Json json) => FakeProfile(
+  factory FakeProfile.fromJson(Map<String, Object?> json) => FakeProfile(
         id: json['id']! as String,
         username: json['username']! as String,
       );
@@ -13,5 +11,5 @@ class FakeProfile {
   final String? id;
   final String username;
 
-  Json toJson() => {'id': id, 'username': username};
+  Map<String, Object?> toJson() => {'id': id, 'username': username};
 }

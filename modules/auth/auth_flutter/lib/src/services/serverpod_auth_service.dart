@@ -1,6 +1,7 @@
 // ignore_for_file: implementation_imports
 import 'package:auth_client/src/protocol/client.dart' as client;
 import 'package:client_auth/client_auth.dart';
+import 'package:data_layer/data_layer.dart';
 import 'package:logging/logging.dart';
 import 'package:serverpod_client/serverpod_client.dart';
 import 'package:shared_data/shared_data.dart';
@@ -17,7 +18,7 @@ typedef EmailPasswordSessionCreator =
 
 /// {@template ServerpodAuthService}
 /// {@endtemplate}
-class ServerpodAuthService extends SyncAuthService {
+class ServerpodAuthService extends SyncAuthService with InstantlyReadyMixin {
   /// {@macro ServerpodAuthService}
   ServerpodAuthService(this._client, {required this.keyManager});
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:client_auth/client_auth.dart';
+import 'package:data_layer/data_layer.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_data/shared_data.dart';
 
@@ -46,19 +47,21 @@ class RestAuth<T extends AuthUser> implements AuthService {
     );
     switch (res) {
       case ApiSuccess():
-        {
-          return AuthSuccess(
-            AuthUser.fromJson(
-              Map<String, dynamic>.from(res.jsonOrRaise)
-                ..addAll(<String, dynamic>{'isNewUser': false}),
-            ),
-            isNewUser: false,
-          );
+        switch (res.body) {
+          case JsonApiResultBody(:final data):
+            return AuthSuccess(
+              AuthUser.fromJson(
+                Map<String, Object?>.from(data as Map<String, Object?>)
+                  ..addAll(<String, dynamic>{'isNewUser': false}),
+              ),
+              isNewUser: false,
+            );
+          case _:
+            _log.severe('Unexpected response from login request :: $res');
+            return const AuthFailure(AuthenticationError.unknownError());
         }
       case ApiError():
-        {
-          return AuthResponse.fromApiError(res);
-        }
+        return AuthResponse.fromApiError(res);
     }
   }
 
@@ -71,19 +74,21 @@ class RestAuth<T extends AuthUser> implements AuthService {
         RegisterRequest(url: registerUrl, email: email, password: password));
     switch (res) {
       case ApiSuccess():
-        {
-          return AuthSuccess(
-            AuthUser.fromJson(
-              Map<String, dynamic>.from(res.jsonOrRaise)
-                ..addAll(<String, dynamic>{'isNewUser': true}),
-            ),
-            isNewUser: true,
-          );
+        switch (res.body) {
+          case JsonApiResultBody(:final data):
+            return AuthSuccess(
+              AuthUser.fromJson(
+                Map<String, Object?>.from(data as Map<String, Object?>)
+                  ..addAll(<String, dynamic>{'isNewUser': true}),
+              ),
+              isNewUser: true,
+            );
+          case _:
+            _log.severe('Unexpected response from login request :: $res');
+            return const AuthFailure(AuthenticationError.unknownError());
         }
       case ApiError():
-        {
-          return AuthResponse.fromApiError(res);
-        }
+        return AuthResponse.fromApiError(res);
     }
   }
 

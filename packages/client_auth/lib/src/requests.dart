@@ -1,5 +1,4 @@
-// import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:shared_data/shared_data.dart';
+import 'package:data_layer/data_layer.dart';
 
 /// {@template LogoutRequest}
 /// {@endtemplate}

@@ -78,8 +78,8 @@ void main() {
               const SocialAuthFailure(AuthenticationError.invalidPassword()),
             ),
           syncAuth: syncAuth,
-        );
-        await authRepo.initialize();
+        )..initialize();
+        await authRepo.ready;
         final AuthResponse result = await authRepo.logInWithEmailAndPassword(
           email: user.email!,
           password: pw,
@@ -90,20 +90,28 @@ void main() {
       timeout: const Timeout(Duration(seconds: 1)),
     );
 
-    test('successfully logs in a user on EM/PW login', () async {
-      when(() => syncAuth.logInWithEmailAndPassword(any())).thenAnswer(
-          (_) async => AuthSuccess(user, isNewUser: false, apiToken: 'abc'));
-      authRepo = AuthRepository(
-        FakeFirebaseAuth()..prepareLogin(socialUser),
-        syncAuth: syncAuth,
-      );
-      final AuthResponse result = await authRepo.logInWithEmailAndPassword(
-        email: user.email!,
-        password: pw,
-      );
-      expect(authRepo.lastUser, isNotNull);
-      expect(result, isAuthSuccess);
-    });
+    test(
+      'successfully logs in a user on EM/PW login',
+      () async {
+        when(() => syncAuth.logInWithEmailAndPassword(any())).thenAnswer(
+            (_) async => AuthSuccess(user, isNewUser: false, apiToken: 'abc'));
+        final firebaseAuth = FakeFirebaseAuth();
+        authRepo = AuthRepository(
+          firebaseAuth,
+          syncAuth: syncAuth,
+        );
+        await authRepo.ready;
+        expect(authRepo.lastUser, isNull);
+        firebaseAuth.prepareLogin(socialUser);
+        final AuthResponse result = await authRepo.logInWithEmailAndPassword(
+          email: user.email!,
+          password: pw,
+        );
+        expect(authRepo.lastUser, isNotNull);
+        expect(result, isAuthSuccess);
+      },
+      timeout: const Timeout(Duration(seconds: 1)),
+    );
 
     // test('successfully creates a user that is new to the app server',
     // () async {

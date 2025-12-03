@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:client_auth/client_auth.dart';
+import 'package:data_layer/data_layer.dart';
 import 'package:meta/meta.dart';
 import 'package:shared_data/shared_data.dart';
 
@@ -33,11 +34,14 @@ class FakeAuthRepository
   }) {
     _lastUser = initialUser;
     if (shouldMarkReady) {
-      markReady(initialUser);
+      _initCompleter.complete(initialUser);
+      readiness = Readiness.ready;
     }
   }
 
   final _controller = StreamController<AuthUser?>.broadcast();
+
+  final _initCompleter = Completer<AuthUser?>();
 
   AuthUser? _lastUser;
 
@@ -55,8 +59,9 @@ class FakeAuthRepository
   set lastUser(AuthUser? newUser) {
     _lastUser = newUser;
     _controller.add(newUser);
-    if (isNotResolved) {
-      markReady(newUser);
+    if (isNotReady) {
+      _initCompleter.complete(newUser);
+      readiness = Readiness.ready;
     }
   }
 

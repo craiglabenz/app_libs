@@ -13,6 +13,7 @@ dependencies:
     path: ../auth_client
   client_auth:
     path: ../../../packages/client_auth
+  data_layer: ^0.0.1-beta.8
   flutter:
     sdk: flutter
   flutter_secure_storage: ^10.0.0-beta.4

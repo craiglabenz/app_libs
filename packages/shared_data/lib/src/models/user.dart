@@ -1,8 +1,8 @@
 // ignore_for_file: always_put_required_named_parameters_first
 
+import 'package:data_layer/data_layer.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:logging/logging.dart';
-import 'package:shared_data/shared_data.dart';
 
 part 'user.freezed.dart';
 part 'user.g.dart';

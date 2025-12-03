@@ -63,6 +63,14 @@ class FirebaseAuthService extends StreamSocialAuthService {
   /// _firebaseAuth.authStateChanges(), which fires before auth methods return.
   bool _isAuthorizing = false;
 
+  Completer<SocialUser?> _initCompleter = Completer<SocialUser?>();
+
+  @override
+  void resetReadiness() {
+    _initCompleter = Completer<SocialUser?>();
+    super.resetReadiness();
+  }
+
   @override
   Future<SocialUser?> performInitialization() async {
     _log.finest('Initializing FirebaseAuthService');
@@ -82,17 +90,17 @@ class FirebaseAuthService extends StreamSocialAuthService {
     if (fake) {
       _emitUser(_fakeSocialUser, AuthEvent.emitted);
     }
-    return ready;
+    return _initCompleter.future;
   }
 
   void _emitUser(SocialUser? user, AuthEvent event) {
-    if (isNotResolved || user?.id != _lastUserEmitted?.id) {
+    if (isNotReady || user?.id != _lastUserEmitted?.id) {
       _lastUserEmitted = user;
       _lastAuthEventEmitted = event;
       _userUpdatesController.sink.add((user, event));
     }
-    if (isNotResolved) {
-      markReady(user);
+    if (isNotReady) {
+      _initCompleter.complete(user);
     }
   }
 

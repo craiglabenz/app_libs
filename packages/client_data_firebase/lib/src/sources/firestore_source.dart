@@ -1,7 +1,7 @@
 import 'package:client_data_firebase/client_data_firebase.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' hide Source;
+import 'package:data_layer/data_layer.dart';
 import 'package:logging/logging.dart';
-import 'package:shared_data/shared_data.dart';
 
 final _log = Logger('FirestoreSource');
 
@@ -95,7 +95,7 @@ class FirestoreSource<T> extends Source<T> {
 
   Future<(WriteResult<T>, T)> _setItem(T item, RequestDetails details) async {
     final itemId = bindings.getId(item);
-    if (itemId != null && !details.shouldOverwrite) {
+    if (itemId != null) {
       final existingItemResult = await getById(itemId, details);
       switch (existingItemResult) {
         case ReadSuccess<T>():

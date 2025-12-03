@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart' hide Filter;
-import 'package:shared_data/shared_data.dart';
+import 'package:data_layer/data_layer.dart';
 
 /// Adds the ability for a [Filter] to impact a Firestore [Query].
 mixin FirestoreFilter on Filter {

@@ -10,40 +10,66 @@ enum Readiness {
 
   /// Striving for readiness. Some or all dependencies not yet cleared.
   loading,
-
-  /// Failed to achieve readiness. This is potentially fatal.
-  failed,
 }
 
 /// Adds functionality to check and verify readiness. This usually constitutes
-/// completing some asynchronous setup operation, but could also involve
-/// depending on another object's readiness and then taking an action.
+/// completing some setup operation, but could also involve depending on
+/// another object's readiness and then taking an action.
 ///
-/// To use [ReadinessMixin], implement [performInitialization] and eventually
-/// call [markReady], passing in the instance of [T] loaded by the resource.
+/// Setup can be synchronous or asynchronous, which should be transparent to
+/// any code using this class.
+///
+/// To use [ReadinessMixin], implement [performInitialization] and then in
+/// other code which depends on this object's readiness, await the [ready]
+/// property.
 ///
 /// [T] is the central object this resource produces once ready. If no such
 /// resource exists, choose `void`.
+///
+/// Synchronous usage:
+/// ```dart
+/// class SyncResource with ReadinessMixin<SomeObject> {
+///   @override
+///   void performInitialization() {
+///     // Do setup...
+///     return SomeObject();
+///   }
+/// }
+///
+/// // Elsewhere
+/// final mySyncResource = SyncResource();
+/// mySyncResource.initialize();
+///
+/// // Yet elsewhere
+/// final SomeObject val = await mySyncResource.ready;
+/// ```
+///
+/// Asynchronous usage:
+/// ```dart
+/// class AsyncResource with ReadinessMixin<SomeObject> {
+///   @override
+///   Future<SomeObject> performInitialization() async {
+///     // Do setup...
+///     return SomeObject();
+///   }
+/// }
+///
+/// // Elsewhere
+/// final myAsyncResource = AsyncResource();
+/// myAsyncResource.initialize();
+///
+/// // Yet elsewhere
+/// final SomeObject val = await myAsyncResource.ready;
+/// ```
 mixin ReadinessMixin<T> {
   /// Cache of whether this object is ready. Set by the completer.
-  Readiness status = Readiness.loading;
+  Readiness readiness = Readiness.loading;
 
   /// Returns `true` if this object has successfully achieved readiness.
-  bool get isReady => status == Readiness.ready;
+  bool get isReady => readiness == Readiness.ready;
 
-  /// Returns `true` if this object has not yet successfully achieved readiness,
-  /// or if this object has failed.
-  bool get isNotReady => status != Readiness.ready;
-
-  /// Returns `true` if this object has failed to achieve readiness.
-  bool get failed => status == Readiness.failed;
-
-  /// Returns `true` if this object has either achieved readiness or died
-  /// trying.
-  bool get isResolved => status != Readiness.loading;
-
-  /// Returns `true` if this object is still trying to achieve readiness.
-  bool get isNotResolved => status == Readiness.loading;
+  /// Returns `true` if this object has not yet successfully achieved readiness.
+  bool get isNotReady => !isReady;
 
   // That which flips the readiness bit.
   var _readinessCompleter = Completer<T>();
@@ -51,11 +77,9 @@ mixin ReadinessMixin<T> {
   /// Resolves when readiness is achieved, or immediately if it has already been
   /// achieved.
   Future<T> get ready {
-    assert(
-      _hasCalledInitialize,
-      'Warning: Awaiting $this.ready without first calling initialize() will '
-      'hang infinitely. Call initialize() first.',
-    );
+    if (!_hasCalledInitialize) {
+      initialize();
+    }
     return _readinessCompleter.future;
   }
 
@@ -63,71 +87,70 @@ mixin ReadinessMixin<T> {
 
   /// Calls [performInitialization] with extra bookkeeping. Descendant classes
   /// should implement [performInitialization] but then invoke [initialize].
-  Future<void> initialize() {
+  void initialize() {
+    if (_hasCalledInitialize) {
+      _log.warning(
+        'Re-initializing readiness for $this. This is a no-op, but did you '
+        'potentially already await `ready`, which calls `initialize` if you '
+        'had not already call it?',
+      );
+      return;
+    }
+
     _log.finest('Initializing readiness for $this');
     _hasCalledInitialize = true;
-    performInitialization();
-    return _readinessCompleter.future;
+    final initializationResult = performInitialization();
+    if (initializationResult is Future<T>) {
+      unawaited(initializationResult.then(_markReady));
+    } else {
+      _markReady(initializationResult);
+    }
   }
 
-  /// Wires up all necessary resources for this object to be ready for general
-  /// use.
-  ///
-  /// The job of [initialize] is to set up any necessary resources and then call
-  /// [markReady] or [markReadinessFailed].
-  void performInitialization();
+  /// Classes using [ReadinessMixin] should implement this method to perform
+  /// any necessary initialization. Additionally, if there is a critical value
+  /// that is required for the object to be ready, it should be returned from
+  /// this method.
+  FutureOr<T> performInitialization();
 
-  /// Removes any established readiness, if for example a dependency of this
+  /// Resets any established readiness, if for example a dependency of this
   /// object has also lost readiness.
   ///
-  /// A common use case is anything that marks itself ready once a user session
-  /// is established; after that user logs out.
+  /// A common use case to call this method is for anything that marks itself
+  /// ready once a user session is established; after that user logs out.
   void resetReadiness() {
-    _log.fine('Resetting readiness for $this');
+    _log.finest('Resetting readiness for $this');
     _readinessCompleter = Completer<T>();
-    status = Readiness.loading;
+    _hasCalledInitialize = false;
+    readiness = Readiness.loading;
   }
 
   /// Marks this object as ready.
-  void markReady(T obj) {
+  void _markReady(T obj) {
     if (_readinessCompleter.isCompleted) {
-      if (failed) {
-        throw Exception(
-          'Cannot mark an object as ready after previously marking it unready. '
-          'Call resetReadiness() if you intended to do this.',
-        );
-      }
-      _log.fine(
+      throw Exception(
         'Redundantly marking $this ready when already ready. '
-        'Not a bad tongue twister.',
+        'Call resetReadiness() if you intended to do this.',
       );
-      return;
     }
-    _log.fine('Marking $this as ready with $obj');
-    status = Readiness.ready;
+    _log.finest('Marking $this as ready with $obj');
+    readiness = Readiness.ready;
     _readinessCompleter.complete(obj);
   }
+}
 
-  /// Mark this object is having failed to achieve readiness. This is different
-  /// than the time spent acquiring readiness, which does not indicate a
-  /// catastrophic failure as this likely does.
-  void markReadinessFailed() {
-    if (_readinessCompleter.isCompleted) {
-      if (isReady) {
-        throw Exception(
-          'Cannot mark an object as unready after previously marking it ready. '
-          'Call resetReadiness() if you intended to do this.',
-        );
-      }
-      _log.fine(
-        'Redundantly marking $this as failed when already marked as failed.',
-      );
-      return;
-    }
-    _log.fine('Marking $this as readiness: failed');
-    status = Readiness.failed;
-    _readinessCompleter.completeError(
-      'Failed to complete readiness check for $runtimeType',
-    );
+/// Version of [ReadinessMixin] which is immediately ready. Use this for
+/// subclasses of interfaces which support readiness, but which do not
+/// themselves perform any initialization.
+mixin InstantlyReadyMixin on ReadinessMixin<void> {
+  @override
+  Readiness get readiness => Readiness.ready;
+
+  @override
+  void performInitialization() {
+    // Nothing to be done
   }
+
+  @override
+  Future<void> get ready => Future.value();
 }

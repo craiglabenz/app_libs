@@ -1,6 +1,6 @@
 import 'dart:math';
+import 'package:data_layer/data_layer.dart';
 import 'package:equatable/equatable.dart';
-import 'package:shared_data/shared_data.dart';
 
 class TestModel {
   const TestModel({required this.id, this.msg = defaultMessage});
@@ -47,7 +47,7 @@ class TestModel {
   );
 }
 
-class MsgStartsWithFilter with EquatableMixin implements RestFilter, Filter {
+class MsgStartsWithFilter with EquatableMixin implements Filter {
   const MsgStartsWithFilter(this.value);
   final String value;
 
@@ -113,14 +113,14 @@ class FakeSourceList<T> extends SourceList<T> {
 ///
 /// Not the most performant class, as this re-serializes the model. Best used
 /// only for tests.
-class FieldEquals<Type, Value> extends Filter with RestFilter, EquatableMixin {
+class FieldEquals<T, Value> extends Filter with EquatableMixin {
   const FieldEquals(this.fieldName, this.value, this.getValue);
   final String fieldName;
   final Value? value;
-  final Value? Function(Type) getValue;
+  final Value? Function(T) getValue;
 
   @override
-  List<Object?> get props => [fieldName, value, Type.runtimeType];
+  List<Object?> get props => [fieldName, value, T.runtimeType];
 
   @override
   Map<String, String> toParams() =>

@@ -11,9 +11,10 @@ environment:
 dependencies:
   client_data_firebase:
     path: ../client_data_firebase
-  cloud_firestore: ^5.6.7
+  cloud_firestore: ^6.1.0
+  data_layer: ^0.0.1-beta.8
   equatable: ^2.0.5
-  firebase_auth: ^5.5.4
+  firebase_auth: ^6.1.2
   flutter:
     sdk: flutter
   freezed_annotation: ^3.0.0

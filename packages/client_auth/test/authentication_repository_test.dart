@@ -1,4 +1,5 @@
 import 'package:client_auth/client_auth.dart';
+import 'package:data_layer/data_layer.dart' show Readiness;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_data/shared_data.dart';
@@ -187,7 +188,9 @@ void main() {
       });
 
       test('calls signOut', () async {
-        authRepository.lastUser = MockAuthUser();
+        authRepository
+          ..lastUser = MockAuthUser()
+          ..readiness = Readiness.ready;
         when(() => syncAuth.logOut()).thenAnswer((_) async => null);
         await authRepository.logOut();
         expect(
@@ -222,7 +225,8 @@ void main() {
           );
           final emitted = <AuthUser?>[];
           final sub = authRepo.listen(emitted.add);
-          await authRepo.initialize();
+          authRepo.initialize();
+          await authRepo.ready;
           expect(emitted, equals([null, null]));
           await sub.cancel();
         },
@@ -240,7 +244,7 @@ void main() {
               .thenAnswer((_) async => user);
           final emitted = <AuthUser?>[];
           final sub = authRepo.listen(emitted.add);
-          await authRepo.initialize();
+          await authRepo.ready;
           expect(emitted, equals([null, user]));
           await sub.cancel();
         },

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:client_auth/client_auth.dart';
+import 'package:data_layer/data_layer.dart';
 import 'package:shared_data/shared_data.dart';
 
 /// Base building block of an [AuthRepository].
@@ -91,7 +92,7 @@ abstract class StreamSocialAuthService extends SocialAuthService
 /// yielded from a [SocialAuthService].
 ///
 /// This is where a [SocialUser] gets promoted to an [AuthUser].
-abstract class SyncAuthService {
+abstract class SyncAuthService with ReadinessMixin<void> {
   /// Verifies the existence of a session with who Firebase thinks is logged in.
   /// This is likely called on app start-up for users with existing accounts,
   /// since Firebase will emit their [FirebaseUser] record immediately.

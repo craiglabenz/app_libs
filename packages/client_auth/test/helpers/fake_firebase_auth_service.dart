@@ -14,6 +14,8 @@ class FakeFirebaseAuth extends StreamSocialAuthService {
   final StreamController<(SocialUser?, AuthEvent)> _controller =
       StreamController<(SocialUser?, AuthEvent)>();
 
+  final _initCompleter = Completer<SocialUser?>();
+
   /// Sets the user to be yielded by the next login/sign up attempt.
   // ignore: use_setters_to_change_properties
   void prepareLogin(
@@ -45,7 +47,9 @@ class FakeFirebaseAuth extends StreamSocialAuthService {
       (_lastEmittedUser, _lastAuthEvent ?? AuthEvent.authenticated),
     );
     _lastAuthEvent = null;
-    markReady(_lastEmittedUser);
+    if (isNotReady) {
+      _initCompleter.complete(_lastEmittedUser);
+    }
   }
 
   @override
@@ -115,5 +119,7 @@ class FakeFirebaseAuth extends StreamSocialAuthService {
   Future<SocialAuthResponse> createAnonymousAccount() async => _doLogin();
 
   @override
-  void dispose() {}
+  void dispose() {
+    _controller.close();
+  }
 }

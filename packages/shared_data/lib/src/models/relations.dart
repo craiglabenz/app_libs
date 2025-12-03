@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors_in_immutables
 
+import 'package:data_layer/data_layer.dart';
 import 'package:equatable/equatable.dart';
-import 'package:shared_data/shared_data.dart';
 
 /// {@template relatedModel}
 /// Connection for a model to a single related object.

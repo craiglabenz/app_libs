@@ -3,10 +3,10 @@
 
 import 'package:client_data_firebase/client_data_firebase.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' hide Filter;
+import 'package:data_layer/data_layer.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:shared_data/shared_data.dart';
 
 class FirebaseFirestoreMock extends Mock implements FirebaseFirestore {}
 
@@ -261,4 +261,7 @@ class _FirestoreFilterMock extends Filter with FirestoreFilter {
 
   @override
   Json toJson() => throw UnimplementedError();
+
+  @override
+  Params toParams() => throw UnimplementedError();
 }
