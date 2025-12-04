@@ -53,8 +53,6 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
 
   StreamSubscription<(SocialUser?, AuthEvent)>? _socialAuthSubscription;
 
-  Completer<AuthUser?> _initCompleter = Completer<AuthUser?>();
-
   AuthUser? _lastUser;
 
   /// The most recently / current [AuthUser] information. Will be null if the
@@ -80,16 +78,15 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
     _userUpdatesController.sink.add(newUser);
 
     if (isFirstRun) {
-      _initCompleter.complete(newUser);
+      markReady(newUser);
     }
     _log.finer('New AuthUser: $newUser');
   }
 
   @override
   void resetReadiness() {
-    _initCompleter = Completer<AuthUser?>();
-    _lastUser = null;
     super.resetReadiness();
+    _lastUser = null;
     _userUpdatesController.sink.add(null);
   }
 
@@ -148,7 +145,7 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
   ///
   /// This method is idempotent and can safely be called by any other class.
   @override
-  Future<AuthUser?> performInitialization() async {
+  void performInitialization() {
     _log.finest('Initializing AuthRepository');
     if (_socialAuth is StreamSocialAuthService) {
       _socialAuthSubscription ??= _socialAuth.listen(
@@ -158,8 +155,7 @@ class AuthRepository with ReadinessMixin<AuthUser?> {
       // meaning awaiting it is synonymous with awaiting our own
       // initCompleter.future which is resolved in the [lastUser] setter.
       _socialAuth.initialize();
-
-      return _initCompleter.future;
+      return;
     }
     throw Exception('Unexpected type of _socialAuth: $_socialAuth');
   }

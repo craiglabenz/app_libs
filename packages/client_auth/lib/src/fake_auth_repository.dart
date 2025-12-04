@@ -34,14 +34,11 @@ class FakeAuthRepository
   }) {
     _lastUser = initialUser;
     if (shouldMarkReady) {
-      _initCompleter.complete(initialUser);
-      readiness = Readiness.ready;
+      markReady(initialUser);
     }
   }
 
   final _controller = StreamController<AuthUser?>.broadcast();
-
-  final _initCompleter = Completer<AuthUser?>();
 
   AuthUser? _lastUser;
 
@@ -60,8 +57,7 @@ class FakeAuthRepository
     _lastUser = newUser;
     _controller.add(newUser);
     if (isNotReady) {
-      _initCompleter.complete(newUser);
-      readiness = Readiness.ready;
+      markReady(newUser);
     }
   }
 
@@ -72,7 +68,7 @@ class FakeAuthRepository
       );
 
   @override
-  Future<AuthUser?> performInitialization() => Future.value(lastUser);
+  void performInitialization() => markReady(lastUser);
 
   @override
   StreamSubscription<AuthUser?> listen(void Function(AuthUser? p1) cb) {

@@ -54,13 +54,18 @@ void main() {
         ..setItem(Nested(id: 'abc', body: 'message here'));
     });
 
-    test('seamlessly load obj', () async {
-      final obj = WithNestedDetail(
-        id: 'xyz',
-        comment: RelatedModel<Nested>(id: 'abc', repository: nestedRepository),
-      );
-      expect((await obj.comment.obj)!.body, 'message here');
-    });
+    test(
+      'seamlessly load obj',
+      () async {
+        final obj = WithNestedDetail(
+          id: 'xyz',
+          comment:
+              RelatedModel<Nested>(id: 'abc', repository: nestedRepository),
+        );
+        expect((await obj.comment.obj)!.body, 'message here');
+      },
+      timeout: const Timeout(Duration(seconds: 1)),
+    );
 
     test('return null for unknown id', () async {
       final obj = WithNestedDetail(
