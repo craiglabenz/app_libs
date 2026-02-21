@@ -11,8 +11,10 @@ final _log = Logger('AuthUserRepository');
 /// {@endtemplate}
 class AuthUserRepository {
   /// {@macro AuthUserRepository}
-  AuthUserRepository(SourceList<AuthUser> sourceList, this.bindings)
-      : _repo = Repository<AuthUser>(sourceList);
+  AuthUserRepository(
+    SourceList<AuthUser> sourceList,
+    this.bindings,
+  ) : _repo = Repository<AuthUser>(sourceList);
 
   /// Hidden inner [Repository] to make actual data access calls. Concealed so
   /// as to concretely only expose the desired method -- update the
@@ -26,6 +28,13 @@ class AuthUserRepository {
   /// Sends an updated [AuthUser] definition to the server.
   Future<AuthUser?> update(AuthUser user) => _repo.setItem(user);
 
+  // Future<AuthUser?> loadSavedAuthUser() async {
+  //   final result = await _repo.getItems(
+  //     details: RequestDetails.read(requestType: RequestType.allLocal),
+  //   );
+  //   if (result)
+  // }
+
   /// Loads the active session's [AuthUser] record from the server.
   Future<AuthUser?> refreshUser(String authUserId) async {
     assert(
@@ -35,7 +44,7 @@ class AuthUserRepository {
     );
 
     try {
-      final readResult = await _repo.sourceList.sources.last.getById(
+      final readResult = await _repo.getById(
         authUserId,
         RequestDetails.read(requestType: RequestType.refresh),
       );
@@ -52,7 +61,7 @@ class AuthUserRepository {
       }
     } on Exception catch (e) {
       _log.severe('Failed to load AuthUser with Id $authUserId :: $e');
-      return null;
     }
+    return null;
   }
 }

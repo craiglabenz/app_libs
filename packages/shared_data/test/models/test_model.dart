@@ -75,38 +75,29 @@ class FakeSourceList<T> extends SourceList<T> {
   void addObj(T obj) => objs.add(obj);
 
   @override
-  Future<ReadResult<T>> getById(
-    String id,
-    RequestDetails details,
-  ) =>
-      Future.value(
-        ReadSuccess<T>(objs.first, details: details),
+  Future<ReadResult<T>> getById(ReadOperation<T> op) => Future.value(
+        ReadSuccess<T>(objs.first, details: op.details),
       );
 
   @override
-  Future<ReadListResult<T>> getByIds(
-    Set<String> ids,
-    RequestDetails details,
-  ) =>
-      Future.value(
-        ReadListResult<T>.fromList([objs.first], details, {}, bindings.getId),
+  Future<ReadListResult<T>> getByIds(ReadByIdsOperation<T> op) => Future.value(
+        ReadListResult<T>.fromList(
+            [objs.first], op.details, {}, bindings.getId),
       );
 
   @override
-  Future<ReadListResult<T>> getItems(RequestDetails details) => Future.value(
-        ReadListResult<T>.fromList([objs.first], details, {}, bindings.getId),
+  Future<ReadListResult<T>> getItems(ReadListOperation<T> op) => Future.value(
+        ReadListResult<T>.fromList(
+            [objs.first], op.details, {}, bindings.getId),
       );
 
   @override
-  Future<WriteResult<T>> setItem(T item, RequestDetails details) =>
-      Future.value(WriteSuccess<T>(objs.first, details: details));
+  Future<WriteResult<T>> setItem(WriteOperation<T> op) =>
+      Future.value(WriteSuccess<T>(objs.first, details: op.details));
 
   @override
-  Future<WriteListResult<T>> setItems(
-    Iterable<T> items,
-    RequestDetails details,
-  ) =>
-      Future.value(WriteListSuccess<T>([objs.first], details: details));
+  Future<WriteListResult<T>> setItems(WriteListOperation<T> op) =>
+      Future.value(WriteListSuccess<T>([objs.first], details: op.details));
 }
 
 /// Checks whether a model's given field name equals the given value.

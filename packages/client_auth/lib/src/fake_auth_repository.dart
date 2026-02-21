@@ -68,7 +68,11 @@ class FakeAuthRepository
       );
 
   @override
-  void performInitialization() => markReady(lastUser);
+  void performInitialization() {
+    if (isNotReady) {
+      markReady(lastUser);
+    }
+  }
 
   @override
   StreamSubscription<AuthUser?> listen(void Function(AuthUser? p1) cb) {

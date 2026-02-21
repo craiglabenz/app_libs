@@ -1,4 +1,5 @@
 import 'package:client_auth/client_auth.dart';
+// import 'package:client_data/client_data.dart';
 import 'package:data_layer/data_layer.dart' show Readiness;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -250,6 +251,28 @@ void main() {
         },
         timeout: const Timeout(Duration(seconds: 1)),
       );
+    });
+
+    group('connectivity', () {
+      test('emits null user without connectivity and no saved value', () async {
+        final authRepo = AuthRepository(
+          FakeFirebaseAuth(),
+          syncAuth: syncAuth,
+          // connectivityService: FakeConnectivityService(false),
+        );
+        await authRepo.ready;
+        expect(authRepo.lastUser, isNull);
+      });
+
+      test('emits user without connectivity with saved value', () async {
+        final authRepo = AuthRepository(
+          FakeFirebaseAuth(),
+          syncAuth: syncAuth,
+          // connectivityService: FakeConnectivityService(false),
+        );
+        await authRepo.ready;
+        expect(authRepo.lastUser, user);
+      });
     });
   });
 }
