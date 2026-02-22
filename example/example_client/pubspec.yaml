@@ -1,0 +1,16 @@
+name: example_client
+description: Starting point for a Serverpod client.
+
+environment:
+  sdk: '^3.8.0'
+
+#resolution: workspace #--UNCOMMENT_LINE--#
+
+dependencies:
+  serverpod_auth_idp_client: 3.2.0
+  serverpod_client: 3.3.1
+dependency_overrides:
+  serverpod_auth_core_client:
+    path: /Users/craiglabenz/Dev/git/serverpod/serverpod/modules/serverpod_auth/serverpod_auth_core/serverpod_auth_core_client
+  serverpod_auth_idp_client:
+    path: /Users/craiglabenz/Dev/git/serverpod/serverpod/modules/serverpod_auth/serverpod_auth_idp/serverpod_auth_idp_client

@@ -1,0 +1,6 @@
+# melos_managed_dependency_overrides: serverpod_client,serverpod_serialization
+dependency_overrides:
+  serverpod_client:
+    path: /Users/craiglabenz/Dev/git/serverpod/serverpod/packages/serverpod_client
+  serverpod_serialization:
+    path: /Users/craiglabenz/Dev/git/serverpod/serverpod/packages/serverpod_serialization
