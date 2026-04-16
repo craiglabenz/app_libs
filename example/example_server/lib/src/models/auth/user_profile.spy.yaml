@@ -1,0 +1,36 @@
+### User profile for the app, hence "App"UserProfile to differentiate from
+### Serverpod's native models.
+###
+### Public information about an [AuthUser]. Clients will load this for
+### personalization purposes and always only for the active session; never for
+### other profiles the user may encounter while using the app.
+###
+### This is not to be confused with the [AppAuthSettings] class, which is an
+### account's private information.
+class: AppUserProfile
+serverOnly: true
+table: auth_user_profile
+
+fields:
+  # [id] shares the same value as its [AuthUser] record
+  id: UuidValue?, defaultPersist=random
+
+  # The user's username.
+  userName: String?
+
+  # The user's full name.
+  fullName: String?
+
+  # The user's profile image URL.
+  imageUrl: String?
+
+  # When this record was last updated.
+  updatedAt: DateTime
+
+  # When this record was first created.
+  createdAt: DateTime
+
+indexes:
+  user_profile_userName_idx:
+    fields: userName
+    unique: true

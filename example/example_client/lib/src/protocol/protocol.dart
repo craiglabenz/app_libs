@@ -11,12 +11,11 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'greetings/greeting.dart' as _i2;
+import 'package:example_shared/example_shared.dart' as _i2;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i3;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
-export 'greetings/greeting.dart';
 export 'client.dart';
 
 class Protocol extends _i1.SerializationManager {
@@ -53,11 +52,23 @@ class Protocol extends _i1.SerializationManager {
       }
     }
 
-    if (t == _i2.Greeting) {
-      return _i2.Greeting.fromJson(data) as T;
+    if (t == _i2.AuthSession) {
+      return _i2.AuthSession.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i2.Greeting?>()) {
-      return (data != null ? _i2.Greeting.fromJson(data) : null) as T;
+    if (t == _i2.UserSettingsModel) {
+      return _i2.UserSettingsModel.fromJson(data) as T;
+    }
+    if (t == _i2.UserProfileModel) {
+      return _i2.UserProfileModel.fromJson(data) as T;
+    }
+    if (t == _i1.getType<_i2.AuthSession?>()) {
+      return (data != null ? _i2.AuthSession.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i2.UserSettingsModel?>()) {
+      return (data != null ? _i2.UserSettingsModel.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i2.UserProfileModel?>()) {
+      return (data != null ? _i2.UserProfileModel.fromJson(data) : null) as T;
     }
     try {
       return _i3.Protocol().deserialize<T>(data, t);
@@ -70,7 +81,9 @@ class Protocol extends _i1.SerializationManager {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i2.Greeting => 'Greeting',
+      _i2.AuthSession => 'AuthSession',
+      _i2.UserSettingsModel => 'UserSettingsModel',
+      _i2.UserProfileModel => 'UserProfileModel',
       _ => null,
     };
   }
@@ -85,8 +98,12 @@ class Protocol extends _i1.SerializationManager {
     }
 
     switch (data) {
-      case _i2.Greeting():
-        return 'Greeting';
+      case _i2.AuthSession():
+        return 'AuthSession';
+      case _i2.UserSettingsModel():
+        return 'UserSettingsModel';
+      case _i2.UserProfileModel():
+        return 'UserProfileModel';
     }
     className = _i3.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -105,8 +122,14 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
-    if (dataClassName == 'Greeting') {
-      return deserialize<_i2.Greeting>(data['data']);
+    if (dataClassName == 'AuthSession') {
+      return deserialize<_i2.AuthSession>(data['data']);
+    }
+    if (dataClassName == 'UserSettingsModel') {
+      return deserialize<_i2.UserSettingsModel>(data['data']);
+    }
+    if (dataClassName == 'UserProfileModel') {
+      return deserialize<_i2.UserProfileModel>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);

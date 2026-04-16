@@ -16,8 +16,11 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'greetings/greeting.dart' as _i5;
-export 'greetings/greeting.dart';
+import 'auth/user_profile.dart' as _i5;
+import 'auth/user_settings.dart' as _i6;
+import 'package:example_shared/example_shared.dart' as _i7;
+export 'auth/user_profile.dart';
+export 'auth/user_settings.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -27,6 +30,150 @@ class Protocol extends _i1.SerializationManagerServer {
   static final Protocol _instance = Protocol._();
 
   static final List<_i2.TableDefinition> targetTableDefinitions = [
+    _i2.TableDefinition(
+      name: 'auth_user_profile',
+      dartName: 'AppUserProfile',
+      schema: 'public',
+      module: 'example',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'gen_random_uuid()',
+        ),
+        _i2.ColumnDefinition(
+          name: 'userName',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'fullName',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'imageUrl',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _i2.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'auth_user_profile_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'user_profile_userName_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'userName',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _i2.TableDefinition(
+      name: 'auth_user_settings',
+      dartName: 'AppUserSettings',
+      schema: 'public',
+      module: 'example',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'gen_random_uuid()',
+        ),
+        _i2.ColumnDefinition(
+          name: 'email',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'loggingId',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _i2.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'auth_user_settings_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'user_settings_email_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'email',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._i3.Protocol.targetTableDefinitions,
     ..._i4.Protocol.targetTableDefinitions,
     ..._i2.Protocol.targetTableDefinitions,
@@ -59,11 +206,35 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
 
-    if (t == _i5.Greeting) {
-      return _i5.Greeting.fromJson(data) as T;
+    if (t == _i5.AppUserProfile) {
+      return _i5.AppUserProfile.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i5.Greeting?>()) {
-      return (data != null ? _i5.Greeting.fromJson(data) : null) as T;
+    if (t == _i6.AppUserSettings) {
+      return _i6.AppUserSettings.fromJson(data) as T;
+    }
+    if (t == _i1.getType<_i5.AppUserProfile?>()) {
+      return (data != null ? _i5.AppUserProfile.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i6.AppUserSettings?>()) {
+      return (data != null ? _i6.AppUserSettings.fromJson(data) : null) as T;
+    }
+    if (t == _i7.AuthSession) {
+      return _i7.AuthSession.fromJson(data) as T;
+    }
+    if (t == _i7.UserSettingsModel) {
+      return _i7.UserSettingsModel.fromJson(data) as T;
+    }
+    if (t == _i7.UserProfileModel) {
+      return _i7.UserProfileModel.fromJson(data) as T;
+    }
+    if (t == _i1.getType<_i7.AuthSession?>()) {
+      return (data != null ? _i7.AuthSession.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i7.UserSettingsModel?>()) {
+      return (data != null ? _i7.UserSettingsModel.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i7.UserProfileModel?>()) {
+      return (data != null ? _i7.UserProfileModel.fromJson(data) : null) as T;
     }
     try {
       return _i3.Protocol().deserialize<T>(data, t);
@@ -79,7 +250,11 @@ class Protocol extends _i1.SerializationManagerServer {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i5.Greeting => 'Greeting',
+      _i7.AuthSession => 'AuthSession',
+      _i7.UserSettingsModel => 'UserSettingsModel',
+      _i7.UserProfileModel => 'UserProfileModel',
+      _i5.AppUserProfile => 'AppUserProfile',
+      _i6.AppUserSettings => 'AppUserSettings',
       _ => null,
     };
   }
@@ -94,8 +269,16 @@ class Protocol extends _i1.SerializationManagerServer {
     }
 
     switch (data) {
-      case _i5.Greeting():
-        return 'Greeting';
+      case _i7.AuthSession():
+        return 'AuthSession';
+      case _i7.UserSettingsModel():
+        return 'UserSettingsModel';
+      case _i7.UserProfileModel():
+        return 'UserProfileModel';
+      case _i5.AppUserProfile():
+        return 'AppUserProfile';
+      case _i6.AppUserSettings():
+        return 'AppUserSettings';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -118,8 +301,20 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
-    if (dataClassName == 'Greeting') {
-      return deserialize<_i5.Greeting>(data['data']);
+    if (dataClassName == 'AuthSession') {
+      return deserialize<_i7.AuthSession>(data['data']);
+    }
+    if (dataClassName == 'UserSettingsModel') {
+      return deserialize<_i7.UserSettingsModel>(data['data']);
+    }
+    if (dataClassName == 'UserProfileModel') {
+      return deserialize<_i7.UserProfileModel>(data['data']);
+    }
+    if (dataClassName == 'AppUserProfile') {
+      return deserialize<_i5.AppUserProfile>(data['data']);
+    }
+    if (dataClassName == 'AppUserSettings') {
+      return deserialize<_i6.AppUserSettings>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -155,6 +350,12 @@ class Protocol extends _i1.SerializationManagerServer {
       if (table != null) {
         return table;
       }
+    }
+    switch (t) {
+      case _i5.AppUserProfile:
+        return _i5.AppUserProfile.t;
+      case _i6.AppUserSettings:
+        return _i6.AppUserSettings.t;
     }
     return null;
   }

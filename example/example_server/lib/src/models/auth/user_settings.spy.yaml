@@ -1,0 +1,38 @@
+### Private information about an [AuthUser]. Clients will load this for
+### personalization purposes and always only for the active session; never for
+### other profiles the user may encounter while using the app.
+###
+### This is not to be confused with the [AuthProfile] class, which is an
+### account's public information (for leaderboards and such).
+###
+### Note that Serverpod's native [UserProfile] model is ignored and left dormant
+### because emails are private information. This also gives us a fresh place to
+### store other information which may be public for different apps, like geo
+### information.
+###
+### User settings for the app, prefixed with "App" to align it with the
+### "AppUserSettings" model.
+class: AppUserSettings
+serverOnly: true
+table: auth_user_settings
+
+fields:
+  # [id] shares the same value as its [AuthUser] record
+  id: UuidValue?, defaultPersist=random
+
+  # If we have an email for the user, this is where to find it.
+  email: String?
+
+  # Unique random Id to prefix to all logging statements
+  loggingId: UuidValue
+
+  # When this record was last updated.
+  updatedAt: DateTime
+
+  # When this record was first created.
+  createdAt: DateTime
+
+indexes:
+  user_settings_email_idx:
+    fields: email
+    unique: true

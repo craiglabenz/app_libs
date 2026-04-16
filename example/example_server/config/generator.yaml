@@ -2,3 +2,8 @@ type: server
 
 client_package_path: ../example_client
 server_test_tools_path: test/integration/test_tools
+
+extraClasses:
+  - package:example_shared/example_shared.dart:AuthSession
+  - package:example_shared/example_shared.dart:UserSettingsModel
+  - package:example_shared/example_shared.dart:UserProfileModel

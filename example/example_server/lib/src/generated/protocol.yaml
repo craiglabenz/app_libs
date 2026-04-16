@@ -1,3 +1,5 @@
+anonymousIdp:
+  - login:
 emailIdp:
   - login:
   - startRegistration:
@@ -9,5 +11,6 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
-greeting:
-  - hello:
+session:
+  - getCurrentUserProfile:
+  - getCurrentUserSettings:

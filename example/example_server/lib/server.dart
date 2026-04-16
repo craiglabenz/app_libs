@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:example_server/src/business/auth/auth_session_controller.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
+import 'package:serverpod_auth_idp_server/providers/anonymous.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
 
 import 'src/generated/endpoints.dart';
@@ -24,11 +26,15 @@ void run(List<String> args) async {
     ],
     identityProviderBuilders: [
       // Configure the email identity provider for email/password authentication.
+      AnonymousIdpConfig(),
       EmailIdpConfigFromPasswords(
         sendRegistrationVerificationCode: _sendRegistrationCode,
         sendPasswordResetVerificationCode: _sendPasswordResetCode,
       ),
     ],
+    authUsersConfig: AuthUsersConfig(
+      onAfterAuthUserCreated: AuthSessionController.onAfterAuthUserCreated,
+    ),
   );
 
   // Setup a default page at the web root.

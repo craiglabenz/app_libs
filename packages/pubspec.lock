@@ -199,21 +199,21 @@ packages:
       path: "../../data_layer/packages/data_layer"
       relative: true
     source: path
-    version: "0.0.2"
+    version: "0.0.2-rc.1"
   data_layer_flutter:
     dependency: "direct main"
     description:
       path: "../../data_layer/packages/data_layer_flutter"
       relative: true
     source: path
-    version: "0.0.2"
+    version: "0.0.2-rc.1"
   data_layer_hive:
     dependency: "direct main"
     description:
       path: "../../data_layer/packages/data_layer_hive"
       relative: true
     source: path
-    version: "0.0.2"
+    version: "0.0.2-rc.1"
   dbus:
     dependency: transitive
     description:
@@ -305,10 +305,10 @@ packages:
     dependency: "direct dev"
     description:
       name: freezed
-      sha256: "03dd9b7423ff0e31b7e01b2204593e5e1ac5ee553b6ea9d8184dff4a26b9fb07"
+      sha256: f23ea33b3863f119b58ed1b586e881a46bd28715ddcc4dbc33104524e3434131
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.4"
+    version: "3.2.5"
   freezed_annotation:
     dependency: "direct main"
     description:
@@ -675,30 +675,30 @@ packages:
       path: "../../../serverpod/serverpod/modules/serverpod_auth/serverpod_auth_core/serverpod_auth_core_client"
       relative: true
     source: path
-    version: "3.2.3"
+    version: "3.3.1"
   serverpod_auth_idp_client:
     dependency: "direct main"
     description:
       path: "../../../serverpod/serverpod/modules/serverpod_auth/serverpod_auth_idp/serverpod_auth_idp_client"
       relative: true
     source: path
-    version: "3.2.3"
+    version: "3.3.1"
   serverpod_client:
     dependency: transitive
     description:
       name: serverpod_client
-      sha256: "4add5cba3fd6f13d05f12928bff09752efc9096e83d0a8c7d67b4f036634f2b1"
+      sha256: e936d6fa951f548cf2a16f75a526d645162c3b88437ff57550fb596835266a00
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.3"
+    version: "3.3.1"
   serverpod_serialization:
     dependency: transitive
     description:
       name: serverpod_serialization
-      sha256: "69d0b721c4b7d50b53861681e1c7d385a3def0be9a52e89fd3bd0c704fce0d37"
+      sha256: b1422d3e99a26e8c5fc9cf09785cb2f6c10713cb08d46b2b86dd7054e9e7decd
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.3"
+    version: "3.3.1"
   shelf:
     dependency: transitive
     description:

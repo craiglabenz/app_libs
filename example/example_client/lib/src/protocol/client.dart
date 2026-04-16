@@ -16,8 +16,32 @@ import 'package:serverpod_client/serverpod_client.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
-import 'package:example_client/src/protocol/greetings/greeting.dart' as _i5;
-import 'protocol.dart' as _i6;
+import 'package:example_shared/src/models/user_profile.dart' as _i5;
+import 'package:example_shared/src/models/user_settings.dart' as _i6;
+import 'protocol.dart' as _i7;
+
+/// By extending [AnonymousIdpBaseEndpoint], the anonymous identity provider
+/// endpoints are made available on the server and enable the corresponding
+/// sign-in widget on the client.
+/// {@category Endpoint}
+class EndpointAnonymousIdp extends _i1.EndpointAnonymousIdpBase {
+  EndpointAnonymousIdp(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonymousIdp';
+
+  /// Creates a new anonymous account and returns its session.
+  ///
+  /// Invokes the [AnonymousIdp.beforeAnonymousAccount] callback if configured,
+  /// which may prevent account creation if the endpoint is protected.
+  @override
+  _i3.Future<_i4.AuthSuccess> login({String? token}) =>
+      caller.callServerEndpoint<_i4.AuthSuccess>(
+        'anonymousIdp',
+        'login',
+        {'token': token},
+      );
+}
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -240,21 +264,25 @@ class EndpointJwtRefresh extends _i4.EndpointRefreshJwtTokens {
   );
 }
 
-/// This is an example endpoint that returns a greeting message through
-/// its [hello] method.
 /// {@category Endpoint}
-class EndpointGreeting extends _i2.EndpointRef {
-  EndpointGreeting(_i2.EndpointCaller caller) : super(caller);
+class EndpointSession extends _i2.EndpointRef {
+  EndpointSession(_i2.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'greeting';
+  String get name => 'session';
 
-  /// Returns a personalized greeting message: "Hello {name}".
-  _i3.Future<_i5.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i5.Greeting>(
-        'greeting',
-        'hello',
-        {'name': name},
+  _i3.Future<_i5.UserProfile?> getCurrentUserProfile() =>
+      caller.callServerEndpoint<_i5.UserProfile?>(
+        'session',
+        'getCurrentUserProfile',
+        {},
+      );
+
+  _i3.Future<_i6.UserSettings?> getCurrentUserSettings() =>
+      caller.callServerEndpoint<_i6.UserSettings?>(
+        'session',
+        'getCurrentUserSettings',
+        {},
       );
 }
 
@@ -289,7 +317,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i6.Protocol(),
+         _i7.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -298,25 +326,29 @@ class Client extends _i2.ServerpodClientShared {
          disconnectStreamsOnLostInternetConnection:
              disconnectStreamsOnLostInternetConnection,
        ) {
+    anonymousIdp = EndpointAnonymousIdp(this);
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
-    greeting = EndpointGreeting(this);
+    session = EndpointSession(this);
     modules = Modules(this);
   }
+
+  late final EndpointAnonymousIdp anonymousIdp;
 
   late final EndpointEmailIdp emailIdp;
 
   late final EndpointJwtRefresh jwtRefresh;
 
-  late final EndpointGreeting greeting;
+  late final EndpointSession session;
 
   late final Modules modules;
 
   @override
   Map<String, _i2.EndpointRef> get endpointRefLookup => {
+    'anonymousIdp': anonymousIdp,
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
-    'greeting': greeting,
+    'session': session,
   };
 
   @override
